@@ -14,11 +14,11 @@
     .wrap{max-width:1280px;margin:28px auto;padding:18px}
     .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 18px rgba(12,23,48,0.06);overflow:hidden;position:relative}
     .grid{display:grid;grid-template-columns:360px 1fr;gap:0}
-    /* 平板及以下：单列布局（保持原先顺序：先详情后列表），避免影响桌面端 */
+    /* 平板及以下：单列布局（先列表后详情），满足手机端期望：点击后详情在列表下方 */
     @media (max-width:880px){
       .grid{grid-template-columns:1fr}
-      .aside{order:2}
-      .main{order:1}
+      .aside{order:1}
+      .main{order:2}
     }
     .aside{border-right:1px solid var(--border);padding:18px;height:640px;overflow:auto;position:relative;z-index:30} /* Eliya备注：侧栏整体层级提高，确保展开层在新增按钮之上 */
     .main{padding:20px}
@@ -58,6 +58,9 @@
     .right-title{display:flex;justify-content:space-between;align-items:flex-start}
     .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px}
     .price-card{padding:12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fbfdff)}
+    /* 选中时改为柔和的灰色强调，去掉绿色边框 */
+    .price-card.active{border-color:#cbd5e1;box-shadow:0 4px 12px rgba(2,6,23,0.06)}
+    .price-card:focus{outline:none}
     .pay-list{margin:0;padding-left:18px}
     .muted{color:var(--muted);font-size:13px}
     .btn{padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer}
@@ -73,10 +76,11 @@
     .pay-toggle{display:flex;gap:8px;margin:8px 0}
     .pill{padding:6px 12px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer}
     .pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
-    .qr-panel{margin-top:10px;padding:12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,#e8fff4,#ffffff)}
+    .qr-panel{margin-top:10px;padding:16px;border-radius:12px;border:1px solid var(--border);background:linear-gradient(180deg,#e8fff4,#ffffff);max-width:420px}
     .qr-header{font-weight:600;margin-bottom:8px}
-    .qr-box{display:flex;align-items:center;gap:12px}
-    #payQrImg{width:180px;border-radius:6px;box-shadow:0 4px 12px rgba(2,6,23,0.08);transition:opacity .3s}
+    .qr-box{display:flex;flex-direction:column;align-items:center;gap:12px}
+    .qr-box .small{text-align:center}
+    #payQrImg{width:240px;border-radius:8px;box-shadow:0 6px 16px rgba(2,6,23,0.08);transition:opacity .3s}
     .fade-out{opacity:0}
     .fade-in{opacity:1}
     /* 支付宝样式：蓝色渐变浅 50%（#8ABBFF -> #FFFFFF） */
@@ -97,6 +101,15 @@
     .small{font-size:12px;color:var(--muted)}
     .draggable-ghost{opacity:0.6;border:2px dashed #cbd5e1;background:linear-gradient(180deg,#fff,#fff)}    
     
+    /* 价格计算面板 */
+    .calc-panel{margin-top:14px;padding:12px;border-radius:10px;border:1px solid var(--border);background:#fff}
+    .calc-row{display:flex;align-items:center;gap:12px;margin-top:10px}
+    .qty-btn{width:42px;height:42px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:24px;line-height:1;cursor:pointer}
+    .qty-input{width:90px;padding:8px;border:1px solid var(--border);border-radius:8px;font-size:18px;text-align:center}
+    .total-box{min-width:160px;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:linear-gradient(180deg,#fff,#fbfdff);font-size:22px;font-weight:700}
+    /* 点按反馈：按下缩小10%，松开恢复 */
+    .pressable{transition:transform .10s ease-out;transform-origin:center center}
+    .pressable.pressed{transform:scale(0.9)}
     /* 黑色主题覆盖：去掉渐变，统一改为靠内偏灰色的纯底色（不影响二维码面板） */
     html[data-theme="black"] body{color:#f8fafc}
     html[data-theme="black"] .panel,
@@ -137,8 +150,11 @@
       .tag{font-size:12px}
       .more-btn{width:30px;height:30px}
       .price-grid{grid-template-columns:1fr}
-      .qr-box{flex-direction:column;align-items:flex-start}
+      .qr-box{flex-direction:column;align-items:center}
       #payQrImg{width:min(70vw,160px)}
+      .qty-btn{width:36px;height:36px;font-size:22px}
+      .qty-input{width:72px;font-size:16px}
+      .total-box{min-width:120px;font-size:20px}
       .footer{flex-direction:column;gap:8px}
       /* 避免按钮被内容遮挡：小屏使用固定定位 */
       .add-category{position:fixed;right:14px;bottom:14px}
@@ -210,6 +226,33 @@
               <div style="min-width:240px">
                 <div style="font-weight:600;margin-bottom:8px">价格选项</div>
                 <div id="prices"></div>
+                
+                <!-- 价格计算面板（放在左侧） -->
+                <div id="calcPanel" class="calc-panel" aria-label="价格计算">
+                  <div style="font-weight:600">价格计算</div>
+                  <div class="calc-row">
+                    <span class="muted">数量：</span>
+                    <button id="qtyMinus" class="qty-btn" aria-label="减少数量">−</button>
+                    <input id="qtyInput" class="qty-input" type="number" min="0" step="1" value="0" />
+                    <button id="qtyPlus" class="qty-btn" aria-label="增加数量">+</button>
+                  </div>
+                  <div class="calc-row">
+                    <span class="muted">价格：</span>
+                    <div id="totalPrice" class="total-box">¥0</div>
+                    <div id="unitPriceHint" class="small muted"></div>
+                  </div>
+                </div>
+
+                <!-- 下单示例流程（放在左侧） -->
+                <div style="margin-top:12px;font-size:13px;color:var(--muted)">
+                  下单示例流程：
+                  <ol style="padding-left:18px;margin-top:6px">
+                    <li>复制联系方式并添加客服/发工单</li>
+                    <li>说明游戏、服务器、当前段位与目标、期望时限</li>
+                    <li>付款并截图，提供订单编号</li>
+                    <li>客服确认后安排代练并提供进度截图</li>
+                  </ol>
+                </div>
               </div>
               <div>
                 <div style="font-weight:600;margin-bottom:8px">支付方式 & 下单</div>
@@ -234,15 +277,6 @@
                   <button id="payGuide" class="btn">查看付款说明</button>
                 </div>
 
-                <div style="margin-top:12px;font-size:13px;color:var(--muted)">
-                  下单示例流程：
-                  <ol style="padding-left:18px;margin-top:6px">
-                    <li>复制联系方式并添加客服/发工单</li>
-                    <li>说明游戏、服务器、当前段位与目标、期望时限</li>
-                    <li>付款并截图，提供订单编号</li>
-                    <li>客服确认后安排代练并提供进度截图</li>
-                  </ol>
-                </div>
               </div>
             </div>
 
@@ -332,6 +366,12 @@ const pricesEl = document.getElementById('prices');
 const paysEl = document.getElementById('pays');
 const copyBtn = document.getElementById('copyBtn');
 const payGuide = document.getElementById('payGuide');
+// 价格计算相关元素
+const qtyMinus = document.getElementById('qtyMinus');
+const qtyPlus = document.getElementById('qtyPlus');
+const qtyInput = document.getElementById('qtyInput');
+const totalPriceEl = document.getElementById('totalPrice');
+const unitPriceHint = document.getElementById('unitPriceHint');
 const addCategoryBtn = document.getElementById('addCategoryBtn');
 const modalBack = document.getElementById('modalBack');
 const modalTitle = document.getElementById('modalTitle');
@@ -355,6 +395,8 @@ const payQrImg = document.getElementById('payQrImg');
 const qrTitlePay = document.getElementById('qrTitlePay');
 
 let currentService = null; // 当前选中的服务（用于详情区显示与复制）
+let selectedUnitPrice = 0; // 当前选中的单价（用于价格计算）
+let selectedLabel = '';
 
 // --- 动态服务行生成 ---
 function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '', price: 0 }] }) {
@@ -730,12 +772,41 @@ function showService(svc, game){
   contactVal.textContent = `${svc.contact.type}: ${svc.contact.value}`;
 
   pricesEl.innerHTML = '';
+  // 重置当前选择的单价
+  selectedUnitPrice = 0;
+  selectedLabel = '';
   svc.priceOptions.forEach(p=>{
     const pc = document.createElement('div');
     pc.className = 'price-card';
     pc.innerHTML = `<div style="font-weight:600">${p.label}</div><div style="margin-top:6px;font-size:18px;font-weight:700">¥${p.price}</div>`;
+    pc.dataset.price = p.price;
+    pc.dataset.label = p.label;
+    pc.addEventListener('click',()=>{
+      // 选择此单价，并数量+1
+      selectedUnitPrice = Number(p.price) || 0;
+      selectedLabel = p.label || '';
+      pricesEl.querySelectorAll('.price-card').forEach(el=> el.classList.toggle('active', el===pc));
+      unitPriceHint.textContent = `(单价 ¥${selectedUnitPrice})`;
+      qtyInput.value = (Number(qtyInput.value)||0) + 1;
+      updateTotal();
+    });
     pricesEl.appendChild(pc);
   });
+
+  // 默认选择第一个单价
+  if(svc.priceOptions && svc.priceOptions.length){
+    selectedUnitPrice = Number(svc.priceOptions[0].price)||0;
+    selectedLabel = svc.priceOptions[0].label||'';
+    const first = pricesEl.querySelector('.price-card');
+    first && first.classList.add('active');
+    unitPriceHint.textContent = `(单价 ¥${selectedUnitPrice})`;
+  }else{
+    unitPriceHint.textContent = '';
+  }
+
+  // 重置数量与总价
+  if(qtyInput){ qtyInput.value = 0; }
+  updateTotal();
 
   paysEl.innerHTML = '';
   (svc.paymentMethods||[]).filter(m=> m !== 'QQ钱包').forEach(m=>{
@@ -758,7 +829,44 @@ function showService(svc, game){
   }
 
   // 已取消邮件下单按钮
+  // 注册点按反馈（为本次渲染产生的可点击元素添加缩放反馈）
+  addPressFeedback(detailPanel);
 }
+
+// 更新总价
+function updateTotal(){
+  if(!totalPriceEl) return;
+  const q = Math.max(0, Number(qtyInput && qtyInput.value || 0));
+  const total = (q * (typeof selectedUnitPrice !== 'undefined' ? selectedUnitPrice : 0)) || 0;
+  totalPriceEl.textContent = `¥${total}`;
+}
+
+// 数量加减与输入
+qtyPlus && qtyPlus.addEventListener('click',()=>{ qtyInput.value = (Number(qtyInput.value)||0)+1; updateTotal(); });
+qtyMinus && qtyMinus.addEventListener('click',()=>{ qtyInput.value = Math.max(0,(Number(qtyInput.value)||0)-1); updateTotal(); });
+qtyInput && qtyInput.addEventListener('input',()=>{ const v = Math.max(0, Math.floor(Number(qtyInput.value)||0)); qtyInput.value = v; updateTotal(); });
+
+// 点按反馈逻辑：按下时缩小 30%，松开/离开时恢复
+function registerPressable(el){
+  if(!el) return;
+  el.classList.add('pressable');
+  if(el.dataset.pressable==='1') return; // 防止重复绑定
+  el.dataset.pressable='1';
+  const down = ()=> el.classList.add('pressed');
+  const up = ()=> el.classList.remove('pressed');
+  el.addEventListener('pointerdown', down);
+  el.addEventListener('pointerup', up);
+  el.addEventListener('pointerleave', up);
+  el.addEventListener('pointercancel', up);
+}
+function addPressFeedback(scope=document){
+  const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.add-category', '.back-to-top', '.more-btn'];
+  const els = scope.querySelectorAll(selectors.join(','));
+  els.forEach(registerPressable);
+}
+
+// 初次加载时也为现有按钮添加反馈
+document.addEventListener('DOMContentLoaded', ()=> addPressFeedback(document));
 
 /* 支付方式切换与二维码过渡 */
 function switchPay(type){
