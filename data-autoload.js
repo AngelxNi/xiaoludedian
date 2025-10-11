@@ -17,7 +17,7 @@
   }
 
   async function autoload(){
-    // 优先策略：找到“数据库目录中数字文件名的最大值”，例如 1.json、2.json ... 以最大的为准
+    // 优先策略：优先尝试 latest.json 指向最新文件；否则在有限范围内扫描数字文件。
     // 兼容不同目录命名与仅存在较大数字文件（如仅有 3.json）
     const bases = ['./数据库/', './db/'];
 
@@ -60,19 +60,55 @@
       try{
         const qEl = document.getElementById('q');
         if(typeof renderList === 'function') renderList(qEl ? qEl.value : '');
+        // 为新渲染的元素绑定点按反馈
+        if(typeof addPressFeedback === 'function') addPressFeedback(document);
       }catch(e){}
       console.log('已自动加载备份 JSON：', url);
     }
 
+    async function tryLoadLatest(base){
+      // 支持 latest.json 格式：{ latest: "3.json" } 或 { latest: 3 }
+      const meta = await tryFetch(`${base}latest.json`);
+      if(meta && (meta.latest || meta.file)){
+        const latest = String(meta.latest || meta.file).replace(/\.json$/,'');
+        const n = parseInt(latest, 10);
+        if(!isNaN(n)){
+          return await loadNum(base, n);
+        }
+        // 若是字符串文件名
+        const url = `${base}${latest}.json`;
+        const obj = await tryFetch(url);
+        if(obj && obj.data && Array.isArray(obj.data)){
+          applyData(obj, url);
+          return true;
+        }
+      }
+      return false;
+    }
+
     // 针对每个可用目录，优先线性扫描 1..64，找出任何存在的数字文件
     for(const base of bases){
+      // 1) 优先尝试 latest.json
+      if(await tryLoadLatest(base)) return;
+
+      // 2) 快速候选：常见文件名（包含 3.json）
+      const quick = [`${base}3.json`, `${base}1.json`, `${base}菜单2-数据备份-2.json`, `${base}菜单2-数据备份.json`];
+      for(const url of quick){
+        const obj = await tryFetch(url);
+        if(obj && obj.data && Array.isArray(obj.data)){
+          applyData(obj, url);
+          return;
+        }
+      }
+
+      // 3) 受控范围的数字扫描（减少请求次数）：1..12
       let best = 0;
-      for(let i=1; i<=64; i++){
+      for(let i=1; i<=12; i++){
         if(await existsNum(base, i)) best = i;
       }
-      // 如果找到至少一个，继续向上扫描，尽量找到最大的数字文件（控制请求数量）
       if(best > 0){
-        for(let i=best+1; i<=Math.min(best+256, 2048); i++){
+        // 最多再向上探测 24 个（总计不超过 ~36 次）
+        for(let i=best+1; i<=Math.min(best+24, 256); i++){
           if(await existsNum(base, i)) best = i; else break;
         }
         await loadNum(base, best);
@@ -81,22 +117,6 @@
     }
 
     // 兜底策略：尝试固定文件名
-    // 兜底策略：尝试固定文件名（遍历所有 base）
-    for(const base of bases){
-      const candidates = [
-        `${base}1.json`,
-        `${base}菜单2-数据备份-2.json`,
-        `${base}菜单2-数据备份.json`
-      ];
-      for(const url of candidates){
-        const obj = await tryFetch(url);
-        if(obj && obj.data && Array.isArray(obj.data)){
-          applyData(obj, url);
-          return;
-        }
-      }
-    }
-
     // 如果依旧未找到，输出提示，避免空白体验
     console.warn('未检测到数据文件：请确认上传了 数据库/3.json（或 db/3.json）并且 JSON 格式包含 { data: [] }');
   }

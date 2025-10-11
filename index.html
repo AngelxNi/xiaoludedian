@@ -739,6 +739,10 @@ function renderList(filter='') {
 
     gamesEl.appendChild(wrap);
   });
+  // 为新渲染的列表元素绑定点按反馈（游戏卡片、服务项、按钮等）
+  if(typeof addPressFeedback === 'function'){
+    try{ addPressFeedback(document); }catch(e){}
+  }
 }
 
 /* ------------------ 显示服务详情（右侧面板） ------------------ */
