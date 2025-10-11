@@ -336,10 +336,10 @@
 
 <script>
 /* ------------------
-   代码注释（给代码小白看的说明）：
-   - localStorageKey: 页面会把你的 DATA 和 主题保存在浏览器 localStorage（本地存储），刷新或关闭浏览器再打开可以保留修改。
-   - saveData(): 每次新增/编辑/删除/排序后会调用它把最新的 DATA 存入 localStorage。
-   - loadData(): 页面加载时会尝试从 localStorage 读取数据；如果没有会加载示例数据。
+   代码注释：
+   - 不再使用浏览器 localStorage 保存 DATA 或主题；数据由 data-autoload.js 从 数据库/ JSON 加载。
+   - saveData(): 保留调用但不做任何本地持久化。
+   - loadData(): 初始返回空列表，等待 data-autoload.js 覆盖并渲染。
    - renderList(): 渲染左侧的游戏列表（包含拖拽把手和三点菜单）。
    - openModal() / closeModal(): 管理新增/编辑模态窗口。
   ------------------ */
@@ -483,28 +483,9 @@ function getServicesFromUI(gameId) {
   });
 }
 
-/* ------------------ 本地存储工具函数 ------------------ */
-function saveData(){
-  try{
-    localStorage.setItem(localStorageKey, JSON.stringify(DATA));
-    // 保存当前主题
-    const theme = document.documentElement.getAttribute('data-theme') || 'white';
-    localStorage.setItem(themeKey, theme);
-  }catch(e){
-    console.error('保存 localStorage 失败', e);
-  }
-}
-function loadData(){
-  try{
-    const raw = localStorage.getItem(localStorageKey);
-    if(raw){
-      return JSON.parse(raw);
-    }
-  }catch(e){
-    console.error('读取 localStorage 失败', e);
-  }
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
-}
+/* ------------------ 本地存储工具函数（禁用本地记忆） ------------------ */
+function saveData(){ /* 不进行任何本地持久化 */ }
+function loadData(){ return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
 
 /* ------------------ 文件保存/导入（优先使用文件系统访问 API） ------------------ */
 function serializeBackup(){
@@ -576,8 +557,7 @@ function applyBackupJSON(text){
     const obj = JSON.parse(text);
     if(!obj || !obj.data || !Array.isArray(obj.data)) throw new Error('文件格式不正确');
     DATA = obj.data;
-    // 保存到 localStorage 作为冗余
-    saveData();
+    // 不进行本地持久化
     // 恢复主题（如有）
     applyTheme(obj.theme || 'white');
     // 重新渲染左侧列表
@@ -1086,9 +1066,8 @@ function applyTheme(t){
   }
 }
 
-// 恢复上次保存的主题（如果有）
-const savedTheme = localStorage.getItem(themeKey) || 'white';
-applyTheme(savedTheme);
+// 默认主题（不做本地记忆）
+applyTheme('white');
 
 /* Eliya备注：展开/收起动画工具函数（0.1s，放在脚本内部，避免未定义错误） */
 function smoothShow(el){

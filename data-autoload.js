@@ -48,14 +48,10 @@
       }else{
         window.DATA = obj.data;
       }
-      // 冗余保存到 localStorage
-      if(typeof saveData === 'function'){
-        try{ saveData(); }catch(e){}
-      }
       // 恢复主题（如果 JSON 中有）
       if(typeof applyTheme === 'function'){
         try{
-          const theme = obj.theme || (localStorage.getItem('boost_theme_v1') || 'white');
+          const theme = obj.theme || 'white';
           applyTheme(theme);
         }catch(e){}
       }
