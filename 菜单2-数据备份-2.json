@@ -1,0 +1,249 @@
+{
+  "data": [
+    {
+      "id": "genshin",
+      "name": "原神",
+      "tag": "开放世界",
+      "services": [
+        {
+          "id": "genshin-1",
+          "title": "日常委托",
+          "desc": "只有每日任务",
+          "priceOptions": [
+            {
+              "label": "月",
+              "price": 65
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          }
+        },
+        {
+          "id": "genshin-2",
+          "title": "打每日体力",
+          "desc": "只打每日体力，可随意指定副本和boss，一天清一次",
+          "priceOptions": [
+            {
+              "label": "月",
+              "price": 65
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          }
+        },
+        {
+          "id": "genshin-3",
+          "title": "日常委托+每日体力",
+          "desc": "两个一起，体力可随意指定副本和boss，一天清一次",
+          "priceOptions": [
+            {
+              "label": "月",
+              "price": 120
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          }
+        },
+        {
+          "id": "genshin-4",
+          "title": "每周声望任务",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "周",
+              "price": 6
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          }
+        },
+        {
+          "id": "genshin-5",
+          "title": "版本纪行",
+          "desc": "通行证",
+          "priceOptions": [
+            {
+              "label": "月",
+              "price": 90
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          }
+        },
+        {
+          "id": "genshin-6",
+          "title": "未命名服务",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "单次",
+              "price": 0
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          }
+        }
+      ]
+    },
+    {
+      "id": "g1760091190321",
+      "name": "崩坏：星穹铁道",
+      "tag": "不开放世界（",
+      "services": [
+        {
+          "id": "g1760091190321-1",
+          "title": "日常体力委托",
+          "desc": "1111",
+          "priceOptions": [
+            {
+              "label": "一个月",
+              "price": 200
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          }
+        },
+        {
+          "id": "g1760091190321-2",
+          "title": "连角色",
+          "desc": "111",
+          "priceOptions": [
+            {
+              "label": "1个角色",
+              "price": 123
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          }
+        }
+      ]
+    },
+    {
+      "id": "g1760176412712",
+      "name": "1",
+      "tag": "",
+      "services": [
+        {
+          "id": "g1760176412712-1",
+          "title": "未命名服务",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "单次",
+              "price": 0
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "g1760176416036",
+      "name": "2",
+      "tag": "",
+      "services": [
+        {
+          "id": "g1760176416036-1",
+          "title": "未命名服务",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "单次",
+              "price": 0
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          }
+        }
+      ]
+    },
+    {
+      "id": "g1760176418952",
+      "name": "3",
+      "tag": "",
+      "services": [
+        {
+          "id": "g1760176418952-1",
+          "title": "未命名服务",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "单次",
+              "price": 0
+            }
+          ],
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          }
+        }
+      ]
+    }
+  ],
+  "theme": "lime"
+}
