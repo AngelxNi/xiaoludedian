@@ -14,11 +14,11 @@
     .wrap{max-width:1280px;margin:28px auto;padding:18px}
     .panel{background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 6px 18px rgba(12,23,48,0.06);overflow:hidden;position:relative}
     .grid{display:grid;grid-template-columns:360px 1fr;gap:0}
-    /* 平板及以下：单列布局，默认先展示左侧列表，再展示详情 */
+    /* 平板及以下：单列布局（保持原先顺序：先详情后列表），避免影响桌面端 */
     @media (max-width:880px){
       .grid{grid-template-columns:1fr}
-      .aside{order:1}
-      .main{order:2}
+      .aside{order:2}
+      .main{order:1}
     }
     .aside{border-right:1px solid var(--border);padding:18px;height:640px;overflow:auto;position:relative;z-index:30} /* Eliya备注：侧栏整体层级提高，确保展开层在新增按钮之上 */
     .main{padding:20px}
@@ -987,6 +987,8 @@ renderList();
 
 // End of script
 </script>
+<!-- 自动从仓库中的 JSON 备份加载数据（仅影响默认数据，不改桌面样式） -->
+<script src="data-autoload.js"></script>
 
 </body>
 </html>
