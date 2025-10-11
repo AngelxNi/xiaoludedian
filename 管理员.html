@@ -85,7 +85,7 @@
     /* 新增按钮固定在外层 panel 的右下角，避免被左侧 .aside 覆盖 */
     .add-category{position:absolute;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(16,185,129,0.18);z-index:20}
     /* 返回顶部按钮：与新增按钮同尺寸，位于其正上方，仅在手机端显示并在滚动一定距离后出现 */
-    .back-to-top{position:absolute;right:16px;bottom:72px;width:48px;height:48px;border-radius:12px;background:#64748b;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(2,6,23,0.18);z-index:50;pointer-events:auto}
+    .back-to-top{position:fixed;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:#64748b;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(2,6,23,0.18);z-index:1000;pointer-events:auto}
     @media (max-width: 768px){
       .back-to-top.show{display:flex}
     }
@@ -256,7 +256,11 @@
       </div>
 
       <!-- 手机端优化：返回顶部按钮（与新增按钮同尺寸，位于其正上方，仅在下滑一段后显示） -->
-      <button id="backToTopBtn" class="back-to-top" title="返回顶部">↑</button>
+      <button id="backToTopBtn" class="back-to-top" title="返回顶部" aria-label="返回顶部">
+        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+          <path d="M12 5l-7 7M12 5l7 7M12 5v12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
       <!-- 新增品类按钮（外框右下角，不遮挡左侧滚动条） -->
       <button id="addCategoryBtn" class="add-category" title="新增品类">+</button>
 
@@ -311,22 +315,8 @@
 const localStorageKey = 'boost_DATA_v1';
 const themeKey = 'boost_theme_v1';
 
-/* 默认示例数据（如果 localStorage 没数据就使用这些） */
-const DEFAULT_DATA = [
-  { id:'lol', name:'英雄联盟', tag:'MOBA', services:[
-    { id:'lol-1', title:'段位代冲（保底）', desc:'从当前段位冲到目标段位，含每日进度截图与战绩记录。', priceOptions:[{label:'青铜→白银',price:40},{label:'白银→黄金',price:90},{label:'黄金→铂金',price:180}], paymentMethods:['微信','支付宝'], contact:{type:'微信',value:'wx123_boost'}},
-    { id:'lol-2', title:'代练教学（陪练式）', desc:'边代练边讲解，适合想学习技巧的玩家。', priceOptions:[{label:'1小时',price:60},{label:'包10小时',price:520}], paymentMethods:['微信','支付宝'], contact:{type:'QQ',value:'123456789'}}
-  ]},
-  { id:'cs2', name:'CS2 (反恐精英2)', tag:'射击', services:[
-    { id:'cs2-1', title:'段位代练（匹配）', desc:'按场次计费，保留比赛录像供客户核验。', priceOptions:[{label:'单场',price:30},{label:'5场包',price:140}], paymentMethods:['微信','PayPal'], contact:{type:'Discord',value:'discord.gg/yourroom'}}
-  ]},
-  { id:'genshin', name:'原神', tag:'开放世界', services:[
-    { id:'genshin-1', title:'周常/素材代刷', desc:'按周常/素材种类与数量计价，安全操作。', priceOptions:[{label:'单次周常',price:25},{label:'素材刷x10',price:120}], paymentMethods:['微信','支付宝'], contact:{type:'微信',value:'wx_genshin_boost'}}
-  ]},
-  { id:'dota2', name:'DOTA2', tag:'MOBA', services:[
-    { id:'dota-1', title:'段位代练/段位保级', desc:'保级/冲分服务，提供进度截图与战绩。', priceOptions:[{label:'单场',price:35},{label:'包10场',price:300}], paymentMethods:['微信','支付宝','PayPal'], contact:{type:'工单',value:'support@yourstore.com'}}
-  ]}
-];
+/* 默认示例数据已移除：如果 localStorage 没数据则为空列表 */
+const DEFAULT_DATA = [];
 
 // 尝试从 localStorage 读取，如果没有则使用默认
 let DATA = loadData();
