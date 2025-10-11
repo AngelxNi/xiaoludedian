@@ -167,9 +167,11 @@
             <button class="theme-btn" title="橙色" data-theme="orange" style="background:#fff4e6"></button>
           </div>
           <!-- 文件保存/导入按钮（顶部工具栏，不改变现有布局） -->
-          <div class="file-io" style="display:flex;gap:8px">
+          <div class="file-io" style="display:flex;gap:8px;align-items:center">
             <button id="btnSaveFile" class="btn btn-primary" title="保存到 JSON 文件">保存到文件</button>
             <button id="btnLoadFile" class="btn" title="从 JSON 文件导入">从文件导入</button>
+            <button id="btnChangeDBDir" class="btn" title="切换数据库目录">切换数据库目录</button>
+            <span id="dbDirLabel" class="small muted" style="margin-left:8px"></span>
           </div>
         </div>
       </div>
@@ -349,6 +351,7 @@ const modalSave = document.getElementById('modalSave');
 const modalCancel = document.getElementById('modalCancel');
 const btnSaveFile = document.getElementById('btnSaveFile');
 const btnLoadFile = document.getElementById('btnLoadFile');
+const btnChangeDBDir = document.getElementById('btnChangeDBDir');
 
 // modal inputs（移除单一服务输入，改为多服务容器）
 const inpName = document.getElementById('inpName');
@@ -481,33 +484,203 @@ function serializeBackup(){
   return { data: DATA, theme };
 }
 
+// 计算下一个纯数字版本号（基于本地计数器），用于文件名如 "1.json"、"2.json"
+function getNextNumericVersion(){
+  try{
+    const key = 'admin_json_version_counter';
+    const raw = localStorage.getItem(key);
+    const cur = Math.max(1, parseInt(raw || '0', 10) || 0);
+    return cur; // 返回当前建议版本号；保存成功后再 +1
+  }catch(e){
+    return 1;
+  }
+}
+
+function bumpNumericVersion(){
+  try{
+    const key = 'admin_json_version_counter';
+    const raw = localStorage.getItem(key);
+    const cur = Math.max(1, parseInt(raw || '0', 10) || 0);
+    localStorage.setItem(key, String(cur + 1));
+  }catch(e){/* 忽略 */}
+}
+
+/* ------------------ 目录持久化（File System Access API） ------------------ */
+// 为满足“点击保存文件时直接写入 数据库/ 相对目录”，浏览器需要一次性目录授权；
+// 获得后把目录句柄持久化到 IndexedDB，之后保存即可直接写入而无需再次选择。
+const FS_DB_NAME = 'fs-handles';
+const FS_STORE = 'handles';
+
+function fsOpen(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(FS_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{
+      const db = req.result;
+      if(!db.objectStoreNames.contains(FS_STORE)){
+        db.createObjectStore(FS_STORE);
+      }
+    };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+async function fsGet(key){
+  const db = await fsOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(FS_STORE, 'readonly');
+    const store = tx.objectStore(FS_STORE);
+    const req = store.get(key);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+async function fsSet(key, value){
+  const db = await fsOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(FS_STORE, 'readwrite');
+    const store = tx.objectStore(FS_STORE);
+    const req = store.put(value, key);
+    req.onsuccess = ()=>resolve(true);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+async function verifyPermission(handle, mode = 'readwrite'){
+  try{
+    const opts = { mode };
+    if(await handle.queryPermission(opts) === 'granted') return true;
+    if(await handle.requestPermission(opts) === 'granted') return true;
+  }catch(e){ /* 忽略 */ }
+  return false;
+}
+
+async function getProjectRootDir(){
+  // 尝试读取已存的项目根目录句柄
+  let root = await fsGet('projectRoot');
+  if(root && await verifyPermission(root, 'readwrite')){
+    return root;
+  }
+  // 首次需要授权一次目录访问（请选择项目根目录或直接选择“数据库”目录）
+  if('showDirectoryPicker' in window){
+    root = await window.showDirectoryPicker();
+    if(await verifyPermission(root, 'readwrite')){
+      await fsSet('projectRoot', root);
+      return root;
+    }
+    throw new Error('未获得目录访问权限');
+  }
+  // 不支持：回退为下载
+  return null;
+}
+
+// 仅用于展示标签：不弹出授权窗口
+async function getSavedRootDirNoPrompt(){
+  try{
+    const root = await fsGet('projectRoot');
+    if(!root) return null;
+    const p = await root.queryPermission({ mode: 'readwrite' });
+    if(p !== 'granted') return null;
+    return root;
+  }catch(e){ return null; }
+}
+
+async function updateDbDirLabel(){
+  const el = document.getElementById('dbDirLabel');
+  if(!el) return;
+  const root = await getSavedRootDirNoPrompt();
+  if(!root){
+    el.textContent = '当前数据库目录：未设置';
+    return;
+  }
+  try{
+    if(root.name === '数据库'){
+      el.textContent = '当前数据库目录：数据库';
+    }else{
+      el.textContent = `当前数据库目录：${root.name}/数据库`;
+    }
+  }catch(e){
+    el.textContent = '当前数据库目录：已设置';
+  }
+}
+
+async function getDatabaseDir(){
+  const root = await getProjectRootDir();
+  if(!root) return null;
+  // 如果选择的就是“数据库”目录，直接返回；否则在根目录下获取/创建“数据库”子目录
+  try{
+    if(root.name === '数据库'){
+      return root;
+    }
+  }catch(e){}
+  try{
+    const dbDir = await root.getDirectoryHandle('数据库', { create: true });
+    return dbDir;
+  }catch(e){
+    return root;
+  }
+}
+
 async function saveToFile(){
   const payload = JSON.stringify(serializeBackup(), null, 2);
+  const ver = getNextNumericVersion();
+  const suggested = `${ver}.json`;
   try{
-    if('showSaveFilePicker' in window){
-      const handle = await window.showSaveFilePicker({
-        suggestedName: '菜单2-数据备份.json',
-        types: [{ description: 'JSON 文件', accept: { 'application/json': ['.json'] } }]
-      });
-      const writable = await handle.createWritable();
+    if('showDirectoryPicker' in window){
+      const dbDir = await getDatabaseDir();
+      if(!dbDir) throw new Error('当前浏览器不支持目录写入或未授权');
+      const fileHandle = await dbDir.getFileHandle(suggested, { create: true });
+      const writable = await fileHandle.createWritable();
       await writable.write(payload);
       await writable.close();
-      alert('已保存到文件。');
+      bumpNumericVersion();
+      alert(`已保存到 数据库/${suggested}`);
     }else{
       // 回退：触发下载到本地
       const blob = new Blob([payload], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = '菜单2-数据备份.json';
+      a.download = suggested;
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(a.href);
       a.remove();
       alert('已生成下载文件，请选择保存到目标文件夹。');
+      bumpNumericVersion();
     }
   }catch(e){
     console.error('保存失败', e);
     alert('保存失败：'+ e.message);
+  }
+}
+
+/* 切换数据库目录（重新授权/选择目录） */
+async function changeDatabaseDir(){
+  try{
+    if(!('showDirectoryPicker' in window)){
+      alert('当前浏览器不支持目录选择，请使用支持 File System Access API 的浏览器（如新版 Chrome/Edge）。');
+      return;
+    }
+    const newRoot = await window.showDirectoryPicker();
+    if(!(await verifyPermission(newRoot, 'readwrite'))){
+      alert('未获得目录写入权限');
+      return;
+    }
+    await fsSet('projectRoot', newRoot);
+    // 试探性创建/访问数据库目录，给出提示
+    const dbDir = await getDatabaseDir();
+    const testFile = await dbDir.getFileHandle('_test_access.txt', { create: true });
+    const w = await testFile.createWritable();
+    await w.write('ok');
+    await w.close();
+    // 清理测试文件（可选，某些浏览器尚不支持 remove 操作，忽略错误）
+    try{ if(dbDir.removeEntry) await dbDir.removeEntry('_test_access.txt'); }catch(_){}
+    alert('已切换数据库目录并验证写入权限。后续保存将直接写入该目录下的“数据库/”。如果你选择的就是“数据库”目录，将直接写入该目录。');
+    updateDbDirLabel();
+  }catch(e){
+    console.error('切换数据库目录失败', e);
+    alert('切换失败：'+ e.message);
   }
 }
 
@@ -830,6 +1003,10 @@ qEl.addEventListener('input',(e)=>renderList(e.target.value));
 // 顶部文件保存/导入按钮事件
 btnSaveFile && btnSaveFile.addEventListener('click', saveToFile);
 btnLoadFile && btnLoadFile.addEventListener('click', loadFromFile);
+btnChangeDBDir && btnChangeDBDir.addEventListener('click', changeDatabaseDir);
+
+// 初始化显示当前数据库目录标签
+updateDbDirLabel();
 
 /* ------------------ 模态：新增/编辑 品类 ------------------ */
 function openModal(mode, game=null, gameIndex=null){
@@ -1022,8 +1199,6 @@ renderList();
 </script>
 <!-- 自动从仓库中的 JSON 备份加载数据（仅影响默认数据，不改桌面样式） -->
 <script src="data-autoload.js"></script>
-<!-- 公开版只读模式：隐藏编辑/导入/保存/拖拽等控件，保留查看/复制/支付切换等 -->
-<script src="viewer-mode.js"></script>
 
 </body>
 </html>
