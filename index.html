@@ -22,9 +22,11 @@
     }
     .aside{border-right:1px solid var(--border);padding:18px;height:640px;overflow:auto;position:relative;z-index:30} /* Eliya备注：侧栏整体层级提高，确保展开层在新增按钮之上 */
     .main{padding:20px}
-    h1{font-size:18px;margin:0 0 6px}
+    h1{font-size:22px;margin:0 0 6px}
     p.lead{margin:0 0 12px;color:var(--muted);font-size:13px}
     .top-controls{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+    .panel-header{padding:12px;display:flex;justify-content:space-between;align-items:center}
+    .top-hint{white-space:nowrap}
     .theme-chooser{display:flex;gap:6px;align-items:center}
     .theme-btn{width:28px;height:20px;border-radius:6px;border:1px solid var(--border);cursor:pointer}
     .search{display:flex;gap:8px;margin-bottom:12px}
@@ -145,6 +147,9 @@
       .panel{border-radius:10px}
       .aside{height:auto;max-height:none;overflow:visible;border-right:none;border-top:1px solid var(--border);padding:12px}
       .main{padding:12px}
+      .panel-header{flex-wrap:wrap;gap:8px}
+      .top-controls{width:100%;justify-content:flex-start}
+      h1{font-size:20px}
       .game-card{padding:10px}
       .meta{font-size:16px}
       .tag{font-size:12px}
@@ -166,10 +171,10 @@
 <body>
   <div class="wrap">
     <div class="panel">
-      <div style="padding:12px;display:flex;justify-content:space-between;align-items:center">
+      <div class="panel-header">
         <div>
-          <h1 style="margin:0">代肝菜单</h1>
-          <div class="small muted">选择游戏 → 展开项目 → 查看报价与联系方式</div>
+          <h1 style="margin:0">小鹿帮帮</h1>
+          <div class="small muted top-hint">选择游戏 → 展开项目 → 查看报价与联系方式</div>
         </div>
 
         <!-- 主题选择器：切换页面主题颜色 -->
@@ -499,7 +504,7 @@ async function saveToFile(){
   try{
     if('showSaveFilePicker' in window){
       const handle = await window.showSaveFilePicker({
-        suggestedName: '菜单2-数据备份.json',
+        suggestedName: 'newdata.json',
         types: [{ description: 'JSON 文件', accept: { 'application/json': ['.json'] } }]
       });
       const writable = await handle.createWritable();
@@ -511,7 +516,7 @@ async function saveToFile(){
       const blob = new Blob([payload], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = '菜单2-数据备份.json';
+      a.download = 'newdata.json';
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(a.href);

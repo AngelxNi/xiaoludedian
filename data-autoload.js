@@ -17,7 +17,7 @@
   }
 
   async function autoload(){
-    // 优先策略：优先尝试 latest.json 指向最新文件；否则在有限范围内扫描数字文件。
+    // 优先策略：优先尝试固定文件名 newdata.json；如不存在，再尝试 latest.json 指向最新文件；否则在有限范围内扫描数字文件。
     // 兼容不同目录命名与仅存在较大数字文件（如仅有 3.json）
     const bases = ['./数据库/', './db/'];
 
@@ -88,7 +88,14 @@
 
     // 针对每个可用目录，优先线性扫描 1..64，找出任何存在的数字文件
     for(const base of bases){
-      // 1) 优先尝试 latest.json
+      // 0) 优先尝试固定文件名 newdata.json（支持你要求的“固定文件名覆盖保存”场景）
+      const fixed = await tryFetch(`${base}newdata.json`);
+      if(fixed && fixed.data && Array.isArray(fixed.data)){
+        applyData(fixed, `${base}newdata.json`);
+        return;
+      }
+
+      // 1) 其次尝试 latest.json
       if(await tryLoadLatest(base)) return;
 
       // 2) 快速候选：常见文件名（包含 3.json）
