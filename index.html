@@ -404,7 +404,7 @@ let selectedUnitPrice = 0; // 当前选中的单价（用于价格计算）
 let selectedLabel = '';
 
 // --- 动态服务行生成 ---
-function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '', price: 0 }] }) {
+function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '', price: 0 }], discount: { enabled: false, type: 'more' } }) {
   const row = document.createElement('div');
   row.className = 'svc-row';
   row.style.border = '1px solid var(--border)'; // Eliya备注：服务项方框的边框颜色在这里，修改 var(--border)
@@ -444,6 +444,44 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
   prrow.appendChild(priceLabel);
   prrow.appendChild(priceValue);
 
+  // 折扣设置：参与折扣 + 折扣方式
+  const discountRow = document.createElement('div');
+  discountRow.style.display = 'flex';
+  discountRow.style.alignItems = 'center';
+  discountRow.style.gap = '12px';
+  discountRow.style.marginBottom = '8px';
+
+  const discountLabel = document.createElement('label');
+  discountLabel.style.display = 'flex';
+  discountLabel.style.alignItems = 'center';
+  discountLabel.style.gap = '6px';
+
+  const discountEnabled = document.createElement('input');
+  discountEnabled.type = 'checkbox';
+  discountEnabled.checked = !!(svc.discount && svc.discount.enabled);
+  const discountEnabledText = document.createElement('span');
+  discountEnabledText.textContent = '参与折扣';
+  discountLabel.appendChild(discountEnabled);
+  discountLabel.appendChild(discountEnabledText);
+
+  const discountType = document.createElement('select');
+  discountType.style.minWidth = '180px';
+  discountType.innerHTML = `
+    <option value="more">越多越便宜</option>
+    <option value="second">第二份开始打折</option>
+    <option value="conditional">满足条件时打折（暂不实现）</option>
+  `;
+  discountType.value = (svc.discount && svc.discount.type) || 'more';
+  // 勾选时显示下拉
+  const updateDiscountUI = ()=>{
+    discountType.style.display = discountEnabled.checked ? '' : 'none';
+  };
+  updateDiscountUI();
+  discountEnabled.addEventListener('change', updateDiscountUI);
+
+  discountRow.appendChild(discountLabel);
+  discountRow.appendChild(discountType);
+
   const del = document.createElement('button');
   del.className = 'btn';
   del.textContent = '删除此服务';
@@ -456,10 +494,11 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
   row.appendChild(title);
   row.appendChild(desc);
   row.appendChild(prrow);
+  row.appendChild(discountRow);
   row.appendChild(del);
 
   // 存储引用，便于采集
-  row._refs = { title, desc, priceLabel, priceValue };
+  row._refs = { title, desc, priceLabel, priceValue, discountEnabled, discountType };
   return row;
 }
 
@@ -472,16 +511,19 @@ function getServicesFromUI(gameId) {
   const ctype = inpContactType.value.trim();
   const cval = inpContactValue.value.trim();
   return rows.map((row, idx) => {
-    const { title, desc, priceLabel, priceValue } = row._refs || {};
+    const { title, desc, priceLabel, priceValue, discountEnabled, discountType } = row._refs || {};
     const t = (title && title.value.trim()) || '未命名服务';
     const d = (desc && desc.value.trim()) || '';
     const pl = (priceLabel && priceLabel.value.trim()) || '单次';
     const pv = Number((priceValue && priceValue.value) || 0) || 0;
+    const disEnabled = !!(discountEnabled && discountEnabled.checked);
+    const disType = (discountType && discountType.value) || 'more';
     return {
       id: `${gameId}-${idx + 1}`,
       title: t,
       desc: d,
       priceOptions: [{ label: pl, price: pv }],
+      discount: { enabled: disEnabled, type: disType },
       paymentMethods: pays,
       contact: { type: ctype || '微信', value: cval || '' }
     };
@@ -767,7 +809,16 @@ function showService(svc, game){
   svc.priceOptions.forEach(p=>{
     const pc = document.createElement('div');
     pc.className = 'price-card';
-    pc.innerHTML = `<div style="font-weight:600">${p.label}</div><div style="margin-top:6px;font-size:18px;font-weight:700">¥${p.price}</div>`;
+    const discountText = (svc.discount && svc.discount.enabled)
+      ? (svc.discount.type === 'second' ? '第二份开始打折' : (svc.discount.type === 'conditional' ? '满足条件时打折' : '越多越便宜'))
+      : '';
+    pc.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-weight:600">${p.label}</div>
+        ${discountText ? `<div style="color:#f87171;font-size:12px">${discountText}</div>` : ''}
+      </div>
+      <div style="margin-top:6px;font-size:18px;font-weight:700">¥${p.price}</div>
+    `;
     pc.dataset.price = p.price;
     pc.dataset.label = p.label;
     pc.addEventListener('click',()=>{
@@ -826,8 +877,43 @@ function showService(svc, game){
 function updateTotal(){
   if(!totalPriceEl) return;
   const q = Math.max(0, Number(qtyInput && qtyInput.value || 0));
-  const total = (q * (typeof selectedUnitPrice !== 'undefined' ? selectedUnitPrice : 0)) || 0;
-  totalPriceEl.textContent = `¥${total}`;
+  const unit = (typeof selectedUnitPrice !== 'undefined' ? selectedUnitPrice : 0) || 0;
+  // 计算折扣百分比
+  let percent = 0;
+  const dis = currentService && currentService.discount;
+  if(dis && dis.enabled){
+    if(dis.type === 'more'){
+      if(q >= 4) percent = 0.10;
+      else if(q === 3) percent = 0.09;
+      else if(q === 2) percent = 0.08;
+      else percent = 0;
+    } else if(dis.type === 'second'){
+      percent = q >= 2 ? 0.10 : 0;
+    } else {
+      percent = 0; // conditional 暂不实现
+    }
+    if(percent > 0.10) percent = 0.10;
+  }
+  const baseTotal = q * unit;
+  const total = Math.round(baseTotal * (1 - percent));
+  const discountAmount = Math.max(0, baseTotal - total);
+  if(discountAmount > 0){
+    totalPriceEl.innerHTML = `¥${total} <span style="color:#f87171;font-size:12px">（已减¥${discountAmount}）</span>`;
+  } else {
+    totalPriceEl.textContent = `¥${total}`;
+  }
+  // 显示单价提示中的折扣信息
+  if(unitPriceHint){
+    if(unit > 0){
+      if(percent > 0){
+        unitPriceHint.textContent = `(单价 ¥${unit}，折扣 -${Math.round(percent*100)}%)`;
+      } else {
+        unitPriceHint.textContent = `(单价 ¥${unit})`;
+      }
+    } else {
+      unitPriceHint.textContent = '';
+    }
+  }
 }
 
 // 数量加减与输入
