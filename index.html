@@ -584,10 +584,13 @@ const inpContactValue = document.getElementById('inpContactValue');
         }
       }catch(e){}
     };
-    // 触屏设备优先使用 pointer 事件（广泛支持），并兼容 click
-    payQrImg.addEventListener('pointerup', (e)=>{ if(e.pointerType==='touch') handleTap(); }, { passive: true });
-    payQrImg.addEventListener('touchend', handleTap, { passive: true });
-    payQrImg.addEventListener('click', ()=>{ if(Date.now() >= __qrIgnoreClicksUntil) handleTap(); });
+    // 触屏设备优先使用 Pointer 事件；不与 touch/click 混用，避免一次单击被识别成双击
+    if(window.PointerEvent){
+      payQrImg.addEventListener('pointerup', (e)=>{ if(e.pointerType==='touch') handleTap(); }, { passive: true });
+    }else{
+      // 旧设备回退到 touchend
+      payQrImg.addEventListener('touchend', handleTap, { passive: true });
+    }
   }
 
 let currentService = null; // 当前选中的服务（用于详情区显示与复制）
