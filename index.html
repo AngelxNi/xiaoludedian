@@ -65,6 +65,8 @@
 .subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
 /* 子集备注样式：灰色、小字号，位于子集名称下方 */
 .subset-remark{font-size:12px;color:var(--muted);margin-top:4px}
+/* 子集展开时的强调效果（与游戏品类强调一致） */
+.subset.active-subset{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     .service{padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff}
     .service:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
     /* 手机端展开时的强调效果：类似按钮被按下（轻微缩放 + 高亮边框/阴影） */
@@ -924,6 +926,8 @@ function renderList(filter='') {
         const open = body.style.display === 'block';
         body.style.display = open ? 'none' : 'block';
         header.querySelector('.toggleIndicator').textContent = open ? '+' : '-';
+        // 子集展开时强调
+        if(!open){ group.classList.add('active-subset'); } else { group.classList.remove('active-subset'); }
       });
 
       group.appendChild(header);
@@ -1540,6 +1544,8 @@ backToTopBtn.addEventListener('click', ()=>{
     // 收起所有子集面板，并重置加号
     document.querySelectorAll('.subset-services').forEach(el=>{ el.style.display='none'; });
     document.querySelectorAll('.subset .toggleIndicator').forEach(el=>{ el.textContent = '+'; });
+    // 同时移除所有子集的强调态
+    document.querySelectorAll('.subset').forEach(el=>el.classList.remove('active-subset'));
   }catch(e){}
   // 手机端额外：收起内嵌面板与详情
   const isMobile = window.innerWidth <= 768;
