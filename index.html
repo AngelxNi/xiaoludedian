@@ -38,7 +38,7 @@
     .game{border-radius:10px;margin-bottom:8px;background:transparent;position:relative;display:block}
     .game-row{display:flex;align-items:stretch}
     /* 左侧拖拽把手 */
-    .handle{width:40px;display:flex;align-items:center;justify-content:center;cursor:grab;padding:6px}
+.handle{width:40px;display:flex;align-items:center;justify-content:center;cursor:grab;padding:6px}
     .handle:active{cursor:grabbing}
     .handle .bar{width:16px;height:2px;background:var(--muted);margin:2px 0;border-radius:2px}
     /* 卡片主体 */
@@ -55,18 +55,26 @@
     .menu{position:absolute;right:0;bottom:40px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(2,6,23,0.08);overflow:hidden;display:none;z-index:20}
     .menu button{display:block;padding:8px 12px;border:none;background:transparent;width:100%;text-align:left;cursor:pointer}
     .menu button:hover{background:#f6f9ff}
-    /* 服务列表：宽度 100%，在卡片下方 */
-.services{padding:8px;display:none;width:100%}
+    /* 服务列表：宽度 100%，在卡片下方（默认折叠），只使用 transform/opacity 动画，避免高度动画引发回流 */
+.services{padding:0 8px;display:block;width:100%;height:0;overflow:hidden}
+.services.open{height:auto;padding:8px}
+.anim-content{opacity:0;transform:translateY(-6px);transition:opacity 0.1s ease-out,transform 0.1s ease-out}
+.services.open > .anim-content{opacity:1;transform:translateY(0)}
+.services.closing > .anim-content{opacity:0;transform:translateY(-6px)}
 /* 子集分组（与管理员页保持一致的结构与样式，便于按子集展示服务）*/
 .subset{padding:8px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:8px}
 .subset-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
 .subset-name{font-weight:600}
-.subset-services{padding:8px 0 0 0;display:none}
+.subset-services{padding:0 0 0 0;display:block;height:0;overflow:hidden}
+.subset-services.open{height:auto;padding:8px 0 0 0}
+.subset-services > .anim-content{opacity:0;transform:translateY(-6px);transition:opacity 0.1s ease-out,transform 0.1s ease-out}
+.subset-services.open > .anim-content{opacity:1;transform:translateY(0)}
+.subset-services.closing > .anim-content{opacity:0;transform:translateY(-6px)}
 .subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
 /* 子集备注样式：灰色、小字号，位于子集名称下方 */
 .subset-remark{font-size:12px;color:var(--muted);margin-top:4px}
 /* 子集展开时的强调效果（与游戏品类强调一致） */
-.subset.active-subset{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
+    .subset.active-subset{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     .service{padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff}
     .service:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
     /* 手机端展开时的强调效果：类似按钮被按下（轻微缩放 + 高亮边框/阴影） */
@@ -203,11 +211,16 @@
     /* 黑色主题下的展开强调（夜间标准） */
     html[data-theme="black"] .service.active-svc{background:#232323 !important;border-color: var(--accent) !important;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
     /* 黑色主题：标签/提示颜色为浅灰 */
-    html[data-theme="black"] .tag,
-    html[data-theme="black"] .muted,
-    html[data-theme="black"] .toggleIndicator{
-      color: var(--muted) !important;
-    }
+html[data-theme="black"] .tag,
+html[data-theme="black"] .muted,
+html[data-theme="black"] .toggleIndicator{
+  color: var(--muted) !important;
+}
+/* 深色主题下把手改为蓝色系（仅视觉变化，无实际拖拽功能） */
+html[data-theme="black"] .handle .bar{ background: #8ABBFF !important; }
+html[data-theme="black"] .drag-handle .bar{ background: #8ABBFF !important; }
+/* 深色主题下右下“三点”改为蓝色系，确保可见性 */
+html[data-theme="black"] .dot{ background: #8ABBFF !important; }
 
     /* 其它主题的滚动条样式：与各主题主色（accent）和背景（bg）协调 */
     html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent) var(--bg); }
@@ -421,8 +434,7 @@
     <path d="M17.67 4.5 L22.67 8.5 L17.67 12.5 Z" fill="currentColor" transform="translate(20.67,8.5) rotate(-90) scale(1.5,1.2) translate(-19.67,-8.5) translate(-1.2,-0.2)" />
   </svg>
 </button>
-      <!-- 新增品类按钮（外框右下角，不遮挡左侧滚动条） -->
-      <button id="addCategoryBtn" class="add-category" title="新增品类">+</button>
+      
 
       <div class="footer">
         <div>说明：这里是说明还不知道说什么。</div>
@@ -431,36 +443,7 @@
     </div>
   </div>
 
-  <!-- 模态：新增/编辑品类（与之前新增界面一致） -->
-   <style id=\"modal-fixes\">#editModal, #modal, .modal, .modal-content, .modal-body { max-height: 80vh; overflow-y: auto; } #editModal input, #editModal textarea, #editModal select, #modal input, #modal textarea, #modal select, .modal input, .modal textarea, .modal select { border-radius: 10px !important; /* Eliya备注：新建/编辑代肝项目里输入框/下拉框的圆角在这里，改 10px 即可 */ } #editModal .box, #editModal .card, #editModal .service-row, #modal .box, #modal .card, #modal .service-row, .modal .box, .modal .card, .modal .service-row { border-radius: 10px; /* Eliya备注：模态内的卡片/服务项目容器圆角在这里，改 10px */ overflow: hidden; }</style>
-  <div id="modalBack" class="modal-backdrop" role="dialog" aria-hidden="true">
-    <div class="modal" role="document" aria-modal="true">
-      <h3 id="modalTitle">新增品类</h3>
-      <div class="form-row"><input id="inpName" placeholder="游戏名称（例：英雄联盟）" /></div>
-      <div class="form-row"><input id="inpTag" placeholder="分类标签（例：MOBA）" /></div>
-      
-      <div id="servicesContainer" style="margin:10px 0 0 0">
-        <!-- 在此处动态插入多个服务项，每一项包含：标题、描述、价格标签、价格，以及删除按钮 -->
-      </div>
-
-      <div class="form-row">
-        <select id="inpPayments" title="选择支付方式">
-          <option value="wechat">微信</option>
-          <option value="alipay">支付宝</option>
-          <option value="both" selected>微信和支付宝</option>
-        </select>
-      </div>
-      <div class="form-row"><input id="inpContactType" placeholder="联系方式类型（例：微信）" /><input id="inpContactValue" placeholder="联系方式值（例：wx123）" /></div>
-
-      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:12px">
-        <button id="btnAddService" class="btn">+新增服务</button>
-        <div style="display:flex;gap:8px">
-          <button id="modalCancel" class="btn">取消</button>
-          <button id="modalSave" class="btn btn-primary">保存</button>
-        </div>
-      </div>
-    </div>
-  </div>
+  
 
 <script>
 /* ------------------
@@ -841,16 +824,9 @@ function renderList(filter='') {
     wrap.className = 'game';
     wrap.dataset.gameId = game.id;
 
-    // 内部一行：handle + card + moreWrap
+    // 内部一行：仅卡片主体（公开站点不提供拖拽与更多菜单）
     const row = document.createElement('div');
     row.className = 'game-row';
-
-    // ===== 左侧拖拽把手（3 条横线） =====
-    const handle = document.createElement('div');
-    handle.className = 'handle';
-    handle.title = '按住拖动排序';
-    handle.innerHTML = '<div><div class=\"bar\"></div><div class=\"bar\"></div><div class=\"bar\"></div></div>';
-    row.appendChild(handle);
 
     // ===== 卡片主体（游戏名 + 标签 + toggleIndicator） =====
     const card = document.createElement('div');
@@ -860,30 +836,30 @@ function renderList(filter='') {
                         <div class="tag" style="font-size:13px;color:var(--muted)">${game.tag}</div>
                       </div>
                       <div class="toggleIndicator" style="font-size:20px;color:var(--muted);padding-left:8px">+</div>`;
+
+    // 左侧拖拽把手（仅作为装饰）
+    const handle = document.createElement('div');
+    handle.className = 'handle';
+    handle.setAttribute('aria-hidden','true');
+    handle.title = '拖拽把手（装饰）';
+    handle.innerHTML = '<div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
+    row.appendChild(handle);
+
+    // 卡片主体
     row.appendChild(card);
 
-    // ===== 右下三点菜单（更多操作：编辑/删除） =====
-    const moreWrap = document.createElement('div');
-    moreWrap.className = 'more-wrap';
-    moreWrap.innerHTML = `<div class="more-btn" title="更多操作" aria-haspopup="true" aria-expanded="false" role="button">
-                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center">
-                              <div class="dot"></div><div class="dot"></div><div class="dot"></div>
-                            </div>
-                          </div>
-                          <div class="menu" role="menu">
-                            <button class="edit">编辑</button>
-                            <button class="del" style="color:#b91c1c">删除</button>
-                          </div>`;
-    row.appendChild(moreWrap);
+    // 不添加更多菜单（编辑/删除）
 
     // 把这一行加入 wrap
     wrap.appendChild(row);
 
-    // ===== 服务列表（默认隐藏，点击卡片时切换显示） =====
+    // ===== 服务列表（默认折叠，点击卡片时淡入/滑出，0.1s 动效，仅 transform/opacity） =====
     const srvWrap = document.createElement('div');
     srvWrap.className = 'services';
-    srvWrap.style.display = 'none';
     srvWrap.setAttribute('aria-hidden','true');
+    const srvInner = document.createElement('div');
+    srvInner.className = 'anim-content';
+    srvWrap.appendChild(srvInner);
     // 按“子集”分组展示（支持同名子集，基于 subsetId 区分）。
     // 若无显式 subsets，则按服务的 subset 名称推断，并为缺失的服务补充 subsetId。
     let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
@@ -908,7 +884,8 @@ function renderList(filter='') {
 
       const body = document.createElement('div');
       body.className = 'subset-services';
-      body.style.display = 'none';
+      const bodyInner = document.createElement('div');
+      bodyInner.className = 'anim-content';
 
       // 填充该子集的服务（按 subsetId 精确匹配；兼容旧数据按名称匹配）
       (game.services||[])
@@ -918,40 +895,63 @@ function renderList(filter='') {
           sEl.className = 'service';
           sEl.innerHTML = `<div class="svc-title" style="font-weight:600">${svc.title}</div><div class="muted" style="margin-top:6px">${svc.desc}</div>`;
           sEl.addEventListener('click',()=>showService(svc,game,sEl));
-          body.appendChild(sEl);
+          bodyInner.appendChild(sEl);
         });
 
-      // 子集折叠/展开
+      // 子集折叠/展开（仅使用 transform/opacity 动画；收起先淡出，再移除 open）
       header.addEventListener('click',()=>{
-        const open = body.style.display === 'block';
-        body.style.display = open ? 'none' : 'block';
-        header.querySelector('.toggleIndicator').textContent = open ? '+' : '-';
-        // 子集展开时强调
-        if(!open){ group.classList.add('active-subset'); } else { group.classList.remove('active-subset'); }
+        const open = body.classList.contains('open');
+        if(open){
+          body.classList.add('closing');
+          body.setAttribute('aria-hidden','true');
+          header.querySelector('.toggleIndicator').textContent = '+';
+          group.classList.remove('active-subset');
+          setTimeout(()=>{ body.classList.remove('open'); body.classList.remove('closing'); }, 130);
+        }else{
+          body.classList.add('open');
+          body.setAttribute('aria-hidden','false');
+          header.querySelector('.toggleIndicator').textContent = '-';
+          group.classList.add('active-subset');
+        }
       });
 
       group.appendChild(header);
+      body.appendChild(bodyInner);
       group.appendChild(body);
-      srvWrap.appendChild(group);
+      srvInner.appendChild(group);
     });
     wrap.appendChild(srvWrap);
 
     // =========== 事件绑定 ===========
 
-    // 1) 切换展开/收起服务列表（点击卡片时）
+    // 1) 切换展开/收起服务列表（点击卡片时，仅使用 transform/opacity 动画）
     card.addEventListener('click',()=>{
-      const open = srvWrap.style.display === 'block';
+      const open = srvWrap.classList.contains('open');
       // 折叠其它已打开的服务（这里只影响可见的服务区域）
-      document.querySelectorAll('.game .services').forEach(el=>{ el.style.display='none'; el.setAttribute('aria-hidden','true'); });
+      document.querySelectorAll('.game .services').forEach(el=>{
+        el.classList.remove('open');
+        el.classList.remove('closing');
+        el.setAttribute('aria-hidden','true');
+      });
       document.querySelectorAll('.game .toggleIndicator').forEach(el=>el.textContent='+');
       // 移除所有卡片的强调态
       document.querySelectorAll('.game-card').forEach(el=>el.classList.remove('active-cat'));
-      srvWrap.style.display = open ? 'none' : 'block';
-      srvWrap.setAttribute('aria-hidden', open ? 'true' : 'false');
-      // 切换当前指示器为 + 或 -
-      card.querySelector('.toggleIndicator').textContent = open ? '+' : '-';
-      // 当前卡片强调（展开时）
-      if(!open){ card.classList.add('active-cat'); } else { card.classList.remove('active-cat'); }
+
+      if(open){
+        // 收起当前：先淡出，再移除 open
+        srvWrap.classList.add('closing');
+        srvWrap.setAttribute('aria-hidden','true');
+        card.querySelector('.toggleIndicator').textContent = '+';
+        card.classList.remove('active-cat');
+        setTimeout(()=>{ srvWrap.classList.remove('open'); srvWrap.classList.remove('closing'); }, 130);
+      }else{
+        // 打开当前：直接添加 open，内容淡入/下滑
+        srvWrap.classList.add('open');
+        srvWrap.setAttribute('aria-hidden','false');
+        // 切换当前指示器为 - 并强调卡片
+        card.querySelector('.toggleIndicator').textContent = '-';
+        card.classList.add('active-cat');
+      }
 
       // 若是收起该品类，同时收起当前代肝项目的内嵌面板，并重置状态
       if(open){
@@ -977,87 +977,7 @@ function renderList(filter='') {
       }
     });
 
-    // 2) 三点按钮：展开/收起菜单
-    const moreBtn = moreWrap.querySelector('.more-btn');
-    const menu = moreWrap.querySelector('.menu');
-    moreBtn.addEventListener('click',(e)=>{
-      e.stopPropagation();
-      const expanded = menu.style.display === 'block';
-      // 先关闭页面上其它菜单
-      document.querySelectorAll('.more-wrap .menu').forEach(m=>{ if(m!==menu) m.style.display='';});
-      menu.style.display = expanded ? '' : 'block';
-    });
-    // 点击页面任意处关闭菜单
-    document.addEventListener('click',()=>{
-      document.querySelectorAll('.more-wrap .menu').forEach(m=>m.style.display='');
-    });
-
-    // 3) 编辑按钮（打开 modal，并填入数据，供修改）
-    moreWrap.querySelector('.edit').addEventListener('click',(e)=>{
-      e.stopPropagation();
-      openModal('edit', game, gameIndex);
-      menu.style.display='';
-    });
-
-    // 4) 删除按钮（删除该游戏品类）
-    moreWrap.querySelector('.del').addEventListener('click',(e)=>{
-      e.stopPropagation();
-      if(confirm('确认删除此品类？该操作不可恢复。')){
-        // 从 DATA 中删除
-        DATA = DATA.filter(d=>d.id !== game.id);
-        saveData();
-        renderList(qEl.value);
-        // 若当前详情区显示的服务属于被删除游戏，隐藏详情区
-        if(currentService && currentService.game && currentService.game.id === game.id){
-  /* Eliya备注：隐藏右侧详情改为平滑动画 */
-  smoothHide(detailPanel);
-  detailPlaceholder.classList.remove('hidden');
-        }
-      }
-      menu.style.display='';
-    });
-
-    /* --------- 拖拽相关（只在按住左侧把手时允许拖动） --------- */
-    handle.addEventListener('mousedown', (ev)=>{
-      // 设置可拖拽
-      wrap.setAttribute('draggable','true');
-      wrap.classList.add('draggable-ghost');
-    });
-    handle.addEventListener('mouseup', ()=>{
-      wrap.removeAttribute('draggable');
-      wrap.classList.remove('draggable-ghost');
-    });
-    handle.addEventListener('mouseleave', ()=>{
-      wrap.removeAttribute('draggable');
-      wrap.classList.remove('draggable-ghost');
-    });
-
-    wrap.addEventListener('dragstart', (e)=>{
-      e.dataTransfer.setData('text/plain', game.id);
-    });
-
-    wrap.addEventListener('dragover', (e)=>{
-      e.preventDefault();
-      wrap.style.outline = '2px dashed #cbd5e1';
-    });
-    wrap.addEventListener('dragleave', ()=>{ wrap.style.outline=''; });
-    wrap.addEventListener('drop', (e)=>{
-      e.preventDefault();
-      wrap.style.outline='';
-      const srcId = e.dataTransfer.getData('text/plain');
-      const dstId = wrap.dataset.gameId;
-      if(!srcId || srcId === dstId) return;
-      const srcIndex = DATA.findIndex(d=>d.id===srcId);
-      const dstIndex = DATA.findIndex(d=>d.id===dstId);
-      if(srcIndex<0||dstIndex<0) return;
-      const [item] = DATA.splice(srcIndex,1);
-      DATA.splice(dstIndex,0,item);
-      saveData();
-      renderList(qEl.value);
-    });
-
-    // 5) 阻止点击更多按钮和编辑时触发折叠等
-    moreWrap.addEventListener('click',(e)=>e.stopPropagation());
+    // 公开站点不提供更多菜单与拖拽排序
 
     gamesEl.appendChild(wrap);
   });
@@ -1394,86 +1314,9 @@ qEl.addEventListener('input',(e)=>renderList(e.target.value));
 btnSaveFile && btnSaveFile.addEventListener('click', saveToFile);
 btnLoadFile && btnLoadFile.addEventListener('click', loadFromFile);
 
-/* ------------------ 模态：新增/编辑 品类 ------------------ */
-function openModal(mode, game=null, gameIndex=null){
-  modalBack.style.display = 'flex';
-  modalBack.setAttribute('aria-hidden','false');
+/* 已移除管理员模态相关功能（公开站点不支持新增/编辑品类） */
 
-  // 重置
-  servicesContainer.innerHTML = '';
-
-  if(mode === 'edit' && game){
-    modalTitle.textContent = '编辑品类';
-    inpName.value = game.name;
-    inpTag.value = game.tag || '';
-
-    // 使用该品类第一个服务的支付与联系方式作为默认
-    const baseSvc = game.services[0] || {};
-    // 根据第一个服务的支付方式推断下拉默认值
-    const pm = (baseSvc.paymentMethods||[]);
-    if(pm.includes('微信') && pm.includes('支付宝')){ inpPayments.value = 'both'; }
-    else if(pm.includes('支付宝')){ inpPayments.value = 'alipay'; }
-    else { inpPayments.value = 'wechat'; }
-    inpContactType.value = (baseSvc.contact && baseSvc.contact.type) || '';
-    inpContactValue.value = (baseSvc.contact && baseSvc.contact.value) || '';
-
-    // 渲染已有服务项
-    (game.services||[]).forEach(s=>{
-      servicesContainer.appendChild(makeServiceRow(s));
-    });
-
-    // 保存逻辑：收集多个服务项
-    modalSave.onclick = ()=>{
-      const updated = {
-        id: game.id,
-        name: inpName.value.trim() || game.name,
-        tag: inpTag.value.trim() || game.tag,
-        services: getServicesFromUI(game.id)
-      };
-      DATA[gameIndex] = updated;
-      saveData();
-      closeModal();
-      renderList(qEl.value);
-    };
-  } else {
-    modalTitle.textContent = '新增品类';
-    inpName.value=''; inpTag.value='';
-    inpPayments.value='both'; inpContactType.value=''; inpContactValue.value='';
-
-    // 默认先添加一个空服务项
-    servicesContainer.appendChild(makeServiceRow());
-
-    modalSave.onclick = ()=>{
-      const nid = 'g'+Date.now();
-      const newGame = {
-        id: nid,
-        name: inpName.value.trim() || '新游戏',
-        tag: inpTag.value.trim() || '',
-        services: getServicesFromUI(nid)
-      };
-      DATA.push(newGame);
-      saveData();
-      closeModal();
-      renderList(qEl.value);
-    };
-  }
-}
-
-// 绑定+新增服务按钮
-btnAddService.addEventListener('click', ()=>{
-  servicesContainer.appendChild(makeServiceRow());
-});
-
-modalCancel.addEventListener('click', closeModal);
-modalBack.addEventListener('click',(e)=>{ if(e.target===modalBack) closeModal(); });
-
-function closeModal(){
-  modalBack.style.display='none';
-  modalBack.setAttribute('aria-hidden','true');
-}
-
-/* 点击新增按钮打开 modal */
-addCategoryBtn.addEventListener('click', ()=> openModal('new'));
+// 已移除管理员模态与新增品类按钮（公开站点不支持新增/编辑）
 
 /* ------------------ 手机端：返回顶部按钮（滚动后显示） ------------------ */
 const backToTopBtn = document.getElementById('backToTopBtn');
@@ -1535,14 +1378,14 @@ backToTopBtn.addEventListener('click', ()=>{
 
   // 同时执行收起与重置（无论桌面还是手机）
   try{
-    // 收起所有品类的服务列表
-    document.querySelectorAll('.game .services').forEach(el=>{ el.style.display='none'; el.setAttribute('aria-hidden','true'); });
+    // 收起所有品类的服务列表（transform/opacity 动画版）
+    document.querySelectorAll('.game .services').forEach(el=>{ el.classList.remove('closing'); el.classList.remove('open'); el.setAttribute('aria-hidden','true'); });
     document.querySelectorAll('.game .toggleIndicator').forEach(el=>el.textContent='+');
     document.querySelectorAll('.game-card').forEach(el=>el.classList.remove('active-cat'));
   }catch(e){}
   try{
-    // 收起所有子集面板，并重置加号
-    document.querySelectorAll('.subset-services').forEach(el=>{ el.style.display='none'; });
+    // 收起所有子集面板（transform/opacity 动画版）并重置加号
+    document.querySelectorAll('.subset-services').forEach(el=>{ el.classList.remove('closing'); el.classList.remove('open'); el.setAttribute('aria-hidden','true'); });
     document.querySelectorAll('.subset .toggleIndicator').forEach(el=>{ el.textContent = '+'; });
     // 同时移除所有子集的强调态
     document.querySelectorAll('.subset').forEach(el=>el.classList.remove('active-subset'));
