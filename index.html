@@ -248,6 +248,8 @@
     @media (max-width:600px){
       .wrap{max-width:100%;padding:12px}
       .panel{border-radius:10px}
+      /* 屏蔽手机端图片长按的系统菜单（iOS/Android） */
+      #payQrImg, .qr-img-wrap{ -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; touch-action: manipulation; }
       .aside{height:auto;max-height:none;overflow:visible;border-right:none;border-top:1px solid var(--border);padding:12px}
       .main{padding:12px}
       .panel-header{flex-wrap:wrap;gap:8px}
@@ -388,7 +390,7 @@
                   <div class="qr-box">
         <picture class="qr-img-wrap">
           <source type="image/webp" srcset="微信收款码.webp" />
-          <img id="payQrImg" src="微信收款码.png" alt="收款码" decoding="async" fetchpriority="high" />
+          <img id="payQrImg" src="微信收款码.png" alt="收款码" decoding="async" fetchpriority="high" draggable="false" />
         </picture>
                     <div id="qrHint" class="small muted">请使用对应 App 扫码付款</div>
                   </div>
@@ -581,6 +583,9 @@ const inpContactValue = document.getElementById('inpContactValue');
     const cancel = ()=>{ try{ clearTimeout(__qrLongPressTimer); __qrShouldDownload = false; }catch(e){} };
     // 触屏长按
     payQrImg.addEventListener('touchstart', start, { passive: true });
+    // 屏蔽系统的长按菜单（部分浏览器会触发 contextmenu）
+    payQrImg.addEventListener('contextmenu', (e)=>{ e.preventDefault(); e.stopPropagation(); });
+    payQrImg.addEventListener('dragstart', (e)=>{ e.preventDefault(); e.stopPropagation(); });
     payQrImg.addEventListener('touchend', ()=>{
       try{
         const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
