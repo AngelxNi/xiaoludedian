@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="black">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -7,7 +7,7 @@
   <style>
     /* 主题变量（会被 JS 动态切换） */
     :root{
-      --bg:#f6f7fb;--card:#ffffff;--muted:#6b7280;--accent:#10b981;--border:#e6e9ef;
+      --bg:#f6f7fb;--card:#ffffff;--muted:#6b7280;--accent:#10b981;--border:#e6e9ef;--border-strong:#cbd5e1;
     }
     /* 基本重置和排版 */
     *{box-sizing:border-box}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;background:var(--bg);color:#0f172a}
@@ -53,15 +53,15 @@
     .menu button{display:block;padding:8px 12px;border:none;background:transparent;width:100%;text-align:left;cursor:pointer}
     .menu button:hover{background:#f6f9ff}
     /* 服务列表：宽度 100%，在卡片下方 */
-.services{padding:8px;display:none;width:100%}
-/* 子集分组（与管理员页保持一致的结构与样式，便于按子集展示服务）*/
-.subset{padding:8px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:8px}
-.subset-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-.subset-name{font-weight:600}
-.subset-services{padding:8px 0 0 0;display:none}
-.subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
-    .service{padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff}
-    .service:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
+    .services{padding:8px;display:none;width:100%}
+    /* 子集分组（第二层级）样式：保持与现有风格一致 */
+    .subset{padding:8px;border:3px solid var(--border-strong);border-radius:8px;background:#fff;margin-bottom:8px}
+    .subset-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+    .subset-name{font-weight:600}
+    .subset-services{padding:8px 0 0 0;display:none}
+    .subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
+    .service{padding:8px;border-radius:8px;border:2px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff;box-shadow:0 2px 8px rgba(2,6,23,0.04)}
+    .service:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(2,6,23,0.06)}
     /* 手机端展开时的强调效果：类似按钮被按下（轻微缩放 + 高亮边框/阴影） */
     .service.active-svc{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     /* 代肝种类（服务标题）字号：与游戏品类互换为更小字号 */
@@ -126,6 +126,19 @@
     /* 点按反馈：按下缩小10%，松开恢复 */
     .pressable{transition:transform .10s ease-out;transform-origin:center center}
     .pressable.pressed{transform:scale(0.9)}
+    /* 编辑模态中的服务行边框增强 */
+    .svc-row{border:2px solid var(--border) !important; box-shadow:0 2px 8px rgba(2,6,23,0.04)}
+    /* 服务行拖拽把手与反馈 */
+    .drag-handle{width:18px;height:18px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .drag-handle .bar{width:14px;height:2px;background:var(--muted);margin:2px 0;border-radius:2px}
+    .svc-row.dragging{opacity:0.7}
+    .subset-services.drop-target{outline:2px dashed #93c5fd; outline-offset:2px}
+    /* 子集工具栏（位于模态的服务容器顶部） */
+    .subset-toolbar{display:flex;justify-content:flex-start;gap:8px;margin:8px 0}
+    /* 管理员页标识（左上角高对比色标签） */
+    .admin-badge{position:fixed;left:12px;top:12px;padding:6px 10px;background:#f59e0b;color:#0f172a;border-radius:999px;font-weight:700;box-shadow:0 4px 12px rgba(2,6,23,0.25);z-index:1001}
+    @media (max-width:600px){.admin-badge{left:10px;top:10px;padding:5px 10px;font-size:12px}}
+
     /* 黑色主题覆盖：去掉渐变，统一改为靠内偏灰色的纯底色（不影响二维码面板） */
     html[data-theme="black"] body{color:#f8fafc}
     html[data-theme="black"] .panel,
@@ -158,6 +171,12 @@
     html[data-theme="black"] .toggleIndicator{
       color:#e5e7eb !important;
     }
+    /* 黑色主题下：增强关键容器边框对比度 */
+    html[data-theme="black"] .subset,
+    html[data-theme="black"] .service,
+    html[data-theme="black"] .svc-row{
+      border-color:#8ABBFF !important;
+    }
 
     /* ------------------ 移动端优化（≤600px） ------------------ */
     @media (max-width:600px){
@@ -187,15 +206,14 @@
   </style>
 </head>
 <body>
+  <div class="admin-badge" aria-hidden="false">管理员</div>
   <h1 class="mobile-title">小鹿帮帮</h1>
   <style>
-    /* 默认隐藏移动端标题（桌面端不显示） */
     .mobile-title{display:none}
     @media (max-width:600px){
       .mobile-title{display:block;font-size:20px;margin:16px 16px 0 16px}
       .panel-header .desktop-title{display:none}
-      /* 让标题更贴近方框顶部：设置上内边距为 10px */
-      .wrap{padding-top:0px}
+      .wrap{padding-top:0}
     }
   </style>
   <div class="wrap">
@@ -217,9 +235,11 @@
             <button class="theme-btn" title="橙色" data-theme="orange" style="background:#fff4e6"></button>
           </div>
           <!-- 文件保存/导入按钮（顶部工具栏，不改变现有布局） -->
-          <div class="file-io" style="display:flex;gap:8px">
+          <div class="file-io" style="display:flex;gap:8px;align-items:center">
             <button id="btnSaveFile" class="btn btn-primary" title="保存到 JSON 文件">保存到文件</button>
             <button id="btnLoadFile" class="btn" title="从 JSON 文件导入">从文件导入</button>
+            <button id="btnChangeDBDir" class="btn" title="切换数据库目录">切换数据库目录</button>
+            <span id="dbDirLabel" class="small muted" style="margin-left:8px"></span>
           </div>
         </div>
       </div>
@@ -260,7 +280,7 @@
               <div style="min-width:240px">
                 <div style="font-weight:600;margin-bottom:8px">价格选项</div>
                 <div id="prices"></div>
-                
+
                 <!-- 价格计算面板（放在左侧） -->
                 <div id="calcPanel" class="calc-panel" aria-label="价格计算">
                   <div style="font-weight:600">价格计算</div>
@@ -362,8 +382,7 @@
       </div>
       <div class="form-row"><input id="inpContactType" placeholder="联系方式类型（例：微信）" /><input id="inpContactValue" placeholder="联系方式值（例：wx123）" /></div>
 
-      <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:12px">
-        <button id="btnAddService" class="btn">+新增服务</button>
+      <div style="display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-top:12px">
         <div style="display:flex;gap:8px">
           <button id="modalCancel" class="btn">取消</button>
           <button id="modalSave" class="btn btn-primary">保存</button>
@@ -374,10 +393,10 @@
 
 <script>
 /* ------------------
-   代码注释：
-   - 不再使用浏览器 localStorage 保存 DATA 或主题；数据由 data-autoload.js 从 数据库/ JSON 加载。
-   - saveData(): 保留调用但不做任何本地持久化。
-   - loadData(): 初始返回空列表，等待 data-autoload.js 覆盖并渲染。
+   代码注释（给代码小白看的说明）：
+   - 数据来源改为“完全读取 数据库/ 里的 JSON 文件”，不再把 DATA 保存到浏览器 localStorage。
+   - saveData(): 仅保存当前主题到 localStorage；不再保存 DATA。
+   - loadData(): 不再从 localStorage 读取数据，初始返回空列表；随后由 data-autoload.js 自动加载 数据库/ 中的 JSON 并渲染。
    - renderList(): 渲染左侧的游戏列表（包含拖拽把手和三点菜单）。
    - openModal() / closeModal(): 管理新增/编辑模态窗口。
   ------------------ */
@@ -417,15 +436,32 @@ const modalSave = document.getElementById('modalSave');
 const modalCancel = document.getElementById('modalCancel');
 const btnSaveFile = document.getElementById('btnSaveFile');
 const btnLoadFile = document.getElementById('btnLoadFile');
+const btnChangeDBDir = document.getElementById('btnChangeDBDir');
 
 // modal inputs（移除单一服务输入，改为多服务容器）
 const inpName = document.getElementById('inpName');
 const inpTag = document.getElementById('inpTag');
 const servicesContainer = document.getElementById('servicesContainer');
-const btnAddService = document.getElementById('btnAddService');
 const inpPayments = document.getElementById('inpPayments');
 const inpContactType = document.getElementById('inpContactType');
 const inpContactValue = document.getElementById('inpContactValue');
+// 拖动时允许滚轮滚动，实现远距离自由排序（模态内部滚动）
+(()=>{
+  const getScrollContainer = (el)=>{
+    let node = el;
+    while(node && node !== document.body){
+      try{
+        const style = window.getComputedStyle(node);
+        const oy = style && style.overflowY;
+        if((oy === 'auto' || oy === 'scroll') && node.scrollHeight > node.clientHeight){
+          return node;
+        }
+      }catch(_){ /* 忽略 */ }
+      node = node.parentElement;
+    }
+    return document.querySelector('.modal-body') || null;
+  };
+})();
   // 支付切换与二维码相关元素
   const payToggle = document.getElementById('payToggle');
   const qrPanel = document.getElementById('qrPanel');
@@ -493,6 +529,9 @@ window.DISCOUNT_CONFIG = window.DISCOUNT_CONFIG || {
 };
 
 // --- 动态服务行生成 ---
+// 拖拽：当前被拖动的服务行（作用域：modal 内）
+let __dragSvcRow = null;
+
 function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '', price: undefined }], discount: { enabled: false, type: 'more' } }) {
   const row = document.createElement('div');
   row.className = 'svc-row';
@@ -501,6 +540,60 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
   row.style.padding = '10px';
   row.style.margin = '10px 0';
   row.style.background = 'var(--card)'; // Eliya备注：服务项方框背景色在这里，修改 var(--card)
+  row.style.position = 'relative';
+
+  // 拖拽把手（三条横线）
+  const dragHandle = document.createElement('div');
+  dragHandle.className = 'drag-handle';
+  dragHandle.title = '按住拖动调整顺序或拖入其他子集';
+  dragHandle.innerHTML = '<div class="bar"></div><div class="bar"></div><div class="bar"></div>';
+  dragHandle.style.position = 'absolute';
+  dragHandle.style.right = '10px';
+  dragHandle.style.top = '10px';
+  dragHandle.style.cursor = 'grab';
+  dragHandle.addEventListener('mousedown', ()=>{
+    row.setAttribute('draggable','true');
+    row.classList.add('draggable-ghost');
+  });
+  dragHandle.addEventListener('mouseup', ()=>{
+    row.removeAttribute('draggable');
+    row.classList.remove('draggable-ghost');
+  });
+  dragHandle.addEventListener('mouseleave', ()=>{
+    row.removeAttribute('draggable');
+    row.classList.remove('draggable-ghost');
+  });
+  row.appendChild(dragHandle);
+
+  // 行拖拽事件
+  row.addEventListener('dragstart', (e)=>{
+    __dragSvcRow = row;
+    row.classList.add('dragging');
+    try{ e.dataTransfer.effectAllowed = 'move'; }catch(_){ }
+  });
+  row.addEventListener('dragend', ()=>{
+    row.classList.remove('dragging');
+    __dragSvcRow = null;
+  });
+  // 行间排序：将拖动的行插入到目标行之前
+  row.addEventListener('dragover', (e)=>{
+    if(__dragSvcRow && __dragSvcRow !== row){ e.preventDefault(); row.classList.add('drop-target'); }
+  });
+  row.addEventListener('dragleave', ()=>{ row.classList.remove('drop-target'); });
+  row.addEventListener('drop', (e)=>{
+    e.preventDefault(); row.classList.remove('drop-target');
+    if(__dragSvcRow && __dragSvcRow !== row){
+      const subsetEl = row.closest('.subset');
+      if(subsetEl){
+        const newId = subsetEl.dataset.subsetId;
+        const nameInput = subsetEl._refs && subsetEl._refs.nameInput;
+        const newName = nameInput ? (nameInput.value || '代肝项目') : (row.dataset.subset || '代肝项目');
+        __dragSvcRow.dataset.subsetId = newId;
+        __dragSvcRow.dataset.subset = newName;
+      }
+      row.parentElement.insertBefore(__dragSvcRow, row);
+    }
+  });
 
   const title = document.createElement('input');
   title.placeholder = '服务标题';
@@ -527,6 +620,7 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
   const priceValue = document.createElement('input');
   priceValue.placeholder = '单价';
   priceValue.type = 'number';
+  // 若原数据不存在价格，则留空以显示灰色占位“单价”
   const hasPrice = !!(svc.priceOptions && svc.priceOptions[0] && (typeof svc.priceOptions[0].price !== 'undefined'));
   priceValue.value = hasPrice ? String(svc.priceOptions[0].price) : '';
   priceValue.style.width = '140px';
@@ -592,6 +686,137 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
   return row;
 }
 
+// --- 子集容器（含名称与内部新增服务按钮） ---
+function makeSubsetGroup(name = '代肝项目', subsetId){
+  const group = document.createElement('div');
+  group.className = 'subset';
+  // 分配稳定的子集ID（允许同名子集并保持区分）
+  const sid = subsetId || ('ss' + Date.now() + '-' + Math.floor(Math.random()*100000));
+  group.dataset.subsetId = sid;
+
+  const header = document.createElement('div');
+  header.className = 'subset-header';
+  const nameInput = document.createElement('input');
+  nameInput.className = 'subset-name';
+  nameInput.type = 'text';
+  nameInput.autocomplete = 'off';
+  nameInput.value = name;
+  nameInput.placeholder = '子集名称（例：练角色）';
+  nameInput.style.flex = '1';
+  nameInput.style.border = '1px solid var(--border)';
+  nameInput.style.borderRadius = '6px';
+  nameInput.style.padding = '6px 8px';
+  nameInput.style.background = 'var(--card)';
+  const indicator = document.createElement('div');
+  indicator.className = 'toggleIndicator';
+  indicator.textContent = '+';
+  header.appendChild(nameInput);
+  header.appendChild(indicator);
+
+  const body = document.createElement('div');
+  body.className = 'subset-services';
+  // 允许将项目拖入该子集
+  body.addEventListener('dragover', (e)=>{
+    if(__dragSvcRow){
+      e.preventDefault();
+      // 边缘自动滚动，便于长距离拖动排序
+      const sc = document.querySelector('.modal-body');
+      if(sc){
+        const rect = sc.getBoundingClientRect();
+        const threshold = 48; // 距离边缘阈值
+        const speed = 16;     // 每次滚动像素
+        if(e.clientY < rect.top + threshold){ sc.scrollTop -= speed; }
+        else if(e.clientY > rect.bottom - threshold){ sc.scrollTop += speed; }
+      }
+    }
+    body.classList.add('drop-target');
+  });
+  body.addEventListener('dragleave', ()=>{
+    body.classList.remove('drop-target');
+  });
+  body.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    body.classList.remove('drop-target');
+    if(__dragSvcRow){
+      // 移动并更新所属子集
+      __dragSvcRow.dataset.subsetId = sid;
+      __dragSvcRow.dataset.subset = (nameInput.value || '代肝项目');
+      // 根据鼠标位置自由排序：插入到第一个中线在鼠标下方的元素之前
+      const rows = Array.from(body.querySelectorAll('.svc-row')).filter(r=>r!==__dragSvcRow);
+      const y = (e.clientY || 0);
+      let placed = false;
+      for(const r of rows){
+        const rect = r.getBoundingClientRect();
+        const mid = rect.top + rect.height/2;
+        if(y < mid){
+          body.insertBefore(__dragSvcRow, r);
+          placed = true;
+          break;
+        }
+      }
+      if(!placed){
+        body.appendChild(__dragSvcRow);
+      }
+    }
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn';
+  addBtn.textContent = '+新增服务';
+  addBtn.style.margin = '8px 0 0 0';
+  addBtn.onclick = ()=>{
+    const row = makeServiceRow();
+    row.dataset.subset = (nameInput.value||'代肝项目');
+    row.dataset.subsetId = sid;
+    body.appendChild(row);
+  };
+
+  // 子集名称变化时，同步更新内部服务行的 subset 标记
+  nameInput.addEventListener('input', ()=>{
+    const newName = nameInput.value || '代肝项目';
+    Array.from(body.querySelectorAll('.svc-row')).forEach(r=>{ r.dataset.subset = newName; });
+  });
+
+  // 切换展开/收起内部服务
+  const toggle = ()=>{
+    const open = body.style.display === 'block';
+    body.style.display = open ? 'none' : 'block';
+    indicator.textContent = open ? '+' : '-';
+  };
+  // 仅在点击指示器或空白区域时切换；点击名称输入框不触发展开/收起
+  header.addEventListener('click', (e)=>{
+    const t = e.target;
+    if(t === nameInput || (t && t.tagName === 'INPUT')){
+      e.stopPropagation();
+      return;
+    }
+    toggle();
+  });
+  // 防止输入框的鼠标/触摸事件冒泡到 header 导致误触发
+  nameInput.addEventListener('click', (e)=>e.stopPropagation());
+  nameInput.addEventListener('mousedown', (e)=>e.stopPropagation());
+  nameInput.addEventListener('touchstart', (e)=>{ e.stopPropagation(); }, { passive: true });
+
+  group.appendChild(header);
+  group.appendChild(body);
+  group.appendChild(addBtn);
+
+  // 便于采集
+  group._refs = { nameInput, body, sid };
+  return group;
+}
+
+// --- 采集所有子集（包括无服务的空子集，满足“新增子集必须保存”） ---
+function getSubsetsFromUI(){
+  const groups = Array.from(servicesContainer.querySelectorAll('.subset'));
+  return groups.map(g=>{
+    const nameInput = g._refs && g._refs.nameInput;
+    const id = g.dataset && g.dataset.subsetId;
+    const name = (nameInput && nameInput.value) ? nameInput.value : '代肝项目';
+    return { id, name };
+  });
+}
+
 // --- 从UI采集多个服务 ---
 function getServicesFromUI(gameId) {
   const rows = Array.from(servicesContainer.querySelectorAll('.svc-row'));
@@ -608,6 +833,8 @@ function getServicesFromUI(gameId) {
     const pv = Number((priceValue && priceValue.value) || 0) || 0;
     const disEnabled = !!(discountEnabled && discountEnabled.checked);
     const disType = (discountType && discountType.value) || 'more';
+    const subset = (row.dataset && row.dataset.subset) ? row.dataset.subset : '代肝项目';
+    const subsetId = (row.dataset && row.dataset.subsetId) ? row.dataset.subsetId : null;
     return {
       id: `${gameId}-${idx + 1}`,
       title: t,
@@ -615,14 +842,22 @@ function getServicesFromUI(gameId) {
       priceOptions: [{ label: pl, price: pv }],
       discount: { enabled: disEnabled, type: disType },
       paymentMethods: pays,
-      contact: { type: ctype || '微信', value: cval || '' }
+      contact: { type: ctype || '微信', value: cval || '' },
+      subset,
+      subsetId
     };
   });
 }
 
 /* ------------------ 本地存储工具函数（禁用本地记忆） ------------------ */
-function saveData(){ /* 不进行任何本地持久化 */ }
-function loadData(){ return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
+function saveData(){
+  // 不使用任何本地记忆（localStorage/IndexedDB）保存 DATA 或主题
+  // 此函数保留以兼容既有调用，但不做任何持久化操作。
+}
+function loadData(){
+  // 不再从 localStorage 读取 DATA，改为由 data-autoload.js 在加载后覆盖。
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
 
 /* ------------------ 文件保存/导入（优先使用文件系统访问 API） ------------------ */
 function serializeBackup(){
@@ -631,24 +866,175 @@ function serializeBackup(){
   return { data: DATA, theme, discountConfig: window.DISCOUNT_CONFIG };
 }
 
+// 计算下一个纯数字版本号（基于本地计数器），用于文件名如 "1.json"、"2.json"
+async function getNextNumericVersion(){
+  // 不依赖本地计数器；改为扫描“数据库/”目录中现有的数字文件，返回最大值+1
+  try{
+    const dbDir = await getDatabaseDir();
+    if(!dbDir) return 1;
+    let max = 0;
+    if(dbDir && dbDir.entries){
+      for await (const [name, handle] of dbDir.entries()){
+        try{
+          if(handle && handle.kind === 'file'){
+            const m = name.match(/^(\d+)\.json$/);
+            if(m){
+              const n = parseInt(m[1], 10) || 0;
+              if(n > max) max = n;
+            }
+          }
+        }catch(_){/* 忽略单项错误 */}
+      }
+    }
+    return Math.max(1, max + 1);
+  }catch(e){
+    return 1;
+  }
+}
+
+/* ------------------ 目录持久化（File System Access API） ------------------ */
+// 为满足“点击保存文件时直接写入 数据库/ 相对目录”，浏览器需要一次性目录授权；
+// 获得后把目录句柄持久化到 IndexedDB，之后保存即可直接写入而无需再次选择。
+const FS_DB_NAME = 'fs-handles';
+const FS_STORE = 'handles';
+
+function fsOpen(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(FS_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{
+      const db = req.result;
+      if(!db.objectStoreNames.contains(FS_STORE)){
+        db.createObjectStore(FS_STORE);
+      }
+    };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+async function fsGet(key){
+  const db = await fsOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(FS_STORE, 'readonly');
+    const store = tx.objectStore(FS_STORE);
+    const req = store.get(key);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+async function fsSet(key, value){
+  const db = await fsOpen();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(FS_STORE, 'readwrite');
+    const store = tx.objectStore(FS_STORE);
+    const req = store.put(value, key);
+    req.onsuccess = ()=>resolve(true);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+
+async function verifyPermission(handle, mode = 'readwrite'){
+  try{
+    const opts = { mode };
+    if(await handle.queryPermission(opts) === 'granted') return true;
+    if(await handle.requestPermission(opts) === 'granted') return true;
+  }catch(e){ /* 忽略 */ }
+  return false;
+}
+
+async function getProjectRootDir(){
+  // 尝试读取已存的项目根目录句柄
+  let root = await fsGet('projectRoot');
+  if(root && await verifyPermission(root, 'readwrite')){
+    return root;
+  }
+  // 首次需要授权一次目录访问（请选择项目根目录或直接选择“数据库”目录）
+  if('showDirectoryPicker' in window){
+    root = await window.showDirectoryPicker();
+    if(await verifyPermission(root, 'readwrite')){
+      await fsSet('projectRoot', root);
+      return root;
+    }
+    throw new Error('未获得目录访问权限');
+  }
+  // 不支持：回退为下载
+  return null;
+}
+
+// 仅用于展示标签：不弹出授权窗口
+async function getSavedRootDirNoPrompt(){
+  try{
+    const root = await fsGet('projectRoot');
+    if(!root) return null;
+    const p = await root.queryPermission({ mode: 'readwrite' });
+    if(p !== 'granted') return null;
+    return root;
+  }catch(e){ return null; }
+}
+
+async function updateDbDirLabel(){
+  const el = document.getElementById('dbDirLabel');
+  if(!el) return;
+  const root = await getSavedRootDirNoPrompt();
+  if(!root){
+    // 默认显示“数据库”作为预期路径，提示尚未授权
+    el.textContent = '当前数据库目录：数据库（默认，未授权）';
+    return;
+  }
+  try{
+    if(root.name === '数据库'){
+      el.textContent = '当前数据库目录：数据库（已授权）';
+    }else{
+      el.textContent = `当前数据库目录：${root.name}/数据库（已授权）`;
+    }
+  }catch(e){
+    el.textContent = '当前数据库目录：已设置（已授权）';
+  }
+}
+
+async function getDatabaseDir(){
+  const root = await getProjectRootDir();
+  if(!root) return null;
+  // 如果选择的就是“数据库”目录，直接返回；否则在根目录下获取/创建“数据库”子目录
+  try{
+    if(root.name === '数据库'){
+      return root;
+    }
+  }catch(e){}
+  try{
+    const dbDir = await root.getDirectoryHandle('数据库', { create: true });
+    return dbDir;
+  }catch(e){
+    return root;
+  }
+}
+
 async function saveToFile(){
   const payload = JSON.stringify(serializeBackup(), null, 2);
+  const suggested = `newdata.json`;
   try{
-    if('showSaveFilePicker' in window){
-      const handle = await window.showSaveFilePicker({
-        suggestedName: 'newdata.json',
-        types: [{ description: 'JSON 文件', accept: { 'application/json': ['.json'] } }]
-      });
-      const writable = await handle.createWritable();
+    if('showDirectoryPicker' in window){
+      const dbDir = await getDatabaseDir();
+      if(!dbDir) throw new Error('当前浏览器不支持目录写入或未授权');
+      const fileHandle = await dbDir.getFileHandle(suggested, { create: true });
+      const writable = await fileHandle.createWritable();
       await writable.write(payload);
       await writable.close();
-      alert('已保存到文件。');
+      // 同步更新 latest.json（可选）：指向固定文件名，便于旧逻辑兼容
+      try{
+        const latestHandle = await dbDir.getFileHandle('latest.json', { create: true });
+        const latestWritable = await latestHandle.createWritable();
+        await latestWritable.write(JSON.stringify({ file: 'newdata.json' }, null, 2));
+        await latestWritable.close();
+      }catch(_){}
+      alert(`已保存到 数据库/${suggested}`);
     }else{
       // 回退：触发下载到本地
       const blob = new Blob([payload], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = 'newdata.json';
+      a.download = suggested;
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(a.href);
@@ -658,6 +1044,35 @@ async function saveToFile(){
   }catch(e){
     console.error('保存失败', e);
     alert('保存失败：'+ e.message);
+  }
+}
+
+/* 切换数据库目录（重新授权/选择目录） */
+async function changeDatabaseDir(){
+  try{
+    if(!('showDirectoryPicker' in window)){
+      alert('当前浏览器不支持目录选择，请使用支持 File System Access API 的浏览器（如新版 Chrome/Edge）。');
+      return;
+    }
+    const newRoot = await window.showDirectoryPicker();
+    if(!(await verifyPermission(newRoot, 'readwrite'))){
+      alert('未获得目录写入权限');
+      return;
+    }
+    await fsSet('projectRoot', newRoot);
+    // 试探性创建/访问数据库目录，给出提示
+    const dbDir = await getDatabaseDir();
+    const testFile = await dbDir.getFileHandle('_test_access.txt', { create: true });
+    const w = await testFile.createWritable();
+    await w.write('ok');
+    await w.close();
+    // 清理测试文件（可选，某些浏览器尚不支持 remove 操作，忽略错误）
+    try{ if(dbDir.removeEntry) await dbDir.removeEntry('_test_access.txt'); }catch(_){}
+    alert('已切换数据库目录并验证写入权限。后续保存将直接写入该目录下的“数据库/”。如果你选择的就是“数据库”目录，将直接写入该目录。');
+    updateDbDirLabel();
+  }catch(e){
+    console.error('切换数据库目录失败', e);
+    alert('切换失败：'+ e.message);
   }
 }
 
@@ -772,48 +1187,42 @@ function renderList(filter='') {
     srvWrap.className = 'services';
     srvWrap.style.display = 'none';
     srvWrap.setAttribute('aria-hidden','true');
-    // 按“子集”分组展示（支持同名子集，基于 subsetId 区分）。
-    // 若无显式 subsets，则按服务的 subset 名称推断，并为缺失的服务补充 subsetId。
+    // 按“子集”分组展示（支持重名子集，基于 subsetId 区分）
     let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
     if(!subsets){
       const map = {};
       (game.services||[]).forEach(s=>{
         const nm = s.subset || '代肝项目';
-        if(!map[nm]){ map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm }; }
+        if(!map[nm]) map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm };
       });
       subsets = Object.values(map);
       const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
       (game.services||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
     }
-    // 创建子集分组及其服务项
     subsets.forEach(ss=>{
       const group = document.createElement('div');
       group.className = 'subset';
-
       const header = document.createElement('div');
       header.className = 'subset-header';
       header.innerHTML = `<div class="subset-name">${ss.name}</div><div class="toggleIndicator">+</div>`;
-
+      const indicator = header.querySelector('.toggleIndicator');
       const body = document.createElement('div');
       body.className = 'subset-services';
-      body.style.display = 'none';
 
-      // 填充该子集的服务（按 subsetId 精确匹配；兼容旧数据按名称匹配）
-      (game.services||[])
-        .filter(svc => svc.subsetId === ss.id || (!svc.subsetId && (svc.subset||'代肝项目') === ss.name))
-        .forEach(svc=>{
-          const sEl = document.createElement('div');
-          sEl.className = 'service';
-          sEl.innerHTML = `<div class="svc-title" style="font-weight:600">${svc.title}</div><div class="muted" style="margin-top:6px">${svc.desc}</div>`;
-          sEl.addEventListener('click',()=>showService(svc,game,sEl));
-          body.appendChild(sEl);
-        });
+      (game.services||[]).filter(svc=>svc.subsetId===ss.id || (!svc.subsetId && (svc.subset||'代肝项目')===ss.name)).forEach(svc=>{
+        const sEl = document.createElement('div');
+        sEl.className = 'service';
+        sEl.innerHTML = `<div class="svc-title" style="font-weight:600">${svc.title}</div><div class="muted" style="margin-top:6px">${svc.desc}</div>`;
+        sEl.addEventListener('click',()=>showService(svc,game,sEl));
+        body.appendChild(sEl);
+      });
 
-      // 子集折叠/展开
+      // 仅在编辑/新增品类弹窗内允许新增服务，此处不显示按钮
+
       header.addEventListener('click',()=>{
         const open = body.style.display === 'block';
         body.style.display = open ? 'none' : 'block';
-        header.querySelector('.toggleIndicator').textContent = open ? '+' : '-';
+        indicator.textContent = open ? '+' : '-';
       });
 
       group.appendChild(header);
@@ -1014,7 +1423,7 @@ function showService(svc, game, mountTarget){
       if(isMobileNow){
         setTimeout(()=>{
           try{ (mountTarget || mobileMount).scrollIntoView({ behavior: 'smooth', block: 'start' }); }catch(e){}
-        }, 140); // 等待 smoothShow 开始展开后再滚动
+        }, 140);
       }
     }catch(e){}
   } else {
@@ -1026,26 +1435,19 @@ function showService(svc, game, mountTarget){
     }catch(e){}
     detailPlaceholder.classList.add('hidden');
     smoothShow(detailPanel);
-    // 桌面端也进行强调：先移除旧的，再设置新的
     try{ if(window.MOBILE_CURRENT_TARGET && window.MOBILE_CURRENT_TARGET !== mountTarget){ window.MOBILE_CURRENT_TARGET.classList.remove('active-svc'); } }catch(e){}
     try{ if(mountTarget){ mountTarget.classList.add('active-svc'); } }catch(e){}
     window.MOBILE_CURRENT_TARGET = mountTarget || null;
   }
   svcTitle.textContent = svc.title;
   svcMeta.textContent = `${game.name} · ${svc.desc}`;
-  // 兼容旧数据：若未提供联系方式字段则不显示
-  try{
-    const contactText = (svc.contact && (svc.contact.type || svc.contact.value))
-      ? `${svc.contact.type || ''}${svc.contact.type ? ': ' : ''}${svc.contact.value || ''}`
-      : '';
-    contactVal.textContent = contactText;
-  }catch(e){ contactVal.textContent = ''; }
+  contactVal.textContent = `${svc.contact.type}: ${svc.contact.value}`;
 
   pricesEl.innerHTML = '';
   // 重置当前选择的单价
   selectedUnitPrice = 0;
   selectedLabel = '';
-  (svc.priceOptions || []).forEach(p=>{
+  svc.priceOptions.forEach(p=>{
     const pc = document.createElement('div');
     pc.className = 'price-card';
     const discountText = (svc.discount && svc.discount.enabled)
@@ -1167,7 +1569,103 @@ function updateTotal(){
   }
 }
 
-// 折扣设置仅在“管理员.html”中显示；用户页不提供调整面板。
+// 左下角折扣配置按钮与面板
+(function(){
+  const btn = document.createElement('button');
+  btn.textContent = '折扣设置';
+  btn.className = 'btn';
+  btn.style.position = 'fixed';
+  btn.style.left = '12px';
+  btn.style.bottom = '12px';
+  btn.style.zIndex = '1000';
+  btn.style.opacity = '0.9';
+
+  const panel = document.createElement('div');
+  panel.style.position = 'fixed';
+  panel.style.left = '12px';
+  panel.style.bottom = '60px';
+  panel.style.zIndex = '1001';
+  panel.style.background = 'var(--card)';
+  panel.style.border = '1px solid var(--border)';
+  panel.style.borderRadius = '10px';
+  panel.style.padding = '12px';
+  panel.style.width = '280px';
+  panel.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+  panel.style.display = 'none';
+
+  const title = document.createElement('div');
+  title.textContent = '折扣参数设置';
+  title.style.fontWeight = '700';
+  title.style.marginBottom = '8px';
+  panel.appendChild(title);
+
+  const cfg = ()=> (window.DISCOUNT_CONFIG || { more:{p2:0.08,p3:0.09,p4plus:0.10,cap:0.10}, second:{p:0.10,cap:0.10} });
+  function makeRow(label, value, oninput){
+    const r = document.createElement('div');
+    r.style.display = 'flex';
+    r.style.alignItems = 'center';
+    r.style.gap = '8px';
+    r.style.margin = '6px 0';
+    const span = document.createElement('span');
+    span.textContent = label;
+    span.style.flex = '1';
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.min = '0';
+    inp.max = '100';
+    inp.step = '1';
+    inp.value = Math.round((value||0)*100);
+    inp.style.width = '80px';
+    inp.addEventListener('input', ()=> oninput((Number(inp.value)||0)/100));
+    r.appendChild(span);
+    r.appendChild(inp);
+    return r;
+  }
+
+  const moreTitle = document.createElement('div');
+  moreTitle.textContent = '越多越便宜（%）';
+  moreTitle.style.marginTop = '6px';
+  moreTitle.style.color = 'var(--muted)';
+  panel.appendChild(moreTitle);
+  panel.appendChild(makeRow('2件折扣', cfg().more.p2, v=>{ window.DISCOUNT_CONFIG.more.p2 = v; updateTotal(); }));
+  panel.appendChild(makeRow('3件折扣', cfg().more.p3, v=>{ window.DISCOUNT_CONFIG.more.p3 = v; updateTotal(); }));
+  panel.appendChild(makeRow('4件及以上', cfg().more.p4plus, v=>{ window.DISCOUNT_CONFIG.more.p4plus = v; updateTotal(); }));
+  panel.appendChild(makeRow('上限（cap）', cfg().more.cap, v=>{ window.DISCOUNT_CONFIG.more.cap = v; updateTotal(); }));
+
+  const secondTitle = document.createElement('div');
+  secondTitle.textContent = '第二份开始（%）';
+  secondTitle.style.marginTop = '8px';
+  secondTitle.style.color = 'var(--muted)';
+  panel.appendChild(secondTitle);
+  panel.appendChild(makeRow('固定折扣', cfg().second.p, v=>{ window.DISCOUNT_CONFIG.second.p = v; updateTotal(); }));
+  panel.appendChild(makeRow('上限（cap）', cfg().second.cap, v=>{ window.DISCOUNT_CONFIG.second.cap = v; updateTotal(); }));
+
+  const actions = document.createElement('div');
+  actions.style.display = 'flex';
+  actions.style.gap = '8px';
+  actions.style.marginTop = '10px';
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn';
+  saveBtn.textContent = '保存配置';
+  saveBtn.onclick = ()=>{
+    alert('折扣配置已更新。如需持久保存，请使用“保存到文件”。');
+    panel.style.display = 'none';
+  };
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn';
+  closeBtn.textContent = '关闭';
+  closeBtn.onclick = ()=> panel.style.display = 'none';
+  actions.appendChild(saveBtn);
+  actions.appendChild(closeBtn);
+  panel.appendChild(actions);
+
+  btn.addEventListener('click', ()=>{
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  });
+
+  document.body.appendChild(btn);
+  document.body.appendChild(panel);
+})();
 
 // 数量加减与输入
 qtyPlus && qtyPlus.addEventListener('click',()=>{ qtyInput.value = (Number(qtyInput.value)||0)+1; updateTotal(); });
@@ -1272,14 +1770,30 @@ qEl.addEventListener('input',(e)=>renderList(e.target.value));
 // 顶部文件保存/导入按钮事件
 btnSaveFile && btnSaveFile.addEventListener('click', saveToFile);
 btnLoadFile && btnLoadFile.addEventListener('click', loadFromFile);
+btnChangeDBDir && btnChangeDBDir.addEventListener('click', changeDatabaseDir);
+
+// 初始化显示当前数据库目录标签
+updateDbDirLabel();
 
 /* ------------------ 模态：新增/编辑 品类 ------------------ */
-function openModal(mode, game=null, gameIndex=null){
+function openModal(mode, game=null, gameIndex=null, targetSubset=null){
   modalBack.style.display = 'flex';
   modalBack.setAttribute('aria-hidden','false');
 
   // 重置
   servicesContainer.innerHTML = '';
+  // 子集工具栏（仅在子集界面内显示）
+  const subsetToolbar = document.createElement('div');
+  subsetToolbar.className = 'subset-toolbar';
+  const btnAddSubsetTop = document.createElement('button');
+  btnAddSubsetTop.className = 'btn';
+  btnAddSubsetTop.textContent = '+添加子集';
+  btnAddSubsetTop.addEventListener('click',()=>{
+    const g = makeSubsetGroup('代肝项目');
+    servicesContainer.appendChild(g);
+  });
+  subsetToolbar.appendChild(btnAddSubsetTop);
+  servicesContainer.appendChild(subsetToolbar);
 
   if(mode === 'edit' && game){
     modalTitle.textContent = '编辑品类';
@@ -1296,17 +1810,41 @@ function openModal(mode, game=null, gameIndex=null){
     inpContactType.value = (baseSvc.contact && baseSvc.contact.type) || '';
     inpContactValue.value = (baseSvc.contact && baseSvc.contact.value) || '';
 
-    // 渲染已有服务项
-    (game.services||[]).forEach(s=>{
-      servicesContainer.appendChild(makeServiceRow(s));
+    // 渲染已有服务项：优先使用 game.subsets（支持同名子集且保持区分）；否则从服务按名称推断并生成ID
+    let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
+    if(!subsets){
+      const map = {};
+      (game.services||[]).forEach(s=>{
+        const nm = s.subset || '代肝项目';
+        if(!map[nm]) map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm };
+      });
+      subsets = Object.values(map);
+      // 为旧数据补充 subsetId（按名称归属到首个匹配）
+      const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
+      (game.services||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
+    }
+    if(subsets.length===0){ subsets = [{ id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: '代肝项目' }]; }
+    subsets.forEach(ss=>{
+      const grp = makeSubsetGroup(ss.name, ss.id);
+      servicesContainer.appendChild(grp);
+      const body = grp._refs.body;
+      (game.services||[]).filter(svc=>svc.subsetId===ss.id).forEach(svc=>{
+        const row = makeServiceRow(svc);
+        row.dataset.subset = ss.name;
+        row.dataset.subsetId = ss.id;
+        body.appendChild(row);
+      });
+      const match = targetSubset && (typeof targetSubset === 'object' ? (targetSubset.id ? (ss.id === targetSubset.id) : (ss.name === targetSubset.name)) : ((ss.id === targetSubset) || (ss.name === targetSubset)));
+      if(match){ body.style.display='block'; grp.querySelector('.toggleIndicator').textContent='-'; }
     });
 
-    // 保存逻辑：收集多个服务项
+    // 保存逻辑：收集多个服务项与子集（包含空子集）
     modalSave.onclick = ()=>{
       const updated = {
         id: game.id,
         name: inpName.value.trim() || game.name,
         tag: inpTag.value.trim() || game.tag,
+        subsets: getSubsetsFromUI(),
         services: getServicesFromUI(game.id)
       };
       DATA[gameIndex] = updated;
@@ -1319,8 +1857,10 @@ function openModal(mode, game=null, gameIndex=null){
     inpName.value=''; inpTag.value='';
     inpPayments.value='both'; inpContactType.value=''; inpContactValue.value='';
 
-    // 默认先添加一个空服务项
-    servicesContainer.appendChild(makeServiceRow());
+    // 默认先添加一个子集（子集名：代肝项目），不自动新增服务项
+    const grp = makeSubsetGroup('代肝项目');
+    servicesContainer.appendChild(grp);
+    // 不自动添加服务，需通过“新增服务”按钮添加（满足“仅在项目界面内添加”）
 
     modalSave.onclick = ()=>{
       const nid = 'g'+Date.now();
@@ -1328,6 +1868,7 @@ function openModal(mode, game=null, gameIndex=null){
         id: nid,
         name: inpName.value.trim() || '新游戏',
         tag: inpTag.value.trim() || '',
+        subsets: getSubsetsFromUI(),
         services: getServicesFromUI(nid)
       };
       DATA.push(newGame);
@@ -1338,13 +1879,20 @@ function openModal(mode, game=null, gameIndex=null){
   }
 }
 
-// 绑定+新增服务按钮
-btnAddService.addEventListener('click', ()=>{
-  servicesContainer.appendChild(makeServiceRow());
-});
+// 全局新增按钮已移除；新增操作仅在子集界面内进行（子集头部或子集工具栏）
 
 modalCancel.addEventListener('click', closeModal);
-modalBack.addEventListener('click',(e)=>{ if(e.target===modalBack) closeModal(); });
+// 仅在“用户主动点击外部区域”时关闭：要求按下和抬起都发生在遮罩上
+let __backdropDown = false;
+modalBack.addEventListener('mousedown',(e)=>{ __backdropDown = (e.target === modalBack); });
+modalBack.addEventListener('mouseup',(e)=>{
+  const onBackdropUp = (e.target === modalBack);
+  if(__backdropDown && onBackdropUp){ closeModal(); }
+  __backdropDown = false;
+});
+// 触屏支持：同样要求 touchstart 与 touchend 都在遮罩上
+modalBack.addEventListener('touchstart',(e)=>{ try{ const t = e.target; __backdropDown = (t === modalBack); }catch(_){ __backdropDown=false; } }, { passive: true });
+modalBack.addEventListener('touchend',(e)=>{ try{ const t = e.target; const onBackdropUp = (t === modalBack); if(__backdropDown && onBackdropUp){ closeModal(); } }catch(_){ /* 忽略 */ } finally{ __backdropDown=false; } }, { passive: true });
 
 function closeModal(){
   modalBack.style.display='none';
@@ -1537,8 +2085,6 @@ renderList();
 </script>
 <!-- 自动从仓库中的 JSON 备份加载数据（仅影响默认数据，不改桌面样式） -->
 <script src="data-autoload.js"></script>
-<!-- 公开版只读模式：隐藏编辑/导入/保存/拖拽等控件，保留查看/复制/支付切换等 -->
-<script src="viewer-mode.js"></script>
 
 </body>
 </html>
