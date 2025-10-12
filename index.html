@@ -248,8 +248,6 @@
     @media (max-width:600px){
       .wrap{max-width:100%;padding:12px}
       .panel{border-radius:10px}
-      /* 屏蔽手机端图片长按的系统菜单（iOS/Android） */
-      #payQrImg, .qr-img-wrap{ -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; touch-action: manipulation; }
       .aside{height:auto;max-height:none;overflow:visible;border-right:none;border-top:1px solid var(--border);padding:12px}
       .main{padding:12px}
       .panel-header{flex-wrap:wrap;gap:8px}
@@ -390,7 +388,7 @@
                   <div class="qr-box">
         <picture class="qr-img-wrap">
           <source type="image/webp" srcset="微信收款码.webp" />
-          <img id="payQrImg" src="微信收款码.png" alt="收款码" decoding="async" fetchpriority="high" draggable="false" />
+          <img id="payQrImg" src="微信收款码.png" alt="收款码" decoding="async" fetchpriority="high" />
         </picture>
                     <div id="qrHint" class="small muted">请使用对应 App 扫码付款</div>
                   </div>
@@ -545,17 +543,17 @@ const inpContactValue = document.getElementById('inpContactValue');
     try{
       const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
       if(qrHint){
-        qrHint.textContent = isMobile600 ? '长按1秒保存收款码' : '请使用对应 App 扫码付款';
+        qrHint.textContent = isMobile600 ? '连续点击两次下载图片' : '请使用对应 App 扫码付款';
       }
     }catch(e){}
   }
   updateQrHintForViewport();
   window.addEventListener('resize', updateQrHintForViewport);
 
-  // 手机端：将“点击下载”改为“长按1秒下载 PNG”，避免误触
+  // 手机端：将“点击下载”改为“连续点击两次（≤0.2s）下载 PNG”，避免误触
   if(payQrImg){
-    let __qrLongPressTimer = null;
-    let __qrShouldDownload = false;
+    let __qrLastTap = 0;
+    let __qrIgnoreClicksUntil = 0; // 防止 touchend 后的 click 重复触发
     const triggerDownloadPNG = ()=>{
       try{
         const type = (qrPanel && qrPanel.classList && qrPanel.classList.contains('alipay')) ? 'alipay' : 'wechat';
@@ -571,33 +569,25 @@ const inpContactValue = document.getElementById('inpContactValue');
         showToast('收款码已保存');
       }catch(e){}
     };
-    const start = ()=>{
+    const handleTap = ()=>{
       try{
         const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
         if(!isMobile600) return;
-        clearTimeout(__qrLongPressTimer);
-        __qrShouldDownload = false;
-        __qrLongPressTimer = setTimeout(()=>{ __qrShouldDownload = true; }, 1000);
+        const now = Date.now();
+        if(now - __qrLastTap <= 200){
+          if(now < __qrIgnoreClicksUntil) return;
+          __qrIgnoreClicksUntil = now + 400;
+          triggerDownloadPNG();
+          __qrLastTap = 0;
+        }else{
+          __qrLastTap = now;
+        }
       }catch(e){}
     };
-    const cancel = ()=>{ try{ clearTimeout(__qrLongPressTimer); __qrShouldDownload = false; }catch(e){} };
-    // 触屏长按
-    payQrImg.addEventListener('touchstart', start, { passive: true });
-    // 屏蔽系统的长按菜单（部分浏览器会触发 contextmenu）
-    payQrImg.addEventListener('contextmenu', (e)=>{ e.preventDefault(); e.stopPropagation(); });
-    payQrImg.addEventListener('dragstart', (e)=>{ e.preventDefault(); e.stopPropagation(); });
-    payQrImg.addEventListener('touchend', ()=>{
-      try{
-        const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
-        if(isMobile600 && __qrShouldDownload){ triggerDownloadPNG(); }
-      }catch(e){}
-      cancel();
-    }, { passive: true });
-    payQrImg.addEventListener('touchcancel', cancel, { passive: true });
-    payQrImg.addEventListener('touchmove', cancel, { passive: true });
-    // 指针事件（部分安卓浏览器）
-    payQrImg.addEventListener('pointerdown', (e)=>{ if(e.pointerType==='touch') start(); }, { passive: true });
-    payQrImg.addEventListener('pointerup', (e)=>{ if(e.pointerType==='touch'){ if(__qrShouldDownload){ triggerDownloadPNG(); } cancel(); } }, { passive: true });
+    // 触屏设备优先使用 pointer 事件（广泛支持），并兼容 click
+    payQrImg.addEventListener('pointerup', (e)=>{ if(e.pointerType==='touch') handleTap(); }, { passive: true });
+    payQrImg.addEventListener('touchend', handleTap, { passive: true });
+    payQrImg.addEventListener('click', ()=>{ if(Date.now() >= __qrIgnoreClicksUntil) handleTap(); });
   }
 
 let currentService = null; // 当前选中的服务（用于详情区显示与复制）
