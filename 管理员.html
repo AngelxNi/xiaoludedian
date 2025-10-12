@@ -58,8 +58,10 @@
     .subset{padding:8px;border:3px solid var(--border-strong);border-radius:8px;background:#fff;margin-bottom:8px}
     .subset-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
     .subset-name{font-weight:600}
-    .subset-services{padding:8px 0 0 0;display:none}
-    .subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
+.subset-services{padding:8px 0 0 0;display:none}
+.subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
+/* 子集备注样式：灰色、小字号，位于子集名称下方 */
+.subset-remark{font-size:12px;color:var(--muted);margin-top:4px}
     .service{padding:8px;border-radius:8px;border:2px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff;box-shadow:0 2px 8px rgba(2,6,23,0.04)}
     .service:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(2,6,23,0.06)}
     /* 手机端展开时的强调效果：类似按钮被按下（轻微缩放 + 高亮边框/阴影） */
@@ -687,7 +689,7 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
 }
 
 // --- 子集容器（含名称与内部新增服务按钮） ---
-function makeSubsetGroup(name = '代肝项目', subsetId){
+function makeSubsetGroup(name = '代肝项目', subsetId, remark = ''){
   const group = document.createElement('div');
   group.className = 'subset';
   // 分配稳定的子集ID（允许同名子集并保持区分）
@@ -696,21 +698,36 @@ function makeSubsetGroup(name = '代肝项目', subsetId){
 
   const header = document.createElement('div');
   header.className = 'subset-header';
+  const leftCol = document.createElement('div');
+  leftCol.style.display = 'flex';
+  leftCol.style.flexDirection = 'column';
+  leftCol.style.gap = '6px';
   const nameInput = document.createElement('input');
   nameInput.className = 'subset-name';
   nameInput.type = 'text';
   nameInput.autocomplete = 'off';
   nameInput.value = name;
   nameInput.placeholder = '子集名称（例：练角色）';
-  nameInput.style.flex = '1';
+  nameInput.style.flex = '0 0 auto';
   nameInput.style.border = '1px solid var(--border)';
   nameInput.style.borderRadius = '6px';
   nameInput.style.padding = '6px 8px';
   nameInput.style.background = 'var(--card)';
+  const remarkInput = document.createElement('input');
+  remarkInput.type = 'text';
+  remarkInput.placeholder = '子集备注（可选）';
+  remarkInput.value = remark || '';
+  remarkInput.style.border = '1px solid var(--border)';
+  remarkInput.style.borderRadius = '6px';
+  remarkInput.style.padding = '6px 8px';
+  remarkInput.style.background = 'var(--card)';
+  remarkInput.style.width = '100%';
+  leftCol.appendChild(nameInput);
+  leftCol.appendChild(remarkInput);
   const indicator = document.createElement('div');
   indicator.className = 'toggleIndicator';
   indicator.textContent = '+';
-  header.appendChild(nameInput);
+  header.appendChild(leftCol);
   header.appendChild(indicator);
 
   const body = document.createElement('div');
@@ -786,7 +803,7 @@ function makeSubsetGroup(name = '代肝项目', subsetId){
   // 仅在点击指示器或空白区域时切换；点击名称输入框不触发展开/收起
   header.addEventListener('click', (e)=>{
     const t = e.target;
-    if(t === nameInput || (t && t.tagName === 'INPUT')){
+    if(t === nameInput || t === remarkInput || (t && t.tagName === 'INPUT')){
       e.stopPropagation();
       return;
     }
@@ -796,13 +813,16 @@ function makeSubsetGroup(name = '代肝项目', subsetId){
   nameInput.addEventListener('click', (e)=>e.stopPropagation());
   nameInput.addEventListener('mousedown', (e)=>e.stopPropagation());
   nameInput.addEventListener('touchstart', (e)=>{ e.stopPropagation(); }, { passive: true });
+  remarkInput.addEventListener('click', (e)=>e.stopPropagation());
+  remarkInput.addEventListener('mousedown', (e)=>e.stopPropagation());
+  remarkInput.addEventListener('touchstart', (e)=>{ e.stopPropagation(); }, { passive: true });
 
   group.appendChild(header);
   group.appendChild(body);
   group.appendChild(addBtn);
 
   // 便于采集
-  group._refs = { nameInput, body, sid };
+  group._refs = { nameInput, remarkInput, body, sid };
   return group;
 }
 
@@ -811,9 +831,11 @@ function getSubsetsFromUI(){
   const groups = Array.from(servicesContainer.querySelectorAll('.subset'));
   return groups.map(g=>{
     const nameInput = g._refs && g._refs.nameInput;
+    const remarkInput = g._refs && g._refs.remarkInput;
     const id = g.dataset && g.dataset.subsetId;
     const name = (nameInput && nameInput.value) ? nameInput.value : '代肝项目';
-    return { id, name };
+    const remark = (remarkInput && remarkInput.value) ? remarkInput.value : '';
+    return { id, name, remark };
   });
 }
 
@@ -1204,7 +1226,7 @@ function renderList(filter='') {
       group.className = 'subset';
       const header = document.createElement('div');
       header.className = 'subset-header';
-      header.innerHTML = `<div class="subset-name">${ss.name}</div><div class="toggleIndicator">+</div>`;
+      header.innerHTML = `<div style="display:flex;flex-direction:column;gap:2px"><div class="subset-name">${ss.name}</div>${ss.remark ? `<div class=\"subset-remark\">${ss.remark}</div>` : ''}</div><div class="toggleIndicator">+</div>`;
       const indicator = header.querySelector('.toggleIndicator');
       const body = document.createElement('div');
       body.className = 'subset-services';
@@ -1825,7 +1847,7 @@ function openModal(mode, game=null, gameIndex=null, targetSubset=null){
     }
     if(subsets.length===0){ subsets = [{ id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: '代肝项目' }]; }
     subsets.forEach(ss=>{
-      const grp = makeSubsetGroup(ss.name, ss.id);
+      const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '');
       servicesContainer.appendChild(grp);
       const body = grp._refs.body;
       (game.services||[]).filter(svc=>svc.subsetId===ss.id).forEach(svc=>{
