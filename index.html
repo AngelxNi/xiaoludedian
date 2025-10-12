@@ -28,7 +28,7 @@
     h1{font-size:22px;margin:0 0 6px}
     p.lead{margin:0 0 12px;color:var(--muted);font-size:13px}
     .top-controls{display:flex;gap:8px;align-items:center;margin-bottom:10px}
-    .panel-header{padding:12px;display:flex;justify-content:space-between;align-items:center}
+    .panel-header{padding:12px;display:flex;justify-content:space-between;align-items:center;position:relative;box-shadow: 0 10px 14px -10px rgba(2,6,23,0.12)}
     .top-hint{white-space:nowrap}
     .theme-chooser{display:flex;gap:6px;align-items:center}
     .theme-btn{width:28px;height:20px;border-radius:6px;border:1px solid var(--border);cursor:pointer}
@@ -48,13 +48,8 @@
     .game-card.active-cat{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     .meta{font-size:18px;color:#0f172a}
     .tag{font-size:13px;color:var(--muted)}
-    /* 三点菜单区域（右下） */
-    .more-wrap{position:relative;margin-left:8px;display:flex;align-items:center;padding-bottom:0}
-    .more-btn{width:34px;height:34px;border-radius:6px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    /* 三点菜单区域（公开版未使用，移除对应样式） */
     .dot{width:4px;height:4px;background:var(--muted);border-radius:50%;margin:1px 0}
-    .menu{position:absolute;right:0;bottom:40px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(2,6,23,0.08);overflow:hidden;display:none;z-index:20}
-    .menu button{display:block;padding:8px 12px;border:none;background:transparent;width:100%;text-align:left;cursor:pointer}
-    .menu button:hover{background:#f6f9ff}
     /* 服务列表：宽度 100%，在卡片下方（默认折叠），只使用 transform/opacity 动画，避免高度动画引发回流 */
 .services{padding:0 8px;display:block;width:100%;height:0;overflow:hidden}
 .services.open{height:auto;padding:8px}
@@ -112,9 +107,7 @@
     .fade-in{opacity:1}
     /* 支付宝样式：蓝色渐变浅 50%（#8ABBFF -> #FFFFFF） */
     .qr-panel.alipay{background:linear-gradient(180deg,#8ABBFF,#FFFFFF);border-color:var(--border)}
-    /* 新增按钮（品类总框右下角） */
-    /* 新增按钮固定在外层 panel 的右下角，避免被左侧 .aside 覆盖 */
-    .add-category{position:absolute;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(16,185,129,0.18);z-index:20}
+    /* 公开版不提供新增按钮，此样式在本页无用（管理员页仍保留） */
     /* 返回顶部按钮：与新增按钮同尺寸，位于其正上方，仅在手机端显示并在滚动一定距离后出现 */
     .back-to-top{position:fixed;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:#64748b;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(2,6,23,0.18);z-index:1000;pointer-events:auto}
     @media (max-width: 768px){
@@ -141,11 +134,12 @@
     /* 点按反馈：按下缩小10%，松开恢复 */
     .pressable{transition:transform .10s ease-out;transform-origin:center center}
     .pressable.pressed{transform:scale(0.9)}
+    /* 促销提示（淡红色） */
+    .promo-note{display:inline-block;color:#f87171;font-size:14px;font-weight:600;margin-left:8px}
     /* 黑色主题覆盖：去掉渐变，统一改为靠内偏灰色的纯底色（不影响二维码面板） */
     html[data-theme="black"] body{color:#f8fafc}
     html[data-theme="black"] .panel,
     html[data-theme="black"] .aside,
-    html[data-theme="black"] .menu,
     html[data-theme="black"] .service,
     html[data-theme="black"] .price-card,
     html[data-theme="black"] .btn,
@@ -153,8 +147,6 @@
     html[data-theme="black"] .note,
     html[data-theme="black"] .modal,
     html[data-theme="black"] .pill,
-    html[data-theme="black"] .more-btn,
-    html[data-theme="black"] .menu,
     html[data-theme="black"] .subset,
     html[data-theme="black"] .service,
     html[data-theme="black"] .price-card,
@@ -181,6 +173,9 @@
       background: var(--card) !important;
       border: 1px solid var(--border) !important;
     }
+
+    /* 深色主题下的头部外阴影（适度）*/
+    html[data-theme="black"] .panel-header{ box-shadow: 0 10px 14px -10px rgba(0,0,0,0.22) }
 
     /* Apply dark card background to any remaining white divs */
     html[data-theme="black"] div {
@@ -271,7 +266,7 @@ html[data-theme="black"] .dot{ background: #8ABBFF !important; }
       .game-card{padding:10px}
       .meta{font-size:16px}
       .tag{font-size:12px}
-      .more-btn{width:30px;height:30px}
+      /* 公开版无三点菜单，移除相关样式 */
       .price-grid{grid-template-columns:1fr}
       .qr-box{flex-direction:column;align-items:center}
       #payQrImg{width:min(70vw,160px)}
@@ -280,14 +275,14 @@ html[data-theme="black"] .dot{ background: #8ABBFF !important; }
       .total-box{min-width:120px;font-size:20px}
       .footer{flex-direction:column;gap:8px}
       /* 避免按钮被内容遮挡：小屏使用固定定位 */
-      .add-category{position:fixed;right:14px;bottom:14px}
+    /* 公开版不提供新增按钮，此样式在本页无用（管理员页仍保留） */
       /* 文本过长时自动换行，避免溢出 */
       #contactVal{overflow-wrap:anywhere;word-break:break-all}
     }
   </style>
 </head>
 <body>
-  <h1 class="mobile-title">小鹿帮帮</h1>
+  <h1 class="mobile-title">小鹿帮帮 <span class="promo-note">全店首单整单95折</span></h1>
   <style>
     /* 默认隐藏移动端标题（桌面端不显示） */
     .mobile-title{display:none}
@@ -302,7 +297,7 @@ html[data-theme="black"] .dot{ background: #8ABBFF !important; }
     <div class="panel">
       <div class="panel-header">
         <div>
-          <h1 class="desktop-title" style="margin:0">小鹿帮帮</h1>
+          <h1 class="desktop-title" style="margin:0">小鹿帮帮 <span class="promo-note">全店首单整单95折</span></h1>
           <div class="small muted top-hint">选择游戏 → 展开项目 → 查看报价与联系方式</div>
         </div>
 
@@ -1222,7 +1217,8 @@ function registerPressable(el){
   el.addEventListener('pointercancel', up);
 }
 function addPressFeedback(scope=document){
-  const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.add-category', '.back-to-top', '.more-btn', '.subset-header', '.subset .toggleIndicator'];
+  // 移除公开版未使用的选择器（.add-category、.more-btn）
+  const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.back-to-top', '.subset-header', '.subset .toggleIndicator'];
   const els = scope.querySelectorAll(selectors.join(','));
   els.forEach(registerPressable);
 }
