@@ -141,24 +141,55 @@
     html[data-theme="black"] .modal,
     html[data-theme="black"] .pill,
     html[data-theme="black"] .more-btn,
+    html[data-theme="black"] .menu,
+    html[data-theme="black"] .subset,
+    html[data-theme="black"] .service,
+    html[data-theme="black"] .price-card,
+    html[data-theme="black"] .calc-panel,
+    html[data-theme="black"] .qty-btn,
+    html[data-theme="black"] .qty-input,
+    html[data-theme="black"] .total-box,
+    html[data-theme="black"] .qr-panel,
     html[data-theme="black"] .search input,
     html[data-theme="black"] .form-row input,
     html[data-theme="black"] .form-row textarea,
     html[data-theme="black"] .svc-row,
     html[data-theme="black"] .game-card{
-      background: #2f3747 !important;
-      color:#f8fafc !important;
-      border: 1px solid #3b4458 !important; /* 黑色主题下的游戏品类细边框，便于区分边界 */
+      background: var(--card) !important;
+      color: #e5e7eb !important;
+      border: 1px solid var(--border) !important;
     }
-    /* 黑色主题下的游戏品类展开强调 */
-    html[data-theme="black"] .game-card.active-cat{background:#3b4458 !important;border-color:#8ABBFF !important;box-shadow:0 8px 24px rgba(2,6,23,0.25)}
-    /* 黑色主题下的展开强调 */
-    html[data-theme="black"] .service.active-svc{background:#3b4458 !important;border-color:#8ABBFF !important;box-shadow:0 8px 24px rgba(2,6,23,0.25)}
-    /* 黑色主题：游戏品类文字与提示为浅色 */
+
+    /* Number input text and caret visible in dark theme */
+    html[data-theme="black"] .qty-input,
+    html[data-theme="black"] input[type="number"]{
+      color: #e5e7eb !important;
+      caret-color: #e5e7eb !important;
+      background: var(--card) !important;
+      border: 1px solid var(--border) !important;
+    }
+
+    /* Apply dark card background to any remaining white divs */
+    html[data-theme="black"] div {
+      background: var(--card) !important;
+      color: #e5e7eb;
+      border-color: var(--border);
+    }
+
+    /* Dim QR image in black theme to avoid glare while keeping scan reliability */
+    html[data-theme="black"] .qr-panel #payQrImg {
+      filter: brightness(0.78) contrast(1.08) saturate(0.9);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+    }
+    /* 黑色主题下的游戏品类展开强调（夜间标准） */
+    html[data-theme="black"] .game-card.active-cat{background:#232323 !important;border-color: var(--accent) !important;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
+    /* 黑色主题下的展开强调（夜间标准） */
+    html[data-theme="black"] .service.active-svc{background:#232323 !important;border-color: var(--accent) !important;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
+    /* 黑色主题：标签/提示颜色为浅灰 */
     html[data-theme="black"] .tag,
     html[data-theme="black"] .muted,
     html[data-theme="black"] .toggleIndicator{
-      color:#e5e7eb !important;
+      color: var(--muted) !important;
     }
 
     /* ------------------ 移动端优化（≤600px） ------------------ */
@@ -1466,12 +1497,12 @@ function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t);
   try{ localStorage.setItem('boost_theme_v1', t); }catch(e){}
   if(t==='black'){
-    document.documentElement.style.setProperty('--bg','#0f172a');
-    document.documentElement.style.setProperty('--card','#0b1220');
-    document.documentElement.style.setProperty('--muted','#9ca3af');
-    document.documentElement.style.setProperty('--accent','#22c55e');
-    document.documentElement.style.setProperty('--border','#111827');
-    document.body.style.color = '#e6eef6';
+    document.documentElement.style.setProperty('--bg','#121212');
+    document.documentElement.style.setProperty('--card','#1e1e1e');
+    document.documentElement.style.setProperty('--muted','#a1a1aa');
+    document.documentElement.style.setProperty('--accent','#3b82f6');
+    document.documentElement.style.setProperty('--border','#2a2a2a');
+    document.body.style.color = '#e5e7eb';
   } else if(t==='white'){
     document.documentElement.style.setProperty('--bg','#f6f7fb');
     document.documentElement.style.setProperty('--card','#ffffff');
