@@ -49,10 +49,18 @@
       }else{
         window.DATA = obj.data;
       }
+      // 恢复全局折扣配置（如果 JSON 中有）
+      try{
+        if(obj.discountConfig){
+          window.DISCOUNT_CONFIG = obj.discountConfig;
+        }
+      }catch(e){}
       // 恢复主题（如果 JSON 中有）
       if(typeof applyTheme === 'function'){
         try{
-          const theme = obj.theme || 'white';
+          let saved = null;
+          try{ saved = localStorage.getItem('boost_theme_v1'); }catch(e){}
+          const theme = saved || (obj.theme || 'white');
           applyTheme(theme);
         }catch(e){}
       }

@@ -41,6 +41,8 @@
     /* 卡片主体 */
     .game-card{flex:1;border-radius:10px;display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fff);cursor:default}
     .game-card:hover{box-shadow:0 4px 12px rgba(16,185,129,0.06);border-color:var(--border)}
+    /* 游戏品类展开时的强调效果 */
+    .game-card.active-cat{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     .meta{font-size:18px;color:#0f172a}
     .tag{font-size:13px;color:var(--muted)}
     /* 三点菜单区域（右下） */
@@ -51,9 +53,17 @@
     .menu button{display:block;padding:8px 12px;border:none;background:transparent;width:100%;text-align:left;cursor:pointer}
     .menu button:hover{background:#f6f9ff}
     /* 服务列表：宽度 100%，在卡片下方 */
-    .services{padding:8px;display:none;width:100%}
+.services{padding:8px;display:none;width:100%}
+/* 子集分组（与管理员页保持一致的结构与样式，便于按子集展示服务）*/
+.subset{padding:8px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:8px}
+.subset-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.subset-name{font-weight:600}
+.subset-services{padding:8px 0 0 0;display:none}
+.subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
     .service{padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff}
     .service:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
+    /* 手机端展开时的强调效果：类似按钮被按下（轻微缩放 + 高亮边框/阴影） */
+    .service.active-svc{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     /* 代肝种类（服务标题）字号：与游戏品类互换为更小字号 */
     .svc-title{font-size:13px}
     /* 详情区 */
@@ -95,6 +105,10 @@
     @media (max-width: 768px){
       .back-to-top.show{display:flex}
     }
+    /* 居中提示（保存成功） */
+    #toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(15,23,42,0.92);color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;z-index:2000;display:none;box-shadow:0 8px 20px rgba(2,6,23,0.28)}
+    #toast.show{display:block;animation:fadeToast .18s ease-out}
+    @keyframes fadeToast{from{opacity:0;transform:translate(-50%,-60%) scale(0.98)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
     /* 模态框 */
     .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:none;align-items:center;justify-content:center;z-index:60}
     .modal{width:680px;max-width:95%;background:#fff;/* Eliya备注：模态框整体方框圆角在这里的 border-radius；边框颜色在这里的 border 的颜色变量 */border-radius:12px;padding:16px;border:1px solid var(--border)} 
@@ -134,6 +148,10 @@
       color:#f8fafc !important;
       border: 1px solid #3b4458 !important; /* 黑色主题下的游戏品类细边框，便于区分边界 */
     }
+    /* 黑色主题下的游戏品类展开强调 */
+    html[data-theme="black"] .game-card.active-cat{background:#3b4458 !important;border-color:#8ABBFF !important;box-shadow:0 8px 24px rgba(2,6,23,0.25)}
+    /* 黑色主题下的展开强调 */
+    html[data-theme="black"] .service.active-svc{background:#3b4458 !important;border-color:#8ABBFF !important;box-shadow:0 8px 24px rgba(2,6,23,0.25)}
     /* 黑色主题：游戏品类文字与提示为浅色 */
     html[data-theme="black"] .tag,
     html[data-theme="black"] .muted,
@@ -169,11 +187,22 @@
   </style>
 </head>
 <body>
+  <h1 class="mobile-title">小鹿帮帮</h1>
+  <style>
+    /* 默认隐藏移动端标题（桌面端不显示） */
+    .mobile-title{display:none}
+    @media (max-width:600px){
+      .mobile-title{display:block;font-size:20px;margin:16px 16px 0 16px}
+      .panel-header .desktop-title{display:none}
+      /* 让标题更贴近方框顶部：设置上内边距为 10px */
+      .wrap{padding-top:0px}
+    }
+  </style>
   <div class="wrap">
     <div class="panel">
       <div class="panel-header">
         <div>
-          <h1 style="margin:0">小鹿帮帮</h1>
+          <h1 class="desktop-title" style="margin:0">小鹿帮帮</h1>
           <div class="small muted top-hint">选择游戏 → 展开项目 → 查看报价与联系方式</div>
         </div>
 
@@ -273,7 +302,7 @@
                   <div class="qr-header">推荐使用<span id="qrTitlePay">微信</span>支付</div>
                   <div class="qr-box">
                     <img id="payQrImg" src="微信收款码.png" alt="收款码" />
-                    <div class="small muted">请使用对应 App 扫码付款</div>
+                    <div id="qrHint" class="small muted">请使用对应 App 扫码付款</div>
                   </div>
                 </div>
 
@@ -293,11 +322,15 @@
       </div>
 
       <!-- 手机端优化：返回顶部按钮（与新增按钮同尺寸，位于其正上方，仅在下滑一段后显示） -->
-      <button id="backToTopBtn" class="back-to-top" title="返回顶部" aria-label="返回顶部">
-        <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-          <path d="M12 5l-7 7M12 5l7 7M12 5v12" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
+<button id="backToTopBtn" class="back-to-top" title="重置" aria-label="重置">
+  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+    <!-- 圆形箭头（刷新/重置样式）：顶部留缺口并配三角形箭头，风格与现有线性图标一致 -->
+    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="44 18" />
+    <!-- 将三角箭头放大 2 倍（以中心约 (19.33, 8.5) 为参考） -->
+    <!-- 逆时针旋转 90°，在中心约 (19.67, 8.5) 处进行变换；撤销“变窄20%”，改为“变矮20%”：宽度维持 1.5 倍，高度为 1.2 倍 -->
+    <path d="M17.67 4.5 L22.67 8.5 L17.67 12.5 Z" fill="currentColor" transform="translate(20.67,8.5) rotate(-90) scale(1.5,1.2) translate(-19.67,-8.5) translate(-1.2,-0.2)" />
+  </svg>
+</button>
       <!-- 新增品类按钮（外框右下角，不遮挡左侧滚动条） -->
       <button id="addCategoryBtn" class="add-category" title="新增品类">+</button>
 
@@ -393,11 +426,62 @@ const btnAddService = document.getElementById('btnAddService');
 const inpPayments = document.getElementById('inpPayments');
 const inpContactType = document.getElementById('inpContactType');
 const inpContactValue = document.getElementById('inpContactValue');
-// 支付切换与二维码相关元素
-const payToggle = document.getElementById('payToggle');
-const qrPanel = document.getElementById('qrPanel');
-const payQrImg = document.getElementById('payQrImg');
-const qrTitlePay = document.getElementById('qrTitlePay');
+  // 支付切换与二维码相关元素
+  const payToggle = document.getElementById('payToggle');
+  const qrPanel = document.getElementById('qrPanel');
+  const payQrImg = document.getElementById('payQrImg');
+  const qrTitlePay = document.getElementById('qrTitlePay');
+  const qrHint = document.getElementById('qrHint');
+
+  // Toast 提示（居中）
+  let __toastTimer = null;
+  function showToast(message=''){
+    try{
+      let toast = document.getElementById('toast');
+      if(!toast){
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message || '';
+      toast.classList.add('show');
+      if(__toastTimer) clearTimeout(__toastTimer);
+      __toastTimer = setTimeout(()=>{ try{ toast.classList.remove('show'); }catch(e){} }, 1600);
+    }catch(e){}
+  }
+
+  // 手机端提示语与点击保存
+  function updateQrHintForViewport(){
+    try{
+      const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+      if(qrHint){
+        qrHint.textContent = isMobile600 ? '点击二维码保存收款码' : '请使用对应 App 扫码付款';
+      }
+    }catch(e){}
+  }
+  updateQrHintForViewport();
+  window.addEventListener('resize', updateQrHintForViewport);
+
+  if(payQrImg){
+    payQrImg.addEventListener('click', ()=>{
+      try{
+        const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+        if(!isMobile600) return; // 仅手机端生效
+        const src = payQrImg.src;
+        const a = document.createElement('a');
+        a.href = src;
+        const payName = (qrTitlePay && qrTitlePay.textContent) ? qrTitlePay.textContent.trim() : '';
+        const lower = src.toLowerCase();
+        const ext = lower.endsWith('.png') ? 'png' : (lower.endsWith('.jpg')||lower.endsWith('.jpeg') ? 'jpg' : 'png');
+        a.download = (payName || '收款码') + '.' + ext;
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(()=>{ try{ document.body.removeChild(a); }catch(e){} }, 0);
+        // 显示保存成功提示
+        showToast('收款码已保存');
+      }catch(e){}
+    });
+  }
 
 let currentService = null; // 当前选中的服务（用于详情区显示与复制）
 let selectedUnitPrice = 0; // 当前选中的单价（用于价格计算）
@@ -409,7 +493,7 @@ window.DISCOUNT_CONFIG = window.DISCOUNT_CONFIG || {
 };
 
 // --- 动态服务行生成 ---
-function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '', price: 0 }], discount: { enabled: false, type: 'more' } }) {
+function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '', price: undefined }], discount: { enabled: false, type: 'more' } }) {
   const row = document.createElement('div');
   row.className = 'svc-row';
   row.style.border = '1px solid var(--border)'; // Eliya备注：服务项方框的边框颜色在这里，修改 var(--border)
@@ -436,14 +520,15 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
   prrow.style.marginBottom = '8px';
 
   const priceLabel = document.createElement('input');
-  priceLabel.placeholder = '价格或选项标签（例：白银→黄金）';
+  priceLabel.placeholder = '单位（例如：月/次/周）或选项标签';
   priceLabel.value = (svc.priceOptions && svc.priceOptions[0] && svc.priceOptions[0].label) || '';
   priceLabel.style.flex = '1';
 
   const priceValue = document.createElement('input');
-  priceValue.placeholder = '价格（数字）';
+  priceValue.placeholder = '单价';
   priceValue.type = 'number';
-  priceValue.value = (svc.priceOptions && svc.priceOptions[0] && svc.priceOptions[0].price) || 0;
+  const hasPrice = !!(svc.priceOptions && svc.priceOptions[0] && (typeof svc.priceOptions[0].price !== 'undefined'));
+  priceValue.value = hasPrice ? String(svc.priceOptions[0].price) : '';
   priceValue.style.width = '140px';
 
   prrow.appendChild(priceLabel);
@@ -610,8 +695,12 @@ function applyBackupJSON(text){
     if(!obj || !obj.data || !Array.isArray(obj.data)) throw new Error('文件格式不正确');
     DATA = obj.data;
     // 不进行本地持久化
-    // 恢复主题（如有）
-    applyTheme(obj.theme || 'white');
+    // 恢复主题：优先使用本地记忆，其次使用文件内主题，默认白色
+    (function(){
+      let saved = null;
+      try{ saved = localStorage.getItem('boost_theme_v1'); }catch(e){}
+      applyTheme(saved || (obj.theme || 'white'));
+    })();
     // 重新渲染左侧列表
     renderList(qEl.value || '');
     // 回到占位区
@@ -683,13 +772,53 @@ function renderList(filter='') {
     srvWrap.className = 'services';
     srvWrap.style.display = 'none';
     srvWrap.setAttribute('aria-hidden','true');
-    game.services.forEach(svc=>{
-      const sEl = document.createElement('div');
-      sEl.className = 'service';
-      // Eliya：服务标题增加 .svc-title 类，以便与游戏品类字号互换（更小）
-      sEl.innerHTML = `<div class="svc-title" style="font-weight:600">${svc.title}</div><div class="muted" style="margin-top:6px">${svc.desc}</div>`;
-      sEl.addEventListener('click',()=>showService(svc,game));
-      srvWrap.appendChild(sEl);
+    // 按“子集”分组展示（支持同名子集，基于 subsetId 区分）。
+    // 若无显式 subsets，则按服务的 subset 名称推断，并为缺失的服务补充 subsetId。
+    let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
+    if(!subsets){
+      const map = {};
+      (game.services||[]).forEach(s=>{
+        const nm = s.subset || '代肝项目';
+        if(!map[nm]){ map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm }; }
+      });
+      subsets = Object.values(map);
+      const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
+      (game.services||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
+    }
+    // 创建子集分组及其服务项
+    subsets.forEach(ss=>{
+      const group = document.createElement('div');
+      group.className = 'subset';
+
+      const header = document.createElement('div');
+      header.className = 'subset-header';
+      header.innerHTML = `<div class="subset-name">${ss.name}</div><div class="toggleIndicator">+</div>`;
+
+      const body = document.createElement('div');
+      body.className = 'subset-services';
+      body.style.display = 'none';
+
+      // 填充该子集的服务（按 subsetId 精确匹配；兼容旧数据按名称匹配）
+      (game.services||[])
+        .filter(svc => svc.subsetId === ss.id || (!svc.subsetId && (svc.subset||'代肝项目') === ss.name))
+        .forEach(svc=>{
+          const sEl = document.createElement('div');
+          sEl.className = 'service';
+          sEl.innerHTML = `<div class="svc-title" style="font-weight:600">${svc.title}</div><div class="muted" style="margin-top:6px">${svc.desc}</div>`;
+          sEl.addEventListener('click',()=>showService(svc,game,sEl));
+          body.appendChild(sEl);
+        });
+
+      // 子集折叠/展开
+      header.addEventListener('click',()=>{
+        const open = body.style.display === 'block';
+        body.style.display = open ? 'none' : 'block';
+        header.querySelector('.toggleIndicator').textContent = open ? '+' : '-';
+      });
+
+      group.appendChild(header);
+      group.appendChild(body);
+      srvWrap.appendChild(group);
     });
     wrap.appendChild(srvWrap);
 
@@ -701,10 +830,37 @@ function renderList(filter='') {
       // 折叠其它已打开的服务（这里只影响可见的服务区域）
       document.querySelectorAll('.game .services').forEach(el=>{ el.style.display='none'; el.setAttribute('aria-hidden','true'); });
       document.querySelectorAll('.game .toggleIndicator').forEach(el=>el.textContent='+');
+      // 移除所有卡片的强调态
+      document.querySelectorAll('.game-card').forEach(el=>el.classList.remove('active-cat'));
       srvWrap.style.display = open ? 'none' : 'block';
       srvWrap.setAttribute('aria-hidden', open ? 'true' : 'false');
       // 切换当前指示器为 + 或 -
       card.querySelector('.toggleIndicator').textContent = open ? '+' : '-';
+      // 当前卡片强调（展开时）
+      if(!open){ card.classList.add('active-cat'); } else { card.classList.remove('active-cat'); }
+
+      // 若是收起该品类，同时收起当前代肝项目的内嵌面板，并重置状态
+      if(open){
+        try{
+          const mobileMount = document.getElementById('mobileDetail');
+          if(mobileMount && !mobileMount.classList.contains('hidden')){
+            smoothHide(mobileMount);
+          }
+        }catch(e){}
+        try{
+          const dp = detailPanel; // 外层已定义
+          const priceGridEl = document.querySelector('.price-grid');
+          if(dp && priceGridEl && priceGridEl.parentElement !== dp){
+            dp.appendChild(priceGridEl);
+          }
+        }catch(e){}
+        try{
+          if(window.MOBILE_CURRENT_TARGET){
+            window.MOBILE_CURRENT_TARGET.classList.remove('active-svc');
+            window.MOBILE_CURRENT_TARGET = null;
+          }
+        }catch(e){}
+      }
     });
 
     // 2) 三点按钮：展开/收起菜单
@@ -798,20 +954,98 @@ function renderList(filter='') {
 }
 
 /* ------------------ 显示服务详情（右侧面板） ------------------ */
-function showService(svc, game){
+function showService(svc, game, mountTarget){
   currentService = { ...svc, game };
   /* Eliya备注：显示右侧详情改为平滑动画（0.1s） */
-  detailPlaceholder.classList.add('hidden');
-  smoothShow(detailPanel);
+  // 针对移动端：将价格与支付模块插入到点击的服务项下方
+  const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+  const priceGrid = detailPanel.querySelector('.price-grid');
+  let mobileMount = document.getElementById('mobileDetail');
+  // 记录当前展开的服务项（用于再次点击收起）
+  window.MOBILE_CURRENT_TARGET = window.MOBILE_CURRENT_TARGET || null;
+  if(isMobile){
+    // 创建或复用移动端挂载容器
+    if(!mobileMount){
+      mobileMount = document.createElement('div');
+      mobileMount.id = 'mobileDetail';
+      mobileMount.style.margin = '8px 0 12px';
+      mobileMount.style.border = '1px solid var(--border)';
+      mobileMount.style.borderRadius = '10px';
+      mobileMount.style.background = 'var(--card)';
+      mobileMount.style.padding = '12px';
+      mobileMount.style.boxShadow = '0 6px 18px rgba(0,0,0,0.08)';
+      mobileMount.classList.add('hidden');
+    }
+    // 移动 priceGrid 到服务项下方显示
+    if(priceGrid){
+      mobileMount.innerHTML = '';
+      mobileMount.appendChild(priceGrid);
+    }
+    // 挂载到点击的服务项之后
+    try{
+      if(mountTarget && mountTarget.parentElement){
+        const alreadyMountedHere = (mountTarget.nextElementSibling === mobileMount);
+        // 若再次点击同一个服务项，则收起
+        if(alreadyMountedHere && window.MOBILE_CURRENT_TARGET === mountTarget && !mobileMount.classList.contains('hidden')){
+          smoothHide(mobileMount);
+          // 将 priceGrid 放回右侧详情面板（桌面端时会用到）
+          try{ detailPanel.appendChild(priceGrid); }catch(e){}
+          // 去除强调样式
+          try{ mountTarget.classList.remove('active-svc'); }catch(e){}
+          window.MOBILE_CURRENT_TARGET = null;
+          return;
+        }
+        // 去掉之前的强调样式
+        try{ if(window.MOBILE_CURRENT_TARGET && window.MOBILE_CURRENT_TARGET !== mountTarget){ window.MOBILE_CURRENT_TARGET.classList.remove('active-svc'); } }catch(e){}
+        mountTarget.insertAdjacentElement('afterend', mobileMount);
+      }
+    }catch(e){}
+    // 隐藏右侧详情面板，避免重复显示
+    smoothHide(detailPanel);
+    detailPlaceholder.classList.add('hidden');
+    // 展开动画并滚动到可视区域
+    smoothShow(mobileMount);
+    // 添加强调样式
+    try{ if(mountTarget){ mountTarget.classList.add('active-svc'); } }catch(e){}
+    window.MOBILE_CURRENT_TARGET = mountTarget || null;
+    // 为所有分类的展开都进行自动滚动：延时在动画触发后执行，且滚动到服务项本身更稳妥
+    try{
+      const isMobileNow = window.innerWidth <= 768;
+      if(isMobileNow){
+        setTimeout(()=>{
+          try{ (mountTarget || mobileMount).scrollIntoView({ behavior: 'smooth', block: 'start' }); }catch(e){}
+        }, 140); // 等待 smoothShow 开始展开后再滚动
+      }
+    }catch(e){}
+  } else {
+    // 桌面端：确保 priceGrid 回到右侧详情面板，并显示该面板
+    try{
+      if(priceGrid && priceGrid.parentElement && priceGrid.parentElement.id === 'mobileDetail'){
+        detailPanel.appendChild(priceGrid);
+      }
+    }catch(e){}
+    detailPlaceholder.classList.add('hidden');
+    smoothShow(detailPanel);
+    // 桌面端也进行强调：先移除旧的，再设置新的
+    try{ if(window.MOBILE_CURRENT_TARGET && window.MOBILE_CURRENT_TARGET !== mountTarget){ window.MOBILE_CURRENT_TARGET.classList.remove('active-svc'); } }catch(e){}
+    try{ if(mountTarget){ mountTarget.classList.add('active-svc'); } }catch(e){}
+    window.MOBILE_CURRENT_TARGET = mountTarget || null;
+  }
   svcTitle.textContent = svc.title;
   svcMeta.textContent = `${game.name} · ${svc.desc}`;
-  contactVal.textContent = `${svc.contact.type}: ${svc.contact.value}`;
+  // 兼容旧数据：若未提供联系方式字段则不显示
+  try{
+    const contactText = (svc.contact && (svc.contact.type || svc.contact.value))
+      ? `${svc.contact.type || ''}${svc.contact.type ? ': ' : ''}${svc.contact.value || ''}`
+      : '';
+    contactVal.textContent = contactText;
+  }catch(e){ contactVal.textContent = ''; }
 
   pricesEl.innerHTML = '';
   // 重置当前选择的单价
   selectedUnitPrice = 0;
   selectedLabel = '';
-  svc.priceOptions.forEach(p=>{
+  (svc.priceOptions || []).forEach(p=>{
     const pc = document.createElement('div');
     pc.className = 'price-card';
     const discountText = (svc.discount && svc.discount.enabled)
@@ -875,7 +1109,7 @@ function showService(svc, game){
 
   // 已取消邮件下单按钮
   // 注册点按反馈（为本次渲染产生的可点击元素添加缩放反馈）
-  addPressFeedback(detailPanel);
+  addPressFeedback(isMobile ? (mobileMount || detailPanel) : detailPanel);
 }
 
 // 更新总价
@@ -954,13 +1188,29 @@ function registerPressable(el){
   el.addEventListener('pointercancel', up);
 }
 function addPressFeedback(scope=document){
-  const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.add-category', '.back-to-top', '.more-btn'];
+  const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.add-category', '.back-to-top', '.more-btn', '.subset-header', '.subset .toggleIndicator'];
   const els = scope.querySelectorAll(selectors.join(','));
   els.forEach(registerPressable);
 }
 
 // 初次加载时也为现有按钮添加反馈
 document.addEventListener('DOMContentLoaded', ()=> addPressFeedback(document));
+
+// 仅手机端为二维码图片添加按压反馈；桌面端不添加缩放效果
+function setupQrPressFeedback(){
+  try{
+    const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+    if(!payQrImg) return;
+    if(isMobile600){
+      registerPressable(payQrImg);
+    }else{
+      payQrImg.classList.remove('pressed','pressable');
+      try{ if(payQrImg.dataset) delete payQrImg.dataset.pressable; }catch(e){}
+    }
+  }catch(e){}
+}
+setupQrPressFeedback();
+window.addEventListener('resize', setupQrPressFeedback);
 
 /* 支付方式切换与二维码过渡 */
 function switchPay(type){
@@ -1109,6 +1359,27 @@ const backToTopBtn = document.getElementById('backToTopBtn');
 function getScrollTop(){
   return document.scrollingElement ? document.scrollingElement.scrollTop : (window.pageYOffset || document.documentElement.scrollTop || 0);
 }
+// 自定义滚动动画：更平滑、更可控
+function animateScrollToTop(duration=700, onDone){
+  const start = getScrollTop();
+  const startTime = performance.now();
+  const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+  function step(now){
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = easeOutCubic(progress);
+    const current = Math.round(start * (1 - eased));
+    try{
+      if(document.scrollingElement) document.scrollingElement.scrollTop = current; else window.scrollTo(0, current);
+    }catch(e){ window.scrollTo(0, current); }
+    if(progress < 1){
+      requestAnimationFrame(step);
+    } else {
+      if(typeof onDone === 'function') onDone();
+    }
+  }
+  requestAnimationFrame(step);
+}
 function updateTopBtnVisibility(){
   const isMobile = window.innerWidth <= 768;
   if(!isMobile){
@@ -1125,7 +1396,57 @@ function updateTopBtnVisibility(){
 window.addEventListener('scroll', updateTopBtnVisibility, { passive: true });
 window.addEventListener('resize', updateTopBtnVisibility);
 backToTopBtn.addEventListener('click', ()=>{
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // 滑动与收起同时进行；为防止高度骤降导致瞬间跳顶，先插入占位元素维持高度
+  const currentTop = getScrollTop();
+  let spacer = null;
+  try{
+    if(currentTop > 0){
+      spacer = document.createElement('div');
+      spacer.className = 'reset-spacer';
+      spacer.style.height = currentTop + 'px';
+      spacer.style.visibility = 'hidden';
+      spacer.style.pointerEvents = 'none';
+      document.body.appendChild(spacer);
+    }
+  }catch(e){}
+  // 开始滚动动画（600ms），滚动结束后移除占位
+  animateScrollToTop(600, ()=>{ try{ if(spacer) spacer.remove(); }catch(e){} });
+
+  // 同时执行收起与重置（无论桌面还是手机）
+  try{
+    // 收起所有品类的服务列表
+    document.querySelectorAll('.game .services').forEach(el=>{ el.style.display='none'; el.setAttribute('aria-hidden','true'); });
+    document.querySelectorAll('.game .toggleIndicator').forEach(el=>el.textContent='+');
+    document.querySelectorAll('.game-card').forEach(el=>el.classList.remove('active-cat'));
+  }catch(e){}
+  try{
+    // 收起所有子集面板，并重置加号
+    document.querySelectorAll('.subset-services').forEach(el=>{ el.style.display='none'; });
+    document.querySelectorAll('.subset .toggleIndicator').forEach(el=>{ el.textContent = '+'; });
+  }catch(e){}
+  // 手机端额外：收起内嵌面板与详情
+  const isMobile = window.innerWidth <= 768;
+  if(isMobile){
+    try{
+      const mobileMount = document.getElementById('mobileDetail');
+      if(mobileMount && !mobileMount.classList.contains('hidden')){
+        smoothHide(mobileMount);
+      }
+    }catch(e){}
+    try{
+      const priceGridEl = document.querySelector('.price-grid');
+      if(detailPanel && priceGridEl && priceGridEl.parentElement !== detailPanel){
+        detailPanel.appendChild(priceGridEl);
+      }
+      smoothHide(detailPanel);
+    }catch(e){}
+    try{
+      if(window.MOBILE_CURRENT_TARGET){
+        window.MOBILE_CURRENT_TARGET.classList.remove('active-svc');
+        window.MOBILE_CURRENT_TARGET = null;
+      }
+    }catch(e){}
+  }
 });
 // 初始化一次（移动端才显示）
 updateTopBtnVisibility();
@@ -1136,12 +1457,12 @@ themeButtons.forEach(btn=>{
   btn.addEventListener('click', ()=>{
     const t = btn.dataset.theme;
     applyTheme(t);
-    saveData();
   });
 });
 
 function applyTheme(t){
   document.documentElement.setAttribute('data-theme', t);
+  try{ localStorage.setItem('boost_theme_v1', t); }catch(e){}
   if(t==='black'){
     document.documentElement.style.setProperty('--bg','#0f172a');
     document.documentElement.style.setProperty('--card','#0b1220');
@@ -1180,8 +1501,11 @@ function applyTheme(t){
   }
 }
 
-// 默认主题（不做本地记忆）
-applyTheme('white');
+// 恢复上次保存的主题；如无记录则默认白色
+try{
+  const savedTheme = localStorage.getItem('boost_theme_v1');
+  applyTheme(savedTheme || 'white');
+}catch(e){ applyTheme('white'); }
 
 /* Eliya备注：展开/收起动画工具函数（0.1s，放在脚本内部，避免未定义错误） */
 function smoothShow(el){
