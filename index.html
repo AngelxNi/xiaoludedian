@@ -4,6 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>小鹿帮帮~</title>
+  <!-- 预加载两种收款码图片，避免切换支付方式时首次出现的加载延迟 -->
+  <link rel="preload" as="image" href="微信收款码.png" />
+  <link rel="preload" as="image" href="支付宝收款码.png" />
   <style>
     /* 主题变量（会被 JS 动态切换） */
     :root{
@@ -383,7 +386,10 @@
                 <div id="qrPanel" class="qr-panel">
                   <div class="qr-header">推荐使用<span id="qrTitlePay">微信</span>支付</div>
                   <div class="qr-box">
-                    <img id="payQrImg" src="微信收款码.png" alt="收款码" />
+        <picture class="qr-img-wrap">
+          <source type="image/webp" srcset="微信收款码.webp" />
+          <img id="payQrImg" src="微信收款码.png" alt="收款码" decoding="async" fetchpriority="high" />
+        </picture>
                     <div id="qrHint" class="small muted">请使用对应 App 扫码付款</div>
                   </div>
                 </div>
@@ -537,32 +543,56 @@ const inpContactValue = document.getElementById('inpContactValue');
     try{
       const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
       if(qrHint){
-        qrHint.textContent = isMobile600 ? '点击二维码保存收款码' : '请使用对应 App 扫码付款';
+        qrHint.textContent = isMobile600 ? '长按1秒保存收款码' : '请使用对应 App 扫码付款';
       }
     }catch(e){}
   }
   updateQrHintForViewport();
   window.addEventListener('resize', updateQrHintForViewport);
 
+  // 手机端：将“点击下载”改为“长按1秒下载 PNG”，避免误触
   if(payQrImg){
-    payQrImg.addEventListener('click', ()=>{
+    let __qrLongPressTimer = null;
+    let __qrShouldDownload = false;
+    const triggerDownloadPNG = ()=>{
       try{
-        const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
-        if(!isMobile600) return; // 仅手机端生效
-        const src = payQrImg.src;
+        const type = (qrPanel && qrPanel.classList && qrPanel.classList.contains('alipay')) ? 'alipay' : 'wechat';
+        const baseName = type === 'alipay' ? '支付宝收款码' : '微信收款码';
+        const png = baseName + '.png';
         const a = document.createElement('a');
-        a.href = src;
+        a.href = png; // 始终下载 PNG
         const payName = (qrTitlePay && qrTitlePay.textContent) ? qrTitlePay.textContent.trim() : '';
-        const lower = src.toLowerCase();
-        const ext = lower.endsWith('.png') ? 'png' : (lower.endsWith('.jpg')||lower.endsWith('.jpeg') ? 'jpg' : 'png');
-        a.download = (payName || '收款码') + '.' + ext;
+        a.download = (payName || '收款码') + '.png';
         document.body.appendChild(a);
         a.click();
         setTimeout(()=>{ try{ document.body.removeChild(a); }catch(e){} }, 0);
-        // 显示保存成功提示
         showToast('收款码已保存');
       }catch(e){}
-    });
+    };
+    const start = ()=>{
+      try{
+        const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+        if(!isMobile600) return;
+        clearTimeout(__qrLongPressTimer);
+        __qrShouldDownload = false;
+        __qrLongPressTimer = setTimeout(()=>{ __qrShouldDownload = true; }, 1000);
+      }catch(e){}
+    };
+    const cancel = ()=>{ try{ clearTimeout(__qrLongPressTimer); __qrShouldDownload = false; }catch(e){} };
+    // 触屏长按
+    payQrImg.addEventListener('touchstart', start, { passive: true });
+    payQrImg.addEventListener('touchend', ()=>{
+      try{
+        const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+        if(isMobile600 && __qrShouldDownload){ triggerDownloadPNG(); }
+      }catch(e){}
+      cancel();
+    }, { passive: true });
+    payQrImg.addEventListener('touchcancel', cancel, { passive: true });
+    payQrImg.addEventListener('touchmove', cancel, { passive: true });
+    // 指针事件（部分安卓浏览器）
+    payQrImg.addEventListener('pointerdown', (e)=>{ if(e.pointerType==='touch') start(); }, { passive: true });
+    payQrImg.addEventListener('pointerup', (e)=>{ if(e.pointerType==='touch'){ if(__qrShouldDownload){ triggerDownloadPNG(); } cancel(); } }, { passive: true });
   }
 
 let currentService = null; // 当前选中的服务（用于详情区显示与复制）
@@ -1302,9 +1332,16 @@ function switchPay(type){
   // 渐隐 → 切图 → 渐显
   payQrImg.classList.remove('fade-in');
   payQrImg.classList.add('fade-out');
-  const nextSrc = type === 'wechat' ? '微信收款码.png' : '支付宝收款码.png';
+  const baseName = type === 'wechat' ? '微信收款码' : '支付宝收款码';
+  const nextSrcWebp = baseName + '.webp';
+  const nextSrcPng = baseName + '.png';
   setTimeout(()=>{
-    payQrImg.src = nextSrc;
+    // 优先尝试 WebP，失败则回退到 PNG（保证兼容性与加载速度）
+    payQrImg.onerror = function(){
+      payQrImg.onerror = null;
+      payQrImg.src = nextSrcPng;
+    };
+    payQrImg.src = nextSrcWebp;
     payQrImg.onload = ()=>{
       payQrImg.classList.remove('fade-out');
       payQrImg.classList.add('fade-in');
