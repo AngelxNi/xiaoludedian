@@ -49,6 +49,10 @@
       }else{
         window.DATA = obj.data;
       }
+      // 恢复 UI 布局状态（文本框等）
+      try{
+        window.UI_STATE = obj.uiState || { elements:{}, boxes:[] };
+      }catch(e){ window.UI_STATE = { elements:{}, boxes:[] }; }
       // 恢复全局折扣配置（如果 JSON 中有）
       try{
         if(obj.discountConfig){
@@ -70,6 +74,8 @@
         if(typeof renderList === 'function') renderList(qEl ? qEl.value : '');
         // 为新渲染的元素绑定点按反馈
         if(typeof addPressFeedback === 'function') addPressFeedback(document);
+        // 应用 UI 状态到页面（如果页面实现了此函数）
+        if(typeof applyUIState === 'function') applyUIState();
       }catch(e){}
       console.log('已自动加载备份 JSON：', url);
     }

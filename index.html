@@ -7,7 +7,7 @@
   <!-- 预加载两种收款码图片，避免切换支付方式时首次出现的加载延迟 -->
   <link rel="preload" as="image" href="微信收款码.png" />
   <link rel="preload" as="image" href="支付宝收款码.png" />
-  <style>
+<style>
     /* 主题变量（会被 JS 动态切换） */
     :root{
       --bg:#f6f7fb;--card:#ffffff;--muted:#6b7280;--accent:#10b981;--border:#e6e9ef;
@@ -111,7 +111,7 @@
     /* 返回顶部按钮：与新增按钮同尺寸，位于其正上方，仅在手机端显示并在滚动一定距离后出现 */
     .back-to-top{position:fixed;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:#64748b;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(2,6,23,0.18);z-index:1000;pointer-events:auto}
     @media (max-width: 768px){
-      .back-to-top.show{display:flex}
+  .back-to-top.show{display:flex}
     }
     /* 居中提示（保存成功） */
     #toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(15,23,42,0.92);color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;z-index:2000;display:none;box-shadow:0 8px 20px rgba(2,6,23,0.28)}
@@ -279,7 +279,10 @@ html[data-theme="black"] .dot{ background: #8ABBFF !important; }
       /* 文本过长时自动换行，避免溢出 */
       #contactVal{overflow-wrap:anywhere;word-break:break-all}
     }
-  </style>
+  /* 展示由管理员保存的文本框（只读，默认无边框；仅管理员调整时出现覆盖层） */
+  .admin-textbox{position:absolute;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,0.6);color:#111827}
+  html[data-theme="black"] .admin-textbox{background:rgba(17,24,39,0.6);color:#e5e7eb}
+</style>
 </head>
 <body>
   <h1 class="mobile-title">小鹿帮帮 <span class="promo-note">全店首单整单95折</span></h1>
@@ -718,7 +721,8 @@ function loadData(){ return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
 function serializeBackup(){
   const theme = document.documentElement.getAttribute('data-theme') || 'white';
   // 直接使用内存中的 DATA（已包含你在页面上的所有修改）
-  return { data: DATA, theme, discountConfig: window.DISCOUNT_CONFIG };
+  const uiState = (typeof UI_STATE!=='undefined') ? UI_STATE : { elements:{}, boxes:[] };
+  return { data: DATA, theme, discountConfig: window.DISCOUNT_CONFIG, uiState };
 }
 
 async function saveToFile(){
@@ -747,7 +751,7 @@ async function saveToFile(){
     }
   }catch(e){
     console.error('保存失败', e);
-    alert('保存失败：'+ e.message);
+  alert('保存失败：'+ e.message);
   }
 }
 
@@ -855,67 +859,79 @@ function renderList(filter='') {
     const srvInner = document.createElement('div');
     srvInner.className = 'anim-content';
     srvWrap.appendChild(srvInner);
-    // 按“子集”分组展示（支持同名子集，基于 subsetId 区分）。
-    // 若无显式 subsets，则按服务的 subset 名称推断，并为缺失的服务补充 subsetId。
-    let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
-    if(!subsets){
-      const map = {};
-      (game.services||[]).forEach(s=>{
-        const nm = s.subset || '代肝项目';
-        if(!map[nm]){ map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm }; }
+    // 如果该品类不需要子集，则直接展示服务列表；否则按“子集”分组
+    if(game.needsSubset === false){
+      (game.services||[]).forEach(svc=>{
+        const sEl = document.createElement('div');
+        sEl.className = 'service';
+        sEl.innerHTML = `<div class=\"svc-title\" style=\"font-weight:600\">${svc.title}</div><div class=\"muted\" style=\"margin-top:6px\">${svc.desc}</div>`;
+        sEl.addEventListener('click',()=>showService(svc,game,sEl));
+        srvInner.appendChild(sEl);
       });
-      subsets = Object.values(map);
-      const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
-      (game.services||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
-    }
-    // 创建子集分组及其服务项
-    subsets.forEach(ss=>{
-      const group = document.createElement('div');
-      group.className = 'subset';
+      wrap.appendChild(srvWrap);
+    } else {
+      // 按“子集”分组展示（支持同名子集，基于 subsetId 区分）。
+      // 若无显式 subsets，则按服务的 subset 名称推断，并为缺失的服务补充 subsetId。
+      let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
+      if(!subsets){
+        const map = {};
+        (game.services||[]).forEach(s=>{
+          const nm = s.subset || '代肝项目';
+          if(!map[nm]){ map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm }; }
+        });
+        subsets = Object.values(map);
+        const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
+        (game.services||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
+      }
+      // 创建子集分组及其服务项
+      subsets.forEach(ss=>{
+        const group = document.createElement('div');
+        group.className = 'subset';
 
-      const header = document.createElement('div');
-      header.className = 'subset-header';
-      header.innerHTML = `<div style="display:flex;flex-direction:column;gap:2px"><div class="subset-name">${ss.name}</div>${ss.remark ? `<div class=\"subset-remark\">${ss.remark}</div>` : ''}</div><div class="toggleIndicator">+</div>`;
+        const header = document.createElement('div');
+        header.className = 'subset-header';
+        header.innerHTML = `<div style=\"display:flex;flex-direction:column;gap:2px\"><div class=\"subset-name\">${ss.name}</div>${ss.remark ? `<div class=\\\"subset-remark\\\">${ss.remark}</div>` : ''}</div><div class=\"toggleIndicator\">+</div>`;
 
-      const body = document.createElement('div');
-      body.className = 'subset-services';
-      const bodyInner = document.createElement('div');
-      bodyInner.className = 'anim-content';
+        const body = document.createElement('div');
+        body.className = 'subset-services';
+        const bodyInner = document.createElement('div');
+        bodyInner.className = 'anim-content';
 
-      // 填充该子集的服务（按 subsetId 精确匹配；兼容旧数据按名称匹配）
-      (game.services||[])
-        .filter(svc => svc.subsetId === ss.id || (!svc.subsetId && (svc.subset||'代肝项目') === ss.name))
-        .forEach(svc=>{
-          const sEl = document.createElement('div');
-          sEl.className = 'service';
-          sEl.innerHTML = `<div class="svc-title" style="font-weight:600">${svc.title}</div><div class="muted" style="margin-top:6px">${svc.desc}</div>`;
-          sEl.addEventListener('click',()=>showService(svc,game,sEl));
-          bodyInner.appendChild(sEl);
+        // 填充该子集的服务（按 subsetId 精确匹配；兼容旧数据按名称匹配）
+        (game.services||[])
+          .filter(svc => svc.subsetId === ss.id || (!svc.subsetId && (svc.subset||'代肝项目') === ss.name))
+          .forEach(svc=>{
+            const sEl = document.createElement('div');
+            sEl.className = 'service';
+            sEl.innerHTML = `<div class=\"svc-title\" style=\"font-weight:600\">${svc.title}</div><div class=\"muted\" style=\"margin-top:6px\">${svc.desc}</div>`;
+            sEl.addEventListener('click',()=>showService(svc,game,sEl));
+            bodyInner.appendChild(sEl);
+          });
+
+        // 子集折叠/展开（仅使用 transform/opacity 动画；收起先淡出，再移除 open）
+        header.addEventListener('click',()=>{
+          const open = body.classList.contains('open');
+          if(open){
+            body.classList.add('closing');
+            body.setAttribute('aria-hidden','true');
+            header.querySelector('.toggleIndicator').textContent = '+';
+            group.classList.remove('active-subset');
+            setTimeout(()=>{ body.classList.remove('open'); body.classList.remove('closing'); }, 130);
+          }else{
+            body.classList.add('open');
+            body.setAttribute('aria-hidden','false');
+            header.querySelector('.toggleIndicator').textContent = '-';
+            group.classList.add('active-subset');
+          }
         });
 
-      // 子集折叠/展开（仅使用 transform/opacity 动画；收起先淡出，再移除 open）
-      header.addEventListener('click',()=>{
-        const open = body.classList.contains('open');
-        if(open){
-          body.classList.add('closing');
-          body.setAttribute('aria-hidden','true');
-          header.querySelector('.toggleIndicator').textContent = '+';
-          group.classList.remove('active-subset');
-          setTimeout(()=>{ body.classList.remove('open'); body.classList.remove('closing'); }, 130);
-        }else{
-          body.classList.add('open');
-          body.setAttribute('aria-hidden','false');
-          header.querySelector('.toggleIndicator').textContent = '-';
-          group.classList.add('active-subset');
-        }
+        group.appendChild(header);
+        body.appendChild(bodyInner);
+        group.appendChild(body);
+        srvInner.appendChild(group);
       });
-
-      group.appendChild(header);
-      body.appendChild(bodyInner);
-      group.appendChild(body);
-      srvInner.appendChild(group);
-    });
-    wrap.appendChild(srvWrap);
+      wrap.appendChild(srvWrap);
+    }
 
     // =========== 事件绑定 ===========
 
@@ -1496,6 +1512,41 @@ function smoothHide(el){
 renderList();
 
 // End of script
+</script>
+<script>
+// 应用 UI_STATE：根据备份中的 boxes 渲染文本框，同时应用 elements 的尺寸与位置
+function applyUIState(){
+  try{
+    const S = (typeof UI_STATE!=='undefined') ? UI_STATE : null;
+    if(!S) return;
+    // 文本框
+    (S.boxes||[]).forEach(box=>{
+      if(!box || !box.id) return;
+      if(document.querySelector(`[data-admin-box-id="${box.id}"]`)) return; // 已存在
+      const div = document.createElement('div');
+      div.className = 'admin-textbox';
+      div.setAttribute('data-admin-box-id', box.id);
+      div.textContent = box.text || '文本框';
+      if(box.left) div.style.left = box.left;
+      if(box.top) div.style.top = box.top;
+      if(box.width) div.style.width = box.width;
+      if(box.height) div.style.height = box.height;
+      document.body.appendChild(div);
+    });
+    // 通用元素
+    const map = S.elements || {};
+    Object.keys(map).forEach(sel=>{
+      const cfg = map[sel];
+      const el = document.querySelector(sel);
+      if(!el || !cfg) return;
+      el.style.position = cfg.position || 'absolute';
+      if(cfg.left) el.style.left = cfg.left;
+      if(cfg.top) el.style.top = cfg.top;
+      if(cfg.width) el.style.width = cfg.width;
+      if(cfg.height) el.style.height = cfg.height;
+    });
+  }catch(e){ console.warn('applyUIState 失败', e); }
+}
 </script>
 <!-- 自动从仓库中的 JSON 备份加载数据（仅影响默认数据，不改桌面样式） -->
 <script src="data-autoload.js"></script>
