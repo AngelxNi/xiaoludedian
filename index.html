@@ -584,6 +584,7 @@ const inpContactValue = document.getElementById('inpContactValue');
 let currentService = null; // 当前选中的服务（用于详情区显示与复制）
 let selectedUnitPrice = 0; // 当前选中的单价（用于价格计算）
 let selectedLabel = '';
+let optionQtys = []; // 新增：各价格选项的数量，用于累计计算（多价格选项模式）
 // 全局折扣配置（可在左下角按钮修改）
 window.DISCOUNT_CONFIG = window.DISCOUNT_CONFIG || {
   more: { p2: 0.08, p3: 0.09, p4plus: 0.10, cap: 0.10 },
@@ -793,6 +794,10 @@ function applyBackupJSON(text){
     const obj = JSON.parse(text);
     if(!obj || !obj.data || !Array.isArray(obj.data)) throw new Error('文件格式不正确');
     DATA = obj.data;
+    // 恢复 UI_STATE（包含自定义“价格选项”标题及其它布局文本）
+    try{
+      window.UI_STATE = obj.uiState || window.UI_STATE || { elements:{}, boxes:[] };
+    }catch(_){ window.UI_STATE = window.UI_STATE || { elements:{}, boxes:[] }; }
     // 不进行本地持久化
     // 恢复主题：优先使用本地记忆，其次使用文件内主题，默认白色
     (function(){
@@ -802,6 +807,8 @@ function applyBackupJSON(text){
     })();
     // 重新渲染左侧列表
     renderList(qEl.value || '');
+    // 应用 UI 状态（如果页面提供该函数）：确保标题等文本即时生效
+    try{ if(typeof applyUIState === 'function') applyUIState(); }catch(_){}
     // 回到占位区
   /* Eliya备注：隐藏右侧详情改为平滑动画 */
   smoothHide(detailPanel);
@@ -1108,7 +1115,9 @@ function showService(svc, game, mountTarget){
   // 重置当前选择的单价
   selectedUnitPrice = 0;
   selectedLabel = '';
-  (svc.priceOptions || []).forEach(p=>{
+  const isSingleOption = Array.isArray(svc.priceOptions) && svc.priceOptions.length === 1;
+  optionQtys = Array.isArray(svc.priceOptions) ? svc.priceOptions.map(()=>0) : [];
+  (svc.priceOptions || []).forEach((p, idx)=>{
     const pc = document.createElement('div');
     pc.className = 'price-card';
     const discountText = (svc.discount && svc.discount.enabled)
@@ -1119,44 +1128,79 @@ function showService(svc, game, mountTarget){
         <div style="font-weight:600">${p.label}</div>
         ${discountText ? `<div style="color:#f87171;font-size:12px">${discountText}</div>` : ''}
       </div>
-      <div style="margin-top:6px;font-size:18px;font-weight:700">¥${p.price}</div>
+      <div style="margin-top:6px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px">
+        <span>¥${p.price}</span>
+        ${isSingleOption ? '' : `
+          <span class="qty-badge" style="padding:2px 8px;border-radius:999px;background:#eef;color:#334;font-size:12px">x0</span>
+          <button class="qty-btn" style="padding:2px 8px" data-act="minus">−</button>
+          <button class="qty-btn" style="padding:2px 8px" data-act="plus">+</button>
+        `}
+      </div>
     `;
     pc.dataset.price = p.price;
     pc.dataset.label = p.label;
-    pc.addEventListener('click',()=>{
-      // 选择此单价，并数量+1
-      selectedUnitPrice = Number(p.price) || 0;
-      selectedLabel = p.label || '';
-      pricesEl.querySelectorAll('.price-card').forEach(el=> el.classList.toggle('active', el===pc));
-      unitPriceHint.textContent = `(单价 ¥${selectedUnitPrice})`;
-      qtyInput.value = (Number(qtyInput.value)||0) + 1;
-      updateTotal();
-    });
+    pc.dataset.index = String(idx);
+    if(isSingleOption){
+      // 单个选项：左键增加、右键减少；数量>0 时高亮
+      pc.addEventListener('click',()=>{
+        const cur = Number(qtyInput && qtyInput.value || 0);
+        const next = cur + 1;
+        if(qtyInput){ qtyInput.value = next; }
+        pricesEl.querySelectorAll('.price-card').forEach(el=> el.classList.toggle('active', el===pc && next>0));
+        selectedUnitPrice = Number(p.price)||0;
+        selectedLabel = p.label||'';
+        updateTotal();
+      });
+      pc.addEventListener('contextmenu',(e)=>{
+        e.preventDefault();
+        const cur = Number(qtyInput && qtyInput.value || 0);
+        const next = Math.max(0, cur - 1);
+        if(qtyInput){ qtyInput.value = next; }
+        pricesEl.querySelectorAll('.price-card').forEach(el=> el.classList.toggle('active', el===pc && next>0));
+        selectedUnitPrice = Number(p.price)||0;
+        selectedLabel = p.label||'';
+        updateTotal();
+      });
+    } else {
+      // 多个选项：点击或加减按钮改变此卡片的数量
+      pc.addEventListener('click',(e)=>{
+        const t = e.target;
+        if(t && t.classList && t.classList.contains('qty-btn')) return;
+        optionQtys[idx] = (optionQtys[idx]||0) + 1;
+        const badge = pc.querySelector('.qty-badge');
+        if(badge){ badge.textContent = 'x' + optionQtys[idx]; }
+        pc.classList.toggle('active', optionQtys[idx]>0);
+        qtyInput.value = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
+        updateTotal();
+      });
+      pc.querySelectorAll('.qty-btn').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          e.stopPropagation();
+          const act = btn.dataset.act;
+          if(act === 'plus'){
+            optionQtys[idx] = (optionQtys[idx]||0) + 1;
+          } else if(act === 'minus'){
+            optionQtys[idx] = Math.max(0, (optionQtys[idx]||0) - 1);
+          }
+          const badge = pc.querySelector('.qty-badge');
+          if(badge){ badge.textContent = 'x' + optionQtys[idx]; }
+          pc.classList.toggle('active', optionQtys[idx]>0);
+          qtyInput.value = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
+          updateTotal();
+        });
+      });
+    }
     pricesEl.appendChild(pc);
   });
 
-  // 默认选择第一个单价
-  if(svc.priceOptions && svc.priceOptions.length){
-    selectedUnitPrice = Number(svc.priceOptions[0].price)||0;
-    selectedLabel = svc.priceOptions[0].label||'';
-    const first = pricesEl.querySelector('.price-card');
-    first && first.classList.add('active');
-    unitPriceHint.textContent = `(单价 ¥${selectedUnitPrice})`;
-  }else{
-    unitPriceHint.textContent = '';
-  }
-
-  // 根据“价格选项”数量控制计算面板的可见性
+  // 根据是否为单个价格选项，控制“价格计算”里的数量输入显示/隐藏
   try{
-    const numOptions = Array.isArray(svc.priceOptions) ? svc.priceOptions.length : 0;
-    const qtyLabelEl = document.querySelector('#calcPanel .calc-row:nth-of-type(1) .muted'); // “数量：”标签
-    // 只有一个价格选项：隐藏“数量：”标签与加减按钮；保留总价与单价提示
-    if(qtyLabelEl) qtyLabelEl.style.display = (numOptions <= 1) ? 'none' : '';
-    if(qtyMinus) qtyMinus.style.display = (numOptions <= 1) ? 'none' : '';
-    if(qtyPlus) qtyPlus.style.display = (numOptions <= 1) ? 'none' : '';
-    // 不止一个价格选项：显示数量控制，但在价格计算区域仅保留“价格”总价，隐藏单价提示
-    if(unitPriceHint) unitPriceHint.style.display = (numOptions > 1) ? 'none' : '';
-  }catch(_){ /* ignore */ }
+    const qtyRow = qtyInput && qtyInput.closest('.calc-row');
+    if(qtyRow){ qtyRow.style.display = isSingleOption ? '' : 'none'; }
+  }catch(_){/* ignore */}
+
+  // 单个选项不自动选择；点击增加数量后高亮
+  unitPriceHint.textContent = isSingleOption ? '' : unitPriceHint.textContent;
 
   // 重置数量与总价
   if(qtyInput){ qtyInput.value = 0; }
@@ -1190,9 +1234,23 @@ function showService(svc, game, mountTarget){
 // 更新总价
 function updateTotal(){
   if(!totalPriceEl) return;
-  const q = Math.max(0, Number(qtyInput && qtyInput.value || 0));
-  const unit = (typeof selectedUnitPrice !== 'undefined' ? selectedUnitPrice : 0) || 0;
-  const baseTotal = q * unit;
+  const opts = (currentService && Array.isArray(currentService.priceOptions)) ? currentService.priceOptions : [];
+  const qtys = Array.isArray(optionQtys) ? optionQtys.slice() : [];
+  let baseTotal = 0;
+  let qSum = 0;
+  if(opts.length === 1){
+    const price = Number(opts[0].price)||0;
+    const q = Math.max(0, Number(qtyInput && qtyInput.value || 0));
+    qSum = q;
+    baseTotal = price * q;
+  } else {
+    for(let i=0;i<opts.length;i++){
+      const price = Number(opts[i].price)||0;
+      const q = Math.max(0, Number(qtys[i]||0));
+      qSum += q;
+      baseTotal += price * q;
+    }
+  }
   let totalFloat = baseTotal;
   let discountAmount = 0;
   const dis = currentService && currentService.discount;
@@ -1203,19 +1261,58 @@ function updateTotal(){
       const p2 = Math.min(cfg.more.p2 || 0, cfg.more.cap || 1);
       const p3 = Math.min(cfg.more.p3 || 0, cfg.more.cap || 1);
       const p4 = Math.min(cfg.more.p4plus || 0, cfg.more.cap || 1);
-      totalFloat = 0;
-      for(let i=1;i<=q;i++){
-        let rate = 1;
-        if(i===2) rate = 1 - p2;
-        else if(i===3) rate = 1 - p3;
-        else if(i>=4) rate = 1 - p4;
-        totalFloat += unit * rate;
+      if(qSum <= 0){
+        totalFloat = 0;
+        discountAmount = 0;
+      } else if(opts.length === 1){
+        const unit = Number(opts[0].price)||0;
+        if(qSum === 1){ totalFloat = unit; }
+        else if(qSum === 2){ totalFloat = unit + unit * (1 - p2); }
+        else if(qSum === 3){ totalFloat = unit + unit * (1 - p2) + unit * (1 - p3); }
+        else { totalFloat = unit + unit * (1 - p2) + unit * (1 - p3) + unit * (qSum - 3) * (1 - p4); }
+        discountAmount = Math.max(0, baseTotal - totalFloat);
+      } else {
+        // 多选项优化：不展开所有件逐个排序，按价格层级快速求第1/2/3便宜的件
+        const arr = opts.map((opt,i)=>({ price: Number(opt.price)||0, count: Math.max(0, Number(qtys[i]||0)) }))
+                        .filter(x=> x.count>0)
+                        .sort((a,b)=> a.price - b.price);
+        const kth = (k)=>{
+          let acc = 0;
+          for(let j=0;j<arr.length;j++){
+            acc += arr[j].count;
+            if(acc >= k) return arr[j].price;
+          }
+          return 0;
+        };
+        const first = qSum>=1 ? kth(1) : 0;
+        const second = qSum>=2 ? kth(2) : 0;
+        const third = qSum>=3 ? kth(3) : 0;
+        const remainSum = baseTotal - (first + second + third);
+        totalFloat = 0;
+        if(qSum>=1) totalFloat += first * 1;
+        if(qSum>=2) totalFloat += second * (1 - p2);
+        if(qSum>=3) totalFloat += third * (1 - p3);
+        if(qSum>=4) totalFloat += remainSum * (1 - p4);
+        discountAmount = Math.max(0, baseTotal - totalFloat);
       }
-      discountAmount = Math.max(0, baseTotal - totalFloat);
     } else if(dis.type === 'second'){
       const p = Math.min(cfg.second.p || 0, cfg.second.cap || 1);
-      totalFloat = q<=0 ? 0 : (unit * 1) + unit * Math.max(0, q-1) * (1 - p);
-      discountAmount = Math.max(0, baseTotal - totalFloat);
+      if(qSum <= 0){
+        totalFloat = 0;
+        discountAmount = 0;
+      } else if(opts.length === 1){
+        const unit = Number(opts[0].price)||0;
+        totalFloat = unit * 1 + unit * Math.max(0, qSum - 1) * (1 - p);
+        discountAmount = Math.max(0, baseTotal - totalFloat);
+      } else {
+        const arr = opts.map((opt,i)=>({ price: Number(opt.price)||0, count: Math.max(0, Number(qtys[i]||0)) }))
+                        .filter(x=> x.count>0)
+                        .sort((a,b)=> a.price - b.price);
+        const first = (()=>{ let acc=0; for(let j=0;j<arr.length;j++){ acc += arr[j].count; if(acc>=1) return arr[j].price; } return 0; })();
+        const remainSum = baseTotal - first;
+        totalFloat = first * 1 + remainSum * (1 - p);
+        discountAmount = Math.max(0, baseTotal - totalFloat);
+      }
     } else {
       totalFloat = baseTotal; // conditional 暂不实现
       discountAmount = 0;
@@ -1228,13 +1325,15 @@ function updateTotal(){
     totalPriceEl.textContent = `¥${total}`;
   }
   // 单价提示：显示有效折扣百分比（基于加权）
+  // 单价提示仅在单个价格选项时显示；多个选项时不显示
   if(unitPriceHint){
-    if(unit > 0){
+    if(opts.length === 1){
+      const unit = Number(opts[0].price)||0;
       const effPercent = baseTotal>0 ? (discountAmount / baseTotal) : 0;
-      if(effPercent > 0){
-        unitPriceHint.textContent = `(单价 ¥${unit}，折扣 -${Math.round(effPercent*100)}%)`;
+      if(unit > 0){
+        unitPriceHint.textContent = effPercent > 0 ? `(单价 ¥${unit}，折扣 -${Math.round(effPercent*100)}%)` : `(单价 ¥${unit})`;
       } else {
-        unitPriceHint.textContent = `(单价 ¥${unit})`;
+        unitPriceHint.textContent = '';
       }
     } else {
       unitPriceHint.textContent = '';
@@ -1244,10 +1343,48 @@ function updateTotal(){
 
 // 折扣设置仅在“管理员.html”中显示；用户页不提供调整面板。
 
-// 数量加减与输入
-qtyPlus && qtyPlus.addEventListener('click',()=>{ qtyInput.value = (Number(qtyInput.value)||0)+1; updateTotal(); });
-qtyMinus && qtyMinus.addEventListener('click',()=>{ qtyInput.value = Math.max(0,(Number(qtyInput.value)||0)-1); updateTotal(); });
-qtyInput && qtyInput.addEventListener('input',()=>{ const v = Math.max(0, Math.floor(Number(qtyInput.value)||0)); qtyInput.value = v; updateTotal(); });
+// 数量加减与输入（多选项时作用于当前激活卡片；单个选项时作用于数量输入框）
+qtyPlus && qtyPlus.addEventListener('click',()=>{
+  const active = pricesEl && pricesEl.querySelector('.price-card.active');
+  const target = active || (pricesEl && pricesEl.querySelector('.price-card'));
+  if(target){
+    const idx = Number(target.dataset.index)||0;
+    optionQtys[idx] = (optionQtys[idx]||0) + 1;
+    const badge = target.querySelector('.qty-badge');
+    if(badge){ badge.textContent = 'x' + optionQtys[idx]; }
+    target.classList.toggle('active', optionQtys[idx]>0);
+  }
+  qtyInput.value = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
+  updateTotal();
+});
+qtyMinus && qtyMinus.addEventListener('click',()=>{
+  const active = pricesEl && pricesEl.querySelector('.price-card.active');
+  const target = active || (pricesEl && pricesEl.querySelector('.price-card'));
+  if(target){
+    const idx = Number(target.dataset.index)||0;
+    optionQtys[idx] = Math.max(0, (optionQtys[idx]||0) - 1);
+    const badge = target.querySelector('.qty-badge');
+    if(badge){ badge.textContent = 'x' + optionQtys[idx]; }
+    target.classList.toggle('active', optionQtys[idx]>0);
+  }
+  qtyInput.value = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
+  updateTotal();
+});
+qtyInput && qtyInput.addEventListener('input',()=>{
+  const v = Math.max(0, Math.floor(Number(qtyInput.value)||0));
+  qtyInput.value = v;
+  if(Array.isArray(optionQtys) && optionQtys.length){
+    const otherSum = optionQtys.slice(1).reduce((a,b)=> a + (Number(b)||0), 0);
+    optionQtys[0] = Math.max(0, v - otherSum);
+    const firstCard = pricesEl && pricesEl.querySelector('.price-card');
+    if(firstCard){
+      const badge = firstCard.querySelector('.qty-badge');
+      if(badge){ badge.textContent = 'x' + optionQtys[0]; }
+      firstCard.classList.toggle('active', optionQtys[0]>0);
+    }
+  }
+  updateTotal();
+});
 
 // 点按反馈逻辑：按下时缩小 30%，松开/离开时恢复
 function registerPressable(el){
