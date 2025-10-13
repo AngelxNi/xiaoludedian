@@ -15,7 +15,7 @@
 <style>
     /* 主题变量（会被 JS 动态切换） */
     :root{
-      --bg:#f6f7fb;--card:#ffffff;--muted:#6b7280;--accent:#10b981;--border:#e6e9ef;
+      --bg:#f6f7fb;--card:#ffffff;--muted:#6b7280;--accent:#10b981;--border:#e6e9ef;--border-strong:#cbd5e1;
     }
     /* 基本重置和排版 */
     *{box-sizing:border-box}body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;margin:0;background:var(--bg);color:#0f172a}
@@ -71,8 +71,8 @@
 .subset-services.open > .anim-content{opacity:1;transform:translateY(0)}
 .subset-services.closing > .anim-content{opacity:0;transform:translateY(-6px)}
 .subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
-/* 子集备注样式：灰色、小字号，位于子集名称下方 */
-.subset-remark{font-size:12px;color:var(--muted);margin-top:4px}
+/* 子集备注样式：灰色、小字号，位于子集名称下方（加强优先级，避免被父级样式影响） */
+.subset-remark{font-size:12px;color:var(--muted) !important;margin-top:4px;font-weight:400}
 /* 子集展开时的强调效果（与游戏品类强调一致） */
     .subset.active-subset{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     .service{padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff}
@@ -83,11 +83,18 @@
     .svc-title{font-size:13px}
     /* 详情区 */
     .right-title{display:flex;justify-content:space-between;align-items:flex-start}
-    .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px}
-    .price-card{padding:12px;border-radius:10px;border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fbfdff)}
+    .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--price-card-minwidth,200px),1fr));gap:var(--price-card-row-gap,20px) var(--price-card-col-gap,16px);margin-top:14px}
+    .price-card{padding:var(--price-card-padding,12px);border-radius:var(--price-card-radius,12px);border:var(--price-card-border-width,2px) solid var(--price-card-border-color,var(--price-card-border-default,var(--border-strong)));background:linear-gradient(180deg,#fff,#fbfdff)}
+    /* 主题化的价格卡默认边框颜色（可被 --price-card-border-color 覆盖） */
+    html[data-theme="black"]{ --price-card-border-default: var(--border-strong); }
+    html[data-theme="white"]{ --price-card-border-default: #a7f3d0; }   /* 淡绿 */
+    html[data-theme="pink"]{ --price-card-border-default: #fbcfe8; }    /* 亮粉 */
+    html[data-theme="lime"]{ --price-card-border-default: #d9f99d; }    /* 亮青柠 */
+    html[data-theme="orange"]{ --price-card-border-default: #fed7aa; }  /* 亮橙 */
     /* 选中时改为柔和的灰色强调，去掉绿色边框 */
     .price-card.active{border-color:#cbd5e1;box-shadow:0 4px 12px rgba(2,6,23,0.06)}
     .price-card:focus{outline:none}
+    .price-remark{font-size:12px;color:var(--muted)}
     .pay-list{margin:0;padding-left:18px}
     .muted{color:var(--muted);font-size:13px}
     .btn{padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer}
@@ -902,7 +909,7 @@ function renderList(filter='') {
 
         const header = document.createElement('div');
         header.className = 'subset-header';
-        header.innerHTML = `<div style=\"display:flex;flex-direction:column;gap:2px\"><div class=\"subset-name\">${ss.name}</div>${ss.remark ? `<div class=\\\"subset-remark\\\">${ss.remark}</div>` : ''}</div><div class=\"toggleIndicator\">+</div>`;
+        header.innerHTML = `<div style=\"display:flex;flex-direction:column;gap:2px\"><div class=\"subset-name\">${ss.name}</div>${ss.remark ? `<div class=\"subset-remark\">${ss.remark}</div>` : ''}</div><div class=\"toggleIndicator\">+</div>`;
 
         const body = document.createElement('div');
         body.className = 'subset-services';
@@ -1089,7 +1096,22 @@ function showService(svc, game, mountTarget){
     window.MOBILE_CURRENT_TARGET = mountTarget || null;
   }
   svcTitle.textContent = svc.title;
-  svcMeta.textContent = `${game.name} · ${svc.desc}`;
+  // 在主标题旁显示折扣标签（当存在多个价格选项且折扣统一时只显示一次）
+  try{
+    const needsSubset = !!game.needsSubset;
+    const subsetName = svc.subset || ((Array.isArray(game.subsets) ? game.subsets.find(x=>x && x.id===svc.subsetId) : null) || {}).name || (needsSubset ? '代肝项目' : '');
+    const baseMeta = needsSubset ? `${game.name} · ${subsetName} · ${svc.desc}` : `${game.name} · ${svc.desc}`;
+    const isMultiOptions = Array.isArray(svc.priceOptions) && svc.priceOptions.length > 1;
+    const discountTextOnce = (svc.discount && svc.discount.enabled)
+      ? (svc.discount.type === 'second' ? '第二份开始打折' : (svc.discount.type === 'conditional' ? '满足条件时打折' : '越多越便宜'))
+      : '';
+    const badge = (isMultiOptions && discountTextOnce)
+      ? `<span class="discount-badge" style="margin-left:8px;padding:2px 8px;border:1px solid var(--border);border-radius:999px;box-shadow:0 2px 8px rgba(2,6,23,0.15);background:#fff;color:#f87171;font-size:12px">${discountTextOnce}</span>`
+      : '';
+    svcTitle.innerHTML = badge ? `${svc.title} ${badge}` : `${svc.title}`;
+    // 备注区仅显示基础信息，不再重复折扣标签
+    svcMeta.textContent = baseMeta;
+  }catch(_){ svcTitle.textContent = svc.title; svcMeta.textContent = `${game.name} · ${svc.desc}`; }
   // 兼容旧数据：若未提供联系方式字段则不显示
   try{
     const contactText = (svc.contact && (svc.contact.type || svc.contact.value))
@@ -1126,8 +1148,9 @@ function showService(svc, game, mountTarget){
     pc.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div style="font-weight:600">${p.label}</div>
-        ${discountText ? `<div style="color:#f87171;font-size:12px">${discountText}</div>` : ''}
+        ${isSingleOption && discountText ? `<div style="color:#f87171;font-size:12px">${discountText}</div>` : ''}
       </div>
+      ${p.remark ? `<div class="price-remark" style="margin-top:4px">${p.remark}</div>` : ''}
       <div style="margin-top:6px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px">
         <span>¥${p.price}</span>
         ${isSingleOption ? '' : `
@@ -1684,6 +1707,22 @@ function smoothHide(el){
 renderList();
 
 // End of script
+</script>
+<script>
+// 公开页：应用管理员在本机保存的价格卡样式（如有）
+(function(){
+  try{
+    const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
+    const r = document.documentElement.style;
+    if(s.minWidth!=null) r.setProperty('--price-card-minwidth', s.minWidth+'px');
+    if(s.padding!=null) r.setProperty('--price-card-padding', s.padding+'px');
+    if(s.radius!=null) r.setProperty('--price-card-radius', s.radius+'px');
+    if(s.rowGap!=null) r.setProperty('--price-card-row-gap', s.rowGap+'px');
+    if(s.colGap!=null) r.setProperty('--price-card-col-gap', s.colGap+'px');
+    if(s.borderWidth!=null) r.setProperty('--price-card-border-width', s.borderWidth+'px');
+    if(s.borderColor) r.setProperty('--price-card-border-color', s.borderColor);
+  }catch(e){ /* ignore */ }
+})();
 </script>
 <script>
 // 应用 UI_STATE：根据备份中的 boxes 渲染文本框，同时应用 elements 的尺寸与位置

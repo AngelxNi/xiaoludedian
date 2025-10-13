@@ -5,6 +5,25 @@
 // 本脚本仅在加载阶段覆盖 DATA 并重新渲染，不影响你的桌面端样式或交互。
 
 (function(){
+  // 运行模式：支持两套数据源，通过 localStorage 或 URL 参数切换
+  function getOpMode(){
+    try{
+      const url = new URL(window.location.href);
+      const q = url.searchParams.get('mode');
+      if(q){ const n = parseInt(q,10); if(!isNaN(n)) return Math.max(1, n); }
+    }catch(_){ /* ignore */ }
+    try{
+      const saved = localStorage.getItem('op_mode_v1');
+      if(saved){ const n = parseInt(saved,10); if(!isNaN(n)) return Math.max(1, n); }
+    }catch(_){ /* ignore */ }
+    return 1;
+  }
+  function chooseFixedName(mode){
+    // 模式1：newdata.json（现有逻辑）；模式2：使用“[未实装]newdata第二套操作逻辑.json”（若不存在再回退 newdata.logic2.json）
+    if(mode === 2){ return '[未实装]newdata第二套操作逻辑.json'; }
+    return 'newdata.json';
+  }
+
   async function tryFetch(url){
     try{
       const res = await fetch(url, { cache: 'no-store' });
@@ -16,10 +35,12 @@
     }
   }
 
-  async function autoload(){
+  async function autoload(modeOverride){
     // 优先策略：优先尝试固定文件名 newdata.json；如不存在，再尝试 latest.json 指向最新文件；否则在有限范围内扫描数字文件。
     // 兼容不同目录命名与仅存在较大数字文件（如仅有 3.json）
     const bases = ['./数据库/', './db/'];
+    const mode = Math.max(1, parseInt(modeOverride || getOpMode(), 10) || 1);
+    try{ window.OP_MODE = mode; }catch(_){}
 
     async function existsNum(base, n){
       const url = `${base}${n}.json`;
@@ -53,6 +74,8 @@
       try{
         window.UI_STATE = obj.uiState || { elements:{}, boxes:[] };
       }catch(e){ window.UI_STATE = { elements:{}, boxes:[] }; }
+      // 标记当前模式（可供页面逻辑使用）
+      try{ window.OP_MODE = mode; }catch(_){}
       // 恢复全局折扣配置（如果 JSON 中有）
       try{
         if(obj.discountConfig){
@@ -102,11 +125,20 @@
 
     // 针对每个可用目录，优先线性扫描 1..64，找出任何存在的数字文件
     for(const base of bases){
-      // 0) 优先尝试固定文件名 newdata.json（支持你要求的“固定文件名覆盖保存”场景）
-      const fixed = await tryFetch(`${base}newdata.json`);
+      // 0) 优先尝试固定文件名（根据模式选择）：模式1 -> newdata.json；模式2 -> [未实装]newdata第二套操作逻辑.json
+      const fixedName = chooseFixedName(mode);
+      const fixed = await tryFetch(`${base}${fixedName}`);
       if(fixed && fixed.data && Array.isArray(fixed.data)){
-        applyData(fixed, `${base}newdata.json`);
+        applyData(fixed, `${base}${fixedName}`);
         return;
+      }
+      // 模式2的回退：尝试 newdata.logic2.json
+      if(mode===2){
+        const alt = await tryFetch(`${base}newdata.logic2.json`);
+        if(alt && alt.data && Array.isArray(alt.data)){
+          applyData(alt, `${base}newdata.logic2.json`);
+          return;
+        }
       }
 
       // 1) 其次尝试 latest.json
@@ -143,8 +175,17 @@
   }
 
   if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', autoload);
+    document.addEventListener('DOMContentLoaded', ()=>autoload());
   }else{
     autoload();
   }
+
+  // 暴露切换入口：页面上的按钮可调用 setOperationMode(1|2) 切换并重新加载数据
+  try{
+    window.setOperationMode = function(mode){
+      const m = Math.max(1, parseInt(mode,10)||1);
+      try{ localStorage.setItem('op_mode_v1', String(m)); }catch(_){}
+      autoload(m);
+    };
+  }catch(_){ /* ignore */ }
 })();
