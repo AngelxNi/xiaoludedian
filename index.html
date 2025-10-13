@@ -1146,6 +1146,18 @@ function showService(svc, game, mountTarget){
     unitPriceHint.textContent = '';
   }
 
+  // 根据“价格选项”数量控制计算面板的可见性
+  try{
+    const numOptions = Array.isArray(svc.priceOptions) ? svc.priceOptions.length : 0;
+    const qtyLabelEl = document.querySelector('#calcPanel .calc-row:nth-of-type(1) .muted'); // “数量：”标签
+    // 只有一个价格选项：隐藏“数量：”标签与加减按钮；保留总价与单价提示
+    if(qtyLabelEl) qtyLabelEl.style.display = (numOptions <= 1) ? 'none' : '';
+    if(qtyMinus) qtyMinus.style.display = (numOptions <= 1) ? 'none' : '';
+    if(qtyPlus) qtyPlus.style.display = (numOptions <= 1) ? 'none' : '';
+    // 不止一个价格选项：显示数量控制，但在价格计算区域仅保留“价格”总价，隐藏单价提示
+    if(unitPriceHint) unitPriceHint.style.display = (numOptions > 1) ? 'none' : '';
+  }catch(_){ /* ignore */ }
+
   // 重置数量与总价
   if(qtyInput){ qtyInput.value = 0; }
   updateTotal();
@@ -1289,6 +1301,11 @@ function switchPay(type){
   const nextSrcPng = baseName + '.png';
   setTimeout(()=>{
     // 优先尝试 WebP，失败则回退到 PNG（保证兼容性与加载速度）
+    // 由于图片使用了 <picture> + <source>，需要同时更新 <source> 的 srcset，否则可能持续显示上一张（如微信）
+    try{
+      const sourceEl = document.querySelector('#qrPanel .qr-img-wrap source');
+      if(sourceEl){ sourceEl.srcset = nextSrcWebp; }
+    }catch(_){ /* ignore */ }
     payQrImg.onerror = function(){
       payQrImg.onerror = null;
       payQrImg.src = nextSrcPng;
