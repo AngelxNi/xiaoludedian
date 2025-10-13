@@ -8,18 +8,18 @@
       "subsets": [
         {
           "id": "ss-genshin",
+          "name": "托管套餐 超值！！",
+          "remark": "套餐越多越便宜！"
+        },
+        {
+          "id": "ss1760262896078-95239",
           "name": "托管相关",
           "remark": "默认领 派遣+每日纪行+前瞻奖励"
         },
         {
-          "id": "ss1760262896078-95239",
-          "name": "角色相关",
-          "remark": "突破材料 等级 天赋 武器"
-        },
-        {
           "id": "ss1760262914493-18202",
           "name": "探索相关",
-          "remark": "神瞳 探索度 全宝箱"
+          "remark": "探索度 全宝箱 神瞳"
         },
         {
           "id": "ss1760287456570-20370",
@@ -32,6 +32,11 @@
           "remark": "麻烦找一下客服小鹿"
         },
         {
+          "id": "ss1760361237456-76114",
+          "name": "角色相关",
+          "remark": "突破材料 等级 天赋 武器"
+        },
+        {
           "id": "ss1760361700842-81317",
           "name": "采集相关",
           "remark": "地区特产 怪物掉落 素材 食材 晶蝶"
@@ -40,194 +45,12 @@
       "services": [
         {
           "id": "genshin-1",
-          "title": "托管套餐",
-          "desc": "套着买超值！！",
-          "priceOptions": [
-            {
-              "label": "【普托】日常委托+每日体力",
-              "price": 120,
-              "remark": "有130及以上历练点，则-30￥，找客服退钱qwq 可随意指定，一天清一次"
-            },
-            {
-              "label": "【原石托】普托+大小活动",
-              "price": 220,
-              "remark": "一月内普托+大小活动 超值！"
-            },
-            {
-              "label": "【半托】普托+大月卡",
-              "price": 200,
-              "remark": "一月内普托+大月卡等级"
-            },
-            {
-              "label": "【精托】半托+大小活动",
-              "price": 300,
-              "remark": "一月内半托+大小活动 超值！"
-            },
-            {
-              "label": "【全托】精托+声望+角色养成+圣遗物强化+深渊尽量打",
-              "price": 520,
-              "remark": "角色养成指帮配圣遗物 帮配队（按攻略视频）尽量高分养成 每天上两次号"
-            },
-            {
-              "label": "【养成完全托】全托+养角色+一些零零碎碎的",
-              "price": 720,
-              "remark": "养1~2个角色 可以从零开始练 按打深渊练度练 每天上两次号"
-            }
-          ],
-          "discount": {
-            "enabled": true,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "托管相关",
-          "subsetId": "ss-genshin"
-        },
-        {
-          "id": "genshin-2",
-          "title": "日常委托",
-          "desc": "只有每日任务",
-          "priceOptions": [
-            {
-              "label": "月",
-              "price": 65,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "托管相关",
-          "subsetId": "ss-genshin"
-        },
-        {
-          "id": "genshin-3",
-          "title": "打每日体力",
-          "desc": "只打每日体力，可随意指定副本和boss，一天清一次，有历练点可帮领 有100以上晶蝶-5￥",
-          "priceOptions": [
-            {
-              "label": "月",
-              "price": 65,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "托管相关",
-          "subsetId": "ss-genshin"
-        },
-        {
-          "id": "genshin-4",
-          "title": "版本纪行",
-          "desc": "大月卡",
-          "priceOptions": [
-            {
-              "label": "次",
-              "price": 90,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "second"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "托管相关",
-          "subsetId": "ss-genshin"
-        },
-        {
-          "id": "genshin-5",
-          "title": "每周声望任务",
-          "desc": "地区声望任务",
-          "priceOptions": [
-            {
-              "label": "周",
-              "price": 8,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "托管相关",
-          "subsetId": "ss-genshin"
-        },
-        {
-          "id": "genshin-6",
-          "title": "一天日体",
-          "desc": "单日常3r 单体力3r",
-          "priceOptions": [
-            {
-              "label": "天",
-              "price": 6,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "托管相关",
-          "subsetId": "ss-genshin"
-        },
-        {
-          "id": "genshin-7",
           "title": "日常委托+每日体力【普托】",
           "desc": "有130及以上历练点，则-30￥，找客服退钱qwq 可随意指定，一天清一次",
           "priceOptions": [
             {
               "label": "月",
-              "price": 120,
-              "remark": ""
+              "price": 120
             }
           ],
           "discount": {
@@ -242,18 +65,17 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管套餐 超值！！",
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-8",
+          "id": "genshin-2",
           "title": "普托+大小活动【原石托】",
           "desc": "一月内普托+大小活动 超值！",
           "priceOptions": [
             {
               "label": "月",
-              "price": 220,
-              "remark": ""
+              "price": 220
             }
           ],
           "discount": {
@@ -268,18 +90,17 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管套餐 超值！！",
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-9",
+          "id": "genshin-3",
           "title": "普托+大月卡【半托】",
           "desc": "一月内普托+大月卡等级",
           "priceOptions": [
             {
               "label": "月",
-              "price": 200,
-              "remark": ""
+              "price": 200
             }
           ],
           "discount": {
@@ -294,18 +115,17 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管套餐 超值！！",
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-10",
+          "id": "genshin-4",
           "title": "半托+大小活动 【精托】",
           "desc": "一月内半托+大小活动 超值！",
           "priceOptions": [
             {
               "label": "月",
-              "price": 300,
-              "remark": ""
+              "price": 300
             }
           ],
           "discount": {
@@ -320,18 +140,17 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管套餐 超值！！",
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-11",
+          "id": "genshin-5",
           "title": "精托+声望+角色养成+圣遗物强化+深渊尽量打【全托】",
           "desc": "角色养成指帮配圣遗物 帮配队（按攻略视频）尽量高分养成 每天上两次号",
           "priceOptions": [
             {
               "label": "月",
-              "price": 520,
-              "remark": ""
+              "price": 520
             }
           ],
           "discount": {
@@ -346,18 +165,17 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管套餐 超值！！",
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-12",
+          "id": "genshin-6",
           "title": "全托+养角色+一些零零碎碎的【养成完全托】",
           "desc": "养1~2个角色 可以从零开始练 按打深渊练度练 每天上两次号",
           "priceOptions": [
             {
               "label": "月",
-              "price": 720,
-              "remark": ""
+              "price": 720
             }
           ],
           "discount": {
@@ -372,18 +190,67 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管套餐 超值！！",
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-13",
+          "id": "genshin-7",
+          "title": "日常委托",
+          "desc": "只有每日任务",
+          "priceOptions": [
+            {
+              "label": "月",
+              "price": 65
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          },
+          "subset": "托管相关",
+          "subsetId": "ss1760262896078-95239"
+        },
+        {
+          "id": "genshin-8",
+          "title": "打每日体力",
+          "desc": "只打每日体力，可随意指定副本和boss，一天清一次，有历练点可帮领 有100以上晶蝶-5￥",
+          "priceOptions": [
+            {
+              "label": "月",
+              "price": 65
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          },
+          "subset": "托管相关",
+          "subsetId": "ss1760262896078-95239"
+        },
+        {
+          "id": "genshin-9",
           "title": "版本纪行",
           "desc": "大月卡等级",
           "priceOptions": [
             {
               "label": "次",
-              "price": 90,
-              "remark": ""
+              "price": 90
             }
           ],
           "discount": {
@@ -399,17 +266,41 @@
             "value": "shikacyayuzu"
           },
           "subset": "托管相关",
-          "subsetId": "ss-genshin"
+          "subsetId": "ss1760262896078-95239"
         },
         {
-          "id": "genshin-14",
-          "title": "角色升级到0-90级",
-          "desc": "指定角色练等级到90级 最晚7天内 加急一天内75r(要有足够树脂)",
+          "id": "genshin-10",
+          "title": "每周声望任务",
+          "desc": "地区声望任务",
+          "priceOptions": [
+            {
+              "label": "周",
+              "price": 8
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          },
+          "subset": "托管相关",
+          "subsetId": "ss1760262896078-95239"
+        },
+        {
+          "id": "genshin-11",
+          "title": "一天日体",
+          "desc": "单日常3r 单体力3r",
           "priceOptions": [
             {
               "label": "次",
-              "price": 60,
-              "remark": ""
+              "price": 3
             }
           ],
           "discount": {
@@ -424,127 +315,21 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "角色相关",
+          "subset": "托管相关",
           "subsetId": "ss1760262896078-95239"
         },
         {
-          "id": "genshin-15",
-          "title": "突破材料",
-          "desc": "指定角色的突破材料",
-          "priceOptions": [
-            {
-              "label": "个",
-              "price": 1,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "角色相关",
-          "subsetId": "ss1760262896078-95239"
-        },
-        {
-          "id": "genshin-16",
-          "title": "角色升级0-90级",
-          "desc": "指定角色练等级到90级 最晚7天内 加急一天内75r(要有足够树脂)",
-          "priceOptions": [
-            {
-              "label": "次",
-              "price": 60,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "角色相关",
-          "subsetId": "ss1760262896078-95239"
-        },
-        {
-          "id": "genshin-17",
-          "title": "突破材料",
-          "desc": "指定角色的boos突破材料",
-          "priceOptions": [
-            {
-              "label": "个",
-              "price": 1.5,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "角色相关",
-          "subsetId": "ss1760262896078-95239"
-        },
-        {
-          "id": "genshin-18",
-          "title": "全地图100%探索度",
-          "desc": "仅限下单日最新游戏版本",
-          "priceOptions": [
-            {
-              "label": "次",
-              "price": 18888,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": true,
-            "type": "second"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "探索相关",
-          "subsetId": "ss1760262914493-18202"
-        },
-        {
-          "id": "genshin-19",
+          "id": "genshin-12",
           "title": "探索度需知",
           "desc": "55%-65%=9折 65%-75%=8折 75%-85%=7折 85%-95%=5折 95%以上=3折",
           "priceOptions": [
             {
               "label": "次",
-              "price": 99999999,
-              "remark": ""
+              "price": 99999999
             },
             {
               "label": "单次",
-              "price": 0,
-              "remark": ""
+              "price": 0
             }
           ],
           "discount": {
@@ -563,14 +348,13 @@
           "subsetId": "ss1760262914493-18202"
         },
         {
-          "id": "genshin-20",
+          "id": "genshin-13",
           "title": "全宝箱价格=原本价格+原本价格的20%",
           "desc": "探索度≈90%宝箱+神瞳+传送点+地灵龛  探索度100%≠全宝箱 全宝箱≠探索度100%",
           "priceOptions": [
             {
               "label": "次",
-              "price": 99999999,
-              "remark": ""
+              "price": 99999999
             }
           ],
           "discount": {
@@ -589,39 +373,33 @@
           "subsetId": "ss1760262914493-18202"
         },
         {
-          "id": "genshin-21",
+          "id": "genshin-14",
           "title": "各国探索度100%",
           "desc": "含区域全神瞳 不含前置任务 需要单个区域请找客服小鹿",
           "priceOptions": [
             {
               "label": "蒙德",
-              "price": 190,
-              "remark": ""
+              "price": 190
             },
             {
               "label": "璃月",
-              "price": 380,
-              "remark": ""
+              "price": 380
             },
             {
               "label": "稻妻",
-              "price": 400,
-              "remark": ""
+              "price": 400
             },
             {
               "label": "须弥",
-              "price": 880,
-              "remark": ""
+              "price": 880
             },
             {
               "label": "枫丹",
-              "price": 520,
-              "remark": ""
+              "price": 520
             },
             {
               "label": "纳塔",
-              "price": 0,
-              "remark": ""
+              "price": 0
             }
           ],
           "discount": {
@@ -640,14 +418,13 @@
           "subsetId": "ss1760262914493-18202"
         },
         {
-          "id": "genshin-22",
+          "id": "genshin-15",
           "title": "版本活动全包",
           "desc": "除了夏活",
           "priceOptions": [
             {
               "label": "次",
-              "price": 110,
-              "remark": ""
+              "price": 110
             }
           ],
           "discount": {
@@ -666,14 +443,13 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-23",
+          "id": "genshin-16",
           "title": "小活动",
           "desc": "25~35r 麻烦找一下客服小鹿",
           "priceOptions": [
             {
               "label": "次",
-              "price": 25,
-              "remark": ""
+              "price": 25
             }
           ],
           "discount": {
@@ -692,14 +468,13 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-24",
+          "id": "genshin-17",
           "title": "小活动",
           "desc": "25~35r 麻烦找一下客服小鹿",
           "priceOptions": [
             {
               "label": "次",
-              "price": 35,
-              "remark": ""
+              "price": 35
             }
           ],
           "discount": {
@@ -718,14 +493,13 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-25",
+          "id": "genshin-18",
           "title": "大活动",
           "desc": "70~90r 麻烦找一下客服小鹿",
           "priceOptions": [
             {
               "label": "次",
-              "price": 70,
-              "remark": ""
+              "price": 70
             }
           ],
           "discount": {
@@ -744,14 +518,13 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-26",
+          "id": "genshin-19",
           "title": "大活动",
           "desc": "70~90r 麻烦找一下客服小鹿",
           "priceOptions": [
             {
               "label": "次",
-              "price": 90,
-              "remark": ""
+              "price": 90
             }
           ],
           "discount": {
@@ -770,14 +543,13 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-27",
+          "id": "genshin-20",
           "title": "深渊9-12",
           "desc": "看号打不过退钱qwq",
           "priceOptions": [
             {
               "label": "期",
-              "price": 30,
-              "remark": ""
+              "price": 30
             }
           ],
           "discount": {
@@ -796,14 +568,13 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-28",
+          "id": "genshin-21",
           "title": "幽境危战 幻想真境剧诗",
           "desc": "幽20-30r 幻30-50r 麻烦找一下客服小鹿",
           "priceOptions": [
             {
               "label": "期",
-              "price": 0,
-              "remark": ""
+              "price": 0
             }
           ],
           "discount": {
@@ -822,14 +593,63 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-29",
+          "id": "genshin-22",
+          "title": "角色升级0-90级",
+          "desc": "指定角色练等级到90级 最晚7天内 加急一天内75r(要有足够树脂)",
+          "priceOptions": [
+            {
+              "label": "次",
+              "price": 60
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          },
+          "subset": "角色相关",
+          "subsetId": "ss1760361237456-76114"
+        },
+        {
+          "id": "genshin-23",
+          "title": "突破材料",
+          "desc": "指定角色的boos突破材料",
+          "priceOptions": [
+            {
+              "label": "个",
+              "price": 1.5
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          },
+          "subset": "角色相关",
+          "subsetId": "ss1760361237456-76114"
+        },
+        {
+          "id": "genshin-24",
           "title": "地区特产",
           "desc": "给角色突破的地方特产",
           "priceOptions": [
             {
               "label": "个",
-              "price": 0.3,
-              "remark": ""
+              "price": 0.3
             }
           ],
           "discount": {
@@ -915,51 +735,26 @@
       ]
     },
     {
-      "id": "g1760356471697",
-      "name": "绝区零",
-      "tag": "",
-      "needsSubset": true,
+      "id": "g1760362933494",
+      "name": "三角洲行动",
+      "tag": "噔↗噔→噔↘噔→",
+      "needsSubset": false,
       "subsets": [
         {
-          "id": "ss1760356468686",
+          "id": "ss1760362599972",
           "name": "代肝项目",
           "remark": ""
         }
       ],
-      "services": []
-    },
-    {
-      "id": "g1760353905502",
-      "name": "三角洲行动",
-      "tag": "噔↗噔→噔↘噔↘",
-      "needsSubset": false,
-      "subsets": [
-        {
-          "id": "ss1760353545879",
-          "name": "跑刀",
-          "remark": "默认保留：小红、金卡、红卡\n送大红"
-        },
-        {
-          "id": "ss1760353848576-24502",
-          "name": "赛季3X3",
-          "remark": "会根据不同赛季更新调整"
-        },
-        {
-          "id": "ss1760372727975-93783",
-          "name": "部门任务",
-          "remark": ""
-        }
-      ],
       "services": [
         {
-          "id": "g1760353905502-1",
-          "title": "哈弗币纯币",
-          "desc": "默认留小红、大红、金卡、红卡（不计入哈弗币，送老板）",
+          "id": "g1760362933494-1",
+          "title": "跑刀纯币1000w",
+          "desc": "纯币不动仓库 留小红 留金卡 留大红不算在内送老板 5小时内",
           "priceOptions": [
             {
-              "label": "1000万哈弗币",
-              "price": 85,
-              "remark": "3-5小时"
+              "label": "次",
+              "price": 85
             }
           ],
           "discount": {
@@ -974,87 +769,12 @@
             "type": "微信",
             "value": ""
           },
-          "subset": "跑刀",
-          "subsetId": "ss1760353545879"
+          "subset": "代肝项目",
+          "subsetId": null
         },
         {
-          "id": "g1760353905502-2",
-          "title": "当前赛季3X3安全箱任务",
-          "desc": "每赛季价格不一样",
-          "priceOptions": [
-            {
-              "label": "所有任务全包",
-              "price": 1250,
-              "remark": "可根据完成度向客服调整价格（降价）"
-            }
-          ],
-          "discount": {
-            "enabled": true,
-            "type": "second"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": ""
-          },
-          "subset": "赛季3X3",
-          "subsetId": "ss1760353848576-24502"
-        }
-      ]
-    },
-    {
-      "id": "g1760354490704",
-      "name": "鸣潮",
-      "tag": "开放世界",
-      "needsSubset": true,
-      "subsets": [
-        {
-          "id": "ss1760354373724",
-          "name": "委托相关",
-          "remark": ""
-        }
-      ],
-      "services": [
-        {
-          "id": "g1760354490704-1",
-          "title": "清体力",
-          "desc": "可指定打某个本",
-          "priceOptions": [
-            {
-              "label": "月",
-              "price": 58
-            }
-          ],
-          "discount": {
-            "enabled": true,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": ""
-          },
-          "subset": "委托相关",
-          "subsetId": "ss1760354373724"
-        }
-      ]
-    },
-    {
-      "id": "g1760355789129",
-      "name": "英雄联盟",
-      "tag": "测试阶段数据随便填的",
-      "needsSubset": false,
-      "subsets": [],
-      "services": [
-        {
-          "id": "g1760355789129-1",
-          "title": "通信证",
+          "id": "g1760362933494-2",
+          "title": "未命名服务",
           "desc": "",
           "priceOptions": [
             {
@@ -1076,64 +796,11 @@
           },
           "subset": "代肝项目",
           "subsetId": null
-        },
-        {
-          "id": "g1760355789129-2",
-          "title": "打打排位",
-          "desc": "钻石及以下",
-          "priceOptions": [
-            {
-              "label": "小段",
-              "price": 10000
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": ""
-          },
-          "subset": "代肝项目",
-          "subsetId": null
         }
       ]
-    },
-    {
-      "id": "g1760356466428",
-      "name": "无畏契约",
-      "tag": "",
-      "needsSubset": true,
-      "subsets": [
-        {
-          "id": "ss1760356455976",
-          "name": "代肝项目",
-          "remark": ""
-        }
-      ],
-      "services": []
-    },
-    {
-      "id": "g1760356451632",
-      "name": "Steam",
-      "tag": "",
-      "needsSubset": true,
-      "subsets": [
-        {
-          "id": "ss1760356440989",
-          "name": "代肝项目",
-          "remark": ""
-        }
-      ],
-      "services": []
     }
   ],
-  "theme": "white",
+  "theme": "lime",
   "discountConfig": {
     "more": {
       "p2": 0.08,
@@ -1153,7 +820,7 @@
       "priceOptionsTitle": "价格选项",
       "priceOptionsTitleBySubset": {},
       "priceOptionsTitleByService": {
-        "genshin-1": "单位：月"
+        "genshin-13": "各国价格"
       }
     }
   }
