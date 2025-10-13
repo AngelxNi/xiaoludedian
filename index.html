@@ -7,6 +7,11 @@
   <!-- 预加载两种收款码图片，避免切换支付方式时首次出现的加载延迟 -->
   <link rel="preload" as="image" href="微信收款码.png" />
   <link rel="preload" as="image" href="支付宝收款码.png" />
+  <!-- 公开页：为避免加载早期的闪现，默认隐藏文件读写按钮（管理员页不受影响） -->
+  <style>
+    .file-io{ display:none !important; }
+    #btnSaveFile, #btnLoadFile{ display:none !important; }
+  </style>
 <style>
     /* 主题变量（会被 JS 动态切换） */
     :root{
@@ -356,7 +361,7 @@ html[data-theme="black"] .dot{ background: #8ABBFF !important; }
 
             <div class="price-grid" style="margin-top:16px">
               <div style="min-width:240px">
-                <div style="font-weight:600;margin-bottom:8px">价格选项</div>
+                <div style="font-weight:600;margin-bottom:8px"><span id="priceOptionsTitle">价格选项</span></div>
                 <div id="prices"></div>
                 
                 <!-- 价格计算面板（放在左侧） -->
@@ -1086,6 +1091,19 @@ function showService(svc, game, mountTarget){
     contactVal.textContent = contactText;
   }catch(e){ contactVal.textContent = ''; }
 
+  // 根据服务ID/子集ID应用“价格选项”标题（优先级：服务 > 子集 > 全局）
+  try{
+    const titleEl = document.getElementById('priceOptionsTitle');
+    const S = (typeof UI_STATE!=='undefined') ? UI_STATE : null;
+    const sid = (svc && svc.subsetId) || '';
+    const serviceId = (svc && svc.id) || '';
+    const defTitle = (S && S.uiTexts && S.uiTexts.priceOptionsTitle) || '价格选项';
+    const svcTitleOverride = (S && S.uiTexts && S.uiTexts.priceOptionsTitleByService && serviceId) ? S.uiTexts.priceOptionsTitleByService[serviceId] : undefined;
+    const subsetTitleOverride = (S && S.uiTexts && S.uiTexts.priceOptionsTitleBySubset && sid) ? S.uiTexts.priceOptionsTitleBySubset[sid] : undefined;
+    const finalTitle = (svcTitleOverride || subsetTitleOverride || defTitle);
+    if(titleEl){ titleEl.textContent = finalTitle; }
+  }catch(_){ /* ignore */ }
+
   pricesEl.innerHTML = '';
   // 重置当前选择的单价
   selectedUnitPrice = 0;
@@ -1545,6 +1563,13 @@ function applyUIState(){
       if(cfg.width) el.style.width = cfg.width;
       if(cfg.height) el.style.height = cfg.height;
     });
+    // 应用文案配置（方案B）：价格选项标题
+    try{
+      const tEl = document.getElementById('priceOptionsTitle');
+      if(tEl && S.uiTexts && typeof S.uiTexts.priceOptionsTitle !== 'undefined'){
+        tEl.textContent = S.uiTexts.priceOptionsTitle || '价格选项';
+      }
+    }catch(_){ /* ignore */ }
   }catch(e){ console.warn('applyUIState 失败', e); }
 }
 </script>
