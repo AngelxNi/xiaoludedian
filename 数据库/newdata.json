@@ -4,6 +4,7 @@
       "id": "genshin",
       "name": "原神",
       "tag": "开放世界（三服可接）",
+      "needsSubset": true,
       "subsets": [
         {
           "id": "ss-genshin",
@@ -29,11 +30,6 @@
           "id": "ss1760288775230-92870",
           "name": "活动相关",
           "remark": "麻烦找一下客服小鹿"
-        },
-        {
-          "id": "ss1760288776013-90183",
-          "name": "代肝项目",
-          "remark": ""
         }
       ],
       "services": [
@@ -572,6 +568,217 @@
           "subsetId": "ss-g1760091190321"
         }
       ]
+    },
+    {
+      "id": "g1760356471697",
+      "name": "绝区零",
+      "tag": "",
+      "needsSubset": true,
+      "subsets": [
+        {
+          "id": "ss1760356468686",
+          "name": "代肝项目",
+          "remark": ""
+        }
+      ],
+      "services": []
+    },
+    {
+      "id": "g1760354490704",
+      "name": "鸣潮",
+      "tag": "开放世界",
+      "needsSubset": true,
+      "subsets": [
+        {
+          "id": "ss1760354373724",
+          "name": "委托相关",
+          "remark": ""
+        }
+      ],
+      "services": [
+        {
+          "id": "g1760354490704-1",
+          "title": "清体力",
+          "desc": "可指定打某个本",
+          "priceOptions": [
+            {
+              "label": "月",
+              "price": 58
+            }
+          ],
+          "discount": {
+            "enabled": true,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          },
+          "subset": "委托相关",
+          "subsetId": "ss1760354373724"
+        }
+      ]
+    },
+    {
+      "id": "g1760353905502",
+      "name": "三角洲行动",
+      "tag": "噔↗噔→噔↘噔↘",
+      "needsSubset": true,
+      "subsets": [
+        {
+          "id": "ss1760353545879",
+          "name": "跑刀",
+          "remark": "默认保留：小红、金卡、红卡\n送大红"
+        },
+        {
+          "id": "ss1760353848576-24502",
+          "name": "赛季3X3",
+          "remark": "会根据不同赛季更新调整"
+        }
+      ],
+      "services": [
+        {
+          "id": "g1760353905502-1",
+          "title": "哈弗币纯币",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "1000万哈弗币",
+              "price": 85
+            }
+          ],
+          "discount": {
+            "enabled": true,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          },
+          "subset": "跑刀",
+          "subsetId": "ss1760353545879"
+        },
+        {
+          "id": "g1760353905502-2",
+          "title": "当前赛季3X3安全箱任务",
+          "desc": "可根据完成度向客服调整价格（降价）",
+          "priceOptions": [
+            {
+              "label": "所有任务全包",
+              "price": 1250
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          },
+          "subset": "赛季3X3",
+          "subsetId": "ss1760353848576-24502"
+        }
+      ]
+    },
+    {
+      "id": "g1760355789129",
+      "name": "英雄联盟",
+      "tag": "测试阶段数据随便填的",
+      "needsSubset": false,
+      "subsets": [],
+      "services": [
+        {
+          "id": "g1760355789129-1",
+          "title": "通信证",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "单次",
+              "price": 0
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          },
+          "subset": "代肝项目",
+          "subsetId": null
+        },
+        {
+          "id": "g1760355789129-2",
+          "title": "打打排位",
+          "desc": "钻石及以下",
+          "priceOptions": [
+            {
+              "label": "小段",
+              "price": 10000
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          },
+          "subset": "代肝项目",
+          "subsetId": null
+        }
+      ]
+    },
+    {
+      "id": "g1760356466428",
+      "name": "无畏契约",
+      "tag": "",
+      "needsSubset": true,
+      "subsets": [
+        {
+          "id": "ss1760356455976",
+          "name": "代肝项目",
+          "remark": ""
+        }
+      ],
+      "services": []
+    },
+    {
+      "id": "g1760356451632",
+      "name": "Steam",
+      "tag": "",
+      "needsSubset": true,
+      "subsets": [
+        {
+          "id": "ss1760356440989",
+          "name": "代肝项目",
+          "remark": ""
+        }
+      ],
+      "services": []
     }
   ],
   "theme": "lime",
@@ -586,5 +793,9 @@
       "p": 0.1,
       "cap": 0.1
     }
+  },
+  "uiState": {
+    "elements": {},
+    "boxes": []
   }
 }
