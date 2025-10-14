@@ -739,7 +739,26 @@ function serializeBackup(){
   const theme = document.documentElement.getAttribute('data-theme') || 'white';
   // 直接使用内存中的 DATA（已包含你在页面上的所有修改）
   const uiState = (typeof UI_STATE!=='undefined') ? UI_STATE : { elements:{}, boxes:[] };
-  return { data: DATA, theme, discountConfig: window.DISCOUNT_CONFIG, uiState };
+  // 同步保存价格卡样式，便于公开页导入后应用
+  let priceCardStyle = {};
+  try{
+    const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
+    const cs = getComputedStyle(document.documentElement);
+    const getInt = (v)=>{ const n = parseInt(v); return isNaN(n) ? null : n; };
+    const rowGap = (s.rowGap!=null ? s.rowGap : (getInt(cs.getPropertyValue('--price-card-row-gap'))??20));
+    const shadowX = (s.shadowX!=null ? s.shadowX : (getInt(cs.getPropertyValue('--price-card-shadow-x'))??0));
+    const shadowY = (s.shadowY!=null ? s.shadowY : (getInt(cs.getPropertyValue('--price-card-shadow-y'))??6));
+    const shadowBlur = (s.shadowBlur!=null ? s.shadowBlur : (getInt(cs.getPropertyValue('--price-card-shadow-blur'))??16));
+    const shadowSpread = (s.shadowSpread!=null ? s.shadowSpread : (getInt(cs.getPropertyValue('--price-card-shadow-spread'))??0));
+    let shadowAlpha = (s.shadowAlpha!=null ? s.shadowAlpha : 10);
+    try{
+      const current = (cs.getPropertyValue('--price-card-shadow-color')||'').trim();
+      const m = current.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([0-9.]+)\)/i);
+      if(m){ shadowAlpha = Math.round(parseFloat(m[1])*100); }
+    }catch(_){ /* ignore */ }
+    priceCardStyle = { rowGap, shadowX, shadowY, shadowBlur, shadowSpread, shadowAlpha };
+  }catch(_){ priceCardStyle = {}; }
+  return { data: DATA, theme, discountConfig: window.DISCOUNT_CONFIG, uiState, priceCardStyle };
 }
 
 async function saveToFile(){
@@ -750,12 +769,17 @@ async function saveToFile(){
         suggestedName: 'newdata.json',
         types: [{ description: 'JSON 文件', accept: { 'application/json': ['.json'] } }]
       });
+      // 二次确认：防止误覆盖
+      const ok = window.confirm('将保存到你选择的文件，可能覆盖旧内容。是否继续？');
+      if(!ok){ alert('已取消保存'); return; }
       const writable = await handle.createWritable();
       await writable.write(payload);
       await writable.close();
       alert('已保存到文件。');
     }else{
-      // 回退：触发下载到本地
+      // 回退：触发下载到本地（也确认一次）
+      const ok = window.confirm('将生成下载文件 "newdata.json"。是否继续？');
+      if(!ok){ alert('已取消保存'); return; }
       const blob = new Blob([payload], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -816,6 +840,34 @@ function applyBackupJSON(text){
       try{ saved = localStorage.getItem('boost_theme_v1'); }catch(e){}
       applyTheme(saved || (obj.theme || 'white'));
     })();
+    // 应用文件中携带的卡片样式（如有）
+    try{
+      if(obj.priceCardStyle && typeof obj.priceCardStyle === 'object'){
+        const s = obj.priceCardStyle;
+        const r = document.documentElement.style;
+        if(s.rowGap!=null) r.setProperty('--price-card-row-gap', s.rowGap+'px');
+        if(s.shadowX!=null) r.setProperty('--price-card-shadow-x', s.shadowX+'px');
+        if(s.shadowY!=null) r.setProperty('--price-card-shadow-y', s.shadowY+'px');
+        if(s.shadowBlur!=null) r.setProperty('--price-card-shadow-blur', s.shadowBlur+'px');
+        if(s.shadowSpread!=null) r.setProperty('--price-card-shadow-spread', s.shadowSpread+'px');
+        const themeNow = document.documentElement.getAttribute('data-theme') || 'white';
+        if(themeNow==='black'){
+          r.setProperty('--price-card-shadow-color', 'transparent');
+        } else {
+          const v = (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim() || '#10b981';
+          let rr=16,gg=185,bb=129;
+          if(/^#/.test(v)){
+            let h=v.replace('#',''); if(h.length===3) h=h.split('').map(x=>x+x).join('');
+            rr=parseInt(h.slice(0,2),16); gg=parseInt(h.slice(2,4),16); bb=parseInt(h.slice(4,6),16);
+          } else {
+            const m=v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ rr=parseInt(m[1]); gg=parseInt(m[2]); bb=parseInt(m[3]); }
+          }
+          const alpha = Math.max(0, Math.min(100, s.shadowAlpha!=null ? s.shadowAlpha : 10))/100;
+          r.setProperty('--price-card-shadow-color', `rgba(${rr},${gg},${bb},${alpha})`);
+        }
+        try{ localStorage.setItem('priceCardStyle', JSON.stringify(s)); }catch(_){}
+      }
+    }catch(_){ /* ignore */ }
     // 重新渲染左侧列表
     renderList(qEl.value || '');
     // 应用 UI 状态（如果页面提供该函数）：确保标题等文本即时生效
