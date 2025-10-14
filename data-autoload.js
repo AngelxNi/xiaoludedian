@@ -91,6 +91,43 @@
           applyTheme(theme);
         }catch(e){}
       }
+      // 应用卡片样式（如果 JSON 中有），并同步到本地存储，便于公开页样式初始化模块复用
+      try{
+        const s = obj.priceCardStyle || null;
+        if(s){
+          try{ localStorage.setItem('priceCardStyle', JSON.stringify(s)); }catch(_){}
+          const r = document.documentElement.style;
+          if(s.minWidth!=null) r.setProperty('--price-card-minwidth', s.minWidth+'px');
+          if(s.padding!=null) r.setProperty('--price-card-padding', s.padding+'px');
+          if(s.radius!=null) r.setProperty('--price-card-radius', s.radius+'px');
+          if(s.rowGap!=null) r.setProperty('--price-card-row-gap', s.rowGap+'px');
+          if(s.colGap!=null) r.setProperty('--price-card-col-gap', s.colGap+'px');
+          if(s.borderWidth!=null) r.setProperty('--price-card-border-width', s.borderWidth+'px');
+          if(s.borderColor) r.setProperty('--price-card-border-color', s.borderColor);
+          if(s.shadowX!=null) r.setProperty('--price-card-shadow-x', s.shadowX+'px');
+          if(s.shadowY!=null) r.setProperty('--price-card-shadow-y', s.shadowY+'px');
+          if(s.shadowBlur!=null) r.setProperty('--price-card-shadow-blur', s.shadowBlur+'px');
+          if(s.shadowSpread!=null) r.setProperty('--price-card-shadow-spread', s.shadowSpread+'px');
+          // 阴影颜色：统一使用当前主题强调色并结合不透明度
+          try{
+            const themeName = document.documentElement.getAttribute('data-theme') || 'white';
+            if(themeName==='black'){
+              r.setProperty('--price-card-shadow-color', 'transparent');
+            } else {
+              const v = (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim() || '#10b981';
+              const alpha = Math.max(0, Math.min(100, s.shadowAlpha!=null ? s.shadowAlpha : 10))/100;
+              let rr=16,gg=185,bb=129;
+              if(/^#/.test(v)){
+                let h=v.replace('#',''); if(h.length===3) h=h.split('').map(x=>x+x).join('');
+                rr=parseInt(h.slice(0,2),16); gg=parseInt(h.slice(2,4),16); bb=parseInt(h.slice(4,6),16);
+              } else {
+                const m=v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ rr=parseInt(m[1]); gg=parseInt(m[2]); bb=parseInt(m[3]); }
+              }
+              r.setProperty('--price-card-shadow-color', `rgba(${rr},${gg},${bb},${alpha})`);
+            }
+          }catch(_){/* ignore */}
+        }
+      }catch(e){ /* ignore */ }
       // 重新渲染列表
       try{
         const qEl = document.getElementById('q');
