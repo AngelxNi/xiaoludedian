@@ -29,7 +29,7 @@
       .main{order:2}
     }
     .aside{border-right:1px solid var(--border);padding:18px;height:640px;overflow:auto;position:relative;z-index:30} /* Eliya备注：侧栏整体层级提高，确保展开层在新增按钮之上 */
-    .main{padding:20px}
+    .main{padding:20px;position:relative;z-index:31}
     h1{font-size:22px;margin:0 0 6px}
     p.lead{margin:0 0 12px;color:var(--muted);font-size:13px}
     .top-controls{display:flex;gap:8px;align-items:center;margin-bottom:10px}
@@ -83,16 +83,18 @@
     .svc-title{font-size:13px}
     /* 详情区 */
     .right-title{display:flex;justify-content:space-between;align-items:flex-start}
-    .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--price-card-minwidth,200px),1fr));gap:var(--price-card-row-gap,20px) var(--price-card-col-gap,16px);margin-top:14px}
-    .price-card{padding:var(--price-card-padding,12px);border-radius:var(--price-card-radius,12px);border:var(--price-card-border-width,2px) solid var(--price-card-border-color,var(--price-card-border-default,var(--border-strong)));background:linear-gradient(180deg,#fff,#fbfdff)}
+  .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--price-card-minwidth,200px),1fr));gap:var(--price-card-row-gap,20px) var(--price-card-col-gap,16px);margin-top:14px}
+  /* 价格卡容器：控制价格卡之间的上下/左右间距 */
+#prices{display:grid;grid-template-columns:1fr;gap:var(--price-card-row-gap,20px) var(--price-card-col-gap,16px)}
+    .price-card{padding:var(--price-card-padding,12px);border-radius:var(--price-card-radius,12px);border:var(--price-card-border-width,2px) solid var(--price-card-border-color,var(--price-card-border-default,var(--border-strong)));background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:var(--price-card-shadow-x,0px) var(--price-card-shadow-y,6px) var(--price-card-shadow-blur,16px) var(--price-card-shadow-spread,0px) var(--price-card-shadow-color,var(--accent))}
     /* 主题化的价格卡默认边框颜色（可被 --price-card-border-color 覆盖） */
     html[data-theme="black"]{ --price-card-border-default: var(--border-strong); }
-    html[data-theme="white"]{ --price-card-border-default: #a7f3d0; }   /* 淡绿 */
-    html[data-theme="pink"]{ --price-card-border-default: #fbcfe8; }    /* 亮粉 */
-    html[data-theme="lime"]{ --price-card-border-default: #d9f99d; }    /* 亮青柠 */
-    html[data-theme="orange"]{ --price-card-border-default: #fed7aa; }  /* 亮橙 */
+html[data-theme="white"]{ --price-card-border-default: var(--accent); }
+html[data-theme="pink"]{ --price-card-border-default: var(--accent); }
+html[data-theme="lime"]{ --price-card-border-default: var(--accent); }
+html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     /* 选中时改为柔和的灰色强调，去掉绿色边框 */
-    .price-card.active{border-color:#cbd5e1;box-shadow:0 4px 12px rgba(2,6,23,0.06)}
+    .price-card.active{border-color:var(--price-card-border-color,var(--price-card-border-default,var(--border-strong)));box-shadow:var(--price-card-shadow-x,0px) var(--price-card-shadow-y,6px) var(--price-card-shadow-blur,16px) var(--price-card-shadow-spread,0px) var(--price-card-shadow-color,var(--accent))}
     .price-card:focus{outline:none}
     .price-remark{font-size:12px;color:var(--muted)}
     .pay-list{margin:0;padding-left:18px}
@@ -216,7 +218,9 @@
     /* 黑色主题下的游戏品类展开强调（夜间标准） */
     html[data-theme="black"] .game-card.active-cat{background:#232323 !important;border-color: var(--accent) !important;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
     /* 黑色主题下的展开强调（夜间标准） */
-    html[data-theme="black"] .service.active-svc{background:#232323 !important;border-color: var(--accent) !important;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
+html[data-theme="black"] .service.active-svc{background:#232323 !important;border-color: var(--accent) !important;box-shadow:0 8px 24px rgba(0,0,0,0.35)}
+/* 黑色主题下：价格卡片无阴影 */
+html[data-theme="black"] .price-card, html[data-theme="black"] .price-card.active { box-shadow: none !important; }
     /* 黑色主题：标签/提示颜色为浅灰 */
 html[data-theme="black"] .tag,
 html[data-theme="black"] .muted,
@@ -230,7 +234,7 @@ html[data-theme="black"] .drag-handle .bar{ background: #8ABBFF !important; }
 html[data-theme="black"] .dot{ background: #8ABBFF !important; }
 
     /* 其它主题的滚动条样式：与各主题主色（accent）和背景（bg）协调 */
-    html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent) var(--bg); }
+html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent) var(--bg); }
     html[data-theme="white"]::-webkit-scrollbar { width: 12px; height: 12px; }
     html[data-theme="white"]::-webkit-scrollbar-track { background: var(--bg); border-left: 1px solid var(--border); }
     html[data-theme="white"]::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 8px; border: 2px solid var(--bg); }
@@ -271,7 +275,7 @@ html[data-theme="black"] .dot{ background: #8ABBFF !important; }
       .wrap{max-width:100%;padding:12px}
       .panel{border-radius:10px}
       .aside{height:auto;max-height:none;overflow:visible;border-right:none;border-top:1px solid var(--border);padding:12px}
-      .main{padding:12px}
+    .main{padding:12px;position:relative;z-index:31}
       .panel-header{flex-wrap:wrap;gap:8px}
       .top-controls{width:100%;justify-content:flex-start}
       h1{font-size:20px}
@@ -1649,6 +1653,7 @@ function applyTheme(t){
     document.documentElement.style.setProperty('--accent','#3b82f6');
     document.documentElement.style.setProperty('--border','#2a2a2a');
     document.body.style.color = '#e5e7eb';
+    document.documentElement.style.setProperty('--price-card-shadow-color','transparent');
   } else if(t==='white'){
     document.documentElement.style.setProperty('--bg','#f6f7fb');
     document.documentElement.style.setProperty('--card','#ffffff');
@@ -1656,6 +1661,17 @@ function applyTheme(t){
     document.documentElement.style.setProperty('--accent','#10b981');
     document.documentElement.style.setProperty('--border','#e6e9ef');
     document.body.style.color = '#0f172a';
+    try{
+      const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
+      const alpha = Math.max(0, Math.min(100, s.shadowAlpha!=null ? s.shadowAlpha : 10))/100;
+      const v = (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim() || '#10b981';
+      let r=16,g=185,b=129;
+      if(/^#/.test(v)){
+        let h = v.replace('#',''); if(h.length===3) h = h.split('').map(x=>x+x).join('');
+        r = parseInt(h.slice(0,2),16); g = parseInt(h.slice(2,4),16); b = parseInt(h.slice(4,6),16);
+      } else { const m = v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ r=parseInt(m[1]); g=parseInt(m[2]); b=parseInt(m[3]); } }
+      document.documentElement.style.setProperty('--price-card-shadow-color', `rgba(${r},${g},${b},${alpha})`);
+    }catch(_){ document.documentElement.style.setProperty('--price-card-shadow-color', getComputedStyle(document.documentElement).getPropertyValue('--accent')); }
   } else if(t==='pink'){
     document.documentElement.style.setProperty('--bg','#fff3f4');
     document.documentElement.style.setProperty('--card','#fff');
@@ -1663,6 +1679,17 @@ function applyTheme(t){
     document.documentElement.style.setProperty('--accent','#fb7185');
     document.documentElement.style.setProperty('--border','#fdecef');
     document.body.style.color = '#0f172a';
+    try{
+      const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
+      const alpha = Math.max(0, Math.min(100, s.shadowAlpha!=null ? s.shadowAlpha : 10))/100;
+      const v = (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim() || '#fb7185';
+      let r=251,g=113,b=133;
+      if(/^#/.test(v)){
+        let h = v.replace('#',''); if(h.length===3) h = h.split('').map(x=>x+x).join('');
+        r = parseInt(h.slice(0,2),16); g = parseInt(h.slice(2,4),16); b = parseInt(h.slice(4,6),16);
+      } else { const m = v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ r=parseInt(m[1]); g=parseInt(m[2]); b=parseInt(m[3]); } }
+      document.documentElement.style.setProperty('--price-card-shadow-color', `rgba(${r},${g},${b},${alpha})`);
+    }catch(_){ document.documentElement.style.setProperty('--price-card-shadow-color', getComputedStyle(document.documentElement).getPropertyValue('--accent')); }
   } else if(t==='lime'){
     document.documentElement.style.setProperty('--bg','#f7ffed');
     document.documentElement.style.setProperty('--card','#ffffff');
@@ -1670,6 +1697,17 @@ function applyTheme(t){
     document.documentElement.style.setProperty('--accent','#84cc16');
     document.documentElement.style.setProperty('--border','#eef9e6');
     document.body.style.color = '#0f172a';
+    try{
+      const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
+      const alpha = Math.max(0, Math.min(100, s.shadowAlpha!=null ? s.shadowAlpha : 10))/100;
+      const v = (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim() || '#84cc16';
+      let r=132,g=204,b=22;
+      if(/^#/.test(v)){
+        let h = v.replace('#',''); if(h.length===3) h = h.split('').map(x=>x+x).join('');
+        r = parseInt(h.slice(0,2),16); g = parseInt(h.slice(2,4),16); b = parseInt(h.slice(4,6),16);
+      } else { const m = v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ r=parseInt(m[1]); g=parseInt(m[2]); b=parseInt(m[3]); } }
+      document.documentElement.style.setProperty('--price-card-shadow-color', `rgba(${r},${g},${b},${alpha})`);
+    }catch(_){ document.documentElement.style.setProperty('--price-card-shadow-color', getComputedStyle(document.documentElement).getPropertyValue('--accent')); }
   } else if(t==='orange'){
     document.documentElement.style.setProperty('--bg','#fff7ed');
     document.documentElement.style.setProperty('--card','#ffffff');
@@ -1677,6 +1715,17 @@ function applyTheme(t){
     document.documentElement.style.setProperty('--accent','#fb923c');
     document.documentElement.style.setProperty('--border','#fff1e6');
     document.body.style.color = '#0f172a';
+    try{
+      const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
+      const alpha = Math.max(0, Math.min(100, s.shadowAlpha!=null ? s.shadowAlpha : 10))/100;
+      const v = (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim() || '#fb923c';
+      let r=251,g=146,b=60;
+      if(/^#/.test(v)){
+        let h = v.replace('#',''); if(h.length===3) h = h.split('').map(x=>x+x).join('');
+        r = parseInt(h.slice(0,2),16); g = parseInt(h.slice(2,4),16); b = parseInt(h.slice(4,6),16);
+      } else { const m = v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ r=parseInt(m[1]); g=parseInt(m[2]); b=parseInt(m[3]); } }
+      document.documentElement.style.setProperty('--price-card-shadow-color', `rgba(${r},${g},${b},${alpha})`);
+    }catch(_){ document.documentElement.style.setProperty('--price-card-shadow-color', getComputedStyle(document.documentElement).getPropertyValue('--accent')); }
   }
 }
 
@@ -1727,6 +1776,29 @@ renderList();
     if(s.colGap!=null) r.setProperty('--price-card-col-gap', s.colGap+'px');
     if(s.borderWidth!=null) r.setProperty('--price-card-border-width', s.borderWidth+'px');
     if(s.borderColor) r.setProperty('--price-card-border-color', s.borderColor);
+    // 阴影参数（水平/垂直偏移、模糊、扩散、颜色）
+    if(s.shadowX!=null) r.setProperty('--price-card-shadow-x', s.shadowX+'px');
+    if(s.shadowY!=null) r.setProperty('--price-card-shadow-y', s.shadowY+'px');
+    if(s.shadowBlur!=null) r.setProperty('--price-card-shadow-blur', s.shadowBlur+'px');
+    if(s.shadowSpread!=null) r.setProperty('--price-card-shadow-spread', s.shadowSpread+'px');
+    // 颜色不再直接从存储读取，但会应用统一主题色并结合不透明度
+    try{
+      const theme = document.documentElement.getAttribute('data-theme') || 'white';
+      if(theme==='black'){
+        r.setProperty('--price-card-shadow-color', 'transparent');
+      } else {
+        const v = (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim() || '#10b981';
+        const alpha = Math.max(0, Math.min(100, s.shadowAlpha!=null ? s.shadowAlpha : 10))/100;
+        let rr=16,gg=185,bb=129;
+        if(/^#/.test(v)){
+          let h=v.replace('#',''); if(h.length===3) h=h.split('').map(x=>x+x).join('');
+          rr=parseInt(h.slice(0,2),16); gg=parseInt(h.slice(2,4),16); bb=parseInt(h.slice(4,6),16);
+        } else {
+          const m=v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ rr=parseInt(m[1]); gg=parseInt(m[2]); bb=parseInt(m[3]); }
+        }
+        r.setProperty('--price-card-shadow-color', `rgba(${rr},${gg},${bb},${alpha})`);
+      }
+    }catch(_){/* ignore */}
   }catch(e){ /* ignore */ }
 })();
 </script>
