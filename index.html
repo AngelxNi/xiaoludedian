@@ -1004,6 +1004,12 @@ function renderList(filter='') {
             window.MOBILE_CURRENT_TARGET = null;
           }
         }catch(e){}
+        try{
+          // 收起当前品类下所有子集面板并移除强调态（动画版）
+          srvWrap.querySelectorAll('.subset-services').forEach(el=>{ el.classList.add('closing'); el.setAttribute('aria-hidden','true'); setTimeout(()=>{ el.classList.remove('open'); el.classList.remove('closing'); }, 130); });
+          srvWrap.querySelectorAll('.subset .toggleIndicator').forEach(el=>el.textContent='+');
+          srvWrap.querySelectorAll('.subset').forEach(el=>el.classList.remove('active-subset'));
+        }catch(e){}
       }
     });
 
