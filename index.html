@@ -157,9 +157,7 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     /* 新增按钮（品类总框右下角） */
     /* 新增按钮固定在外层 panel 的右下角，避免被左侧 .aside 覆盖 */
     .add-category{position:absolute;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(16,185,129,0.18);z-index:20}
-    /* 折扣设置小方框：位于新增按钮正上方，位置效果与新增按钮一致 */
-    .discount-box{position:absolute;right:16px;bottom:76px;min-width:140px;padding:10px 12px;border-radius:12px;background:var(--card);border:1px solid var(--border);box-shadow:0 8px 20px rgba(2,6,23,0.08);z-index:21;cursor:pointer;display:flex;align-items:center;gap:8px}
-    .discount-box .tag{font-size:12px;color:var(--muted)}
+    /* （公开版已移除折扣设置小方框） */
     /* 返回顶部按钮：与新增按钮同尺寸，位于其正上方，仅在手机端显示并在滚动一定距离后出现 */
     .back-to-top{position:fixed;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:#64748b;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(2,6,23,0.18);z-index:1000;pointer-events:auto}
     @media (max-width: 768px){
@@ -182,7 +180,7 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     .cart-panel__header .title{font-weight:700}
     .cart-panel__header .close{border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--muted)}
     .cart-panel__body{padding:10px 12px;overflow:auto;flex:1}
-    .cart-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border)}
+.cart-item{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px dashed var(--border);position:relative;min-height:64px}
     .cart-item .thumb{width:44px;height:44px;border-radius:8px;background:#f1f5f9;border:1px solid var(--border)}
     .cart-item .info{flex:1}
     .cart-item .price{white-space:nowrap}
@@ -210,6 +208,8 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
       .cart-panel__footer .pay picture{display:none}
       /* 移动端：购物车面板打开时，隐藏右下角的购物车按钮与重置按钮，避免遮挡 */
       body.cart-open #cartBtn, body.cart-open #backToTopBtn{display:none !important}
+      /* 移动端：支付弹层打开时同样隐藏，避免覆盖 */
+      body.pay-open #cartBtn, body.pay-open #backToTopBtn{display:none !important}
     }
     /* 桌面端：隐藏浮动购物车抽屉，改用嵌入详细页左侧的 cartInDetail */
     @media (min-width:769px){ #cartPanel{ display:none !important } }
@@ -217,9 +217,12 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     .detail-left{position:relative}
     .cart-in-detail{position:absolute;inset:0;border:1px solid var(--border);border-radius:10px;background:var(--card);padding:10px}
     .cart-in-detail .cart-list{max-height:48vh;overflow:auto;padding:4px}
-    .cart-in-detail .cart-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border)}
+.cart-in-detail .cart-item{display:flex;align-items:center;gap:10px;padding:14px 0;border-bottom:1px dashed var(--border);position:relative;min-height:64px}
     .cart-in-detail .cart-item .thumb{width:44px;height:44px;border-radius:8px;background:#f1f5f9;border:1px solid var(--border)}
     .cart-in-detail .cart-item .info{flex:1}
+    /* 覆盖：将购物车项价格固定到右上角，info 区域留出空间，避免与右下角操作区重叠 */
+    #cartPanel .cart-item .info, #cartInDetail .cart-item .info{padding-right:100px}
+    #cartPanel .cart-item .price, #cartInDetail .cart-item .price{position:absolute;right:12px;top:8px;white-space:nowrap}
     .cart-in-detail .cart-item .price{white-space:nowrap}
     /* 桌面端左侧与购物车视图切换：仅淡入淡出（0.12s），不做位移；不使用 display: none，避免网格列抖动 */
     .fade{transition:opacity .12s ease; will-change: opacity}
@@ -416,7 +419,7 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
       .footer{flex-direction:column;gap:8px}
       /* 避免按钮被内容遮挡：小屏使用固定定位 */
       .add-category{position:fixed;right:14px;bottom:14px}
-      .discount-box{position:fixed;right:14px;bottom:74px}
+      /* （公开版已移除折扣设置小方框） */
       /* 文本过长时自动换行，避免溢出 */
       #contactVal{overflow-wrap:anywhere;word-break:break-all}
     }
@@ -645,11 +648,7 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
     </div>
   </div>
       <!-- 新增品类按钮（外框右下角，不遮挡左侧滚动条） -->
-  <!-- 折扣设置小方框（位于新增按钮上方） -->
-  <div id="discountBox" class="discount-box" role="button" aria-haspopup="true" aria-expanded="false" title="折扣设置">
-    <span style="font-weight:600">折扣设置</span>
-    <span class="tag">点击展开</span>
-  </div>
+  <!-- （公开版移除折扣设置小方框） -->
   <button id="addCategoryBtn" class="add-category" title="新增品类">+</button>
 
       <div class="footer">
@@ -881,15 +880,81 @@ function renderCart(){
   cartList.innerHTML = '';
   if(cartListDetail) cartListDetail.innerHTML = '';
   let subtotal = 0;
-  CART.forEach(item=>{
+  // 生成购物车项（含加减与删除）的小工具函数
+  function makeCartItem(item, idx){
     const li = document.createElement('div');
     li.className = 'cart-item';
-    li.innerHTML = `<div class="thumb" aria-hidden="true"></div>
-      <div class="info"><div style="font-weight:600">${item.name}</div><div class="small muted">${item.label||''}</div></div>
-      <div class="price">¥${item.unitPrice} × ${item.qty}</div>`;
+    // 左侧缩略图
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    thumb.setAttribute('aria-hidden','true');
+    // 中间信息
+    const info = document.createElement('div');
+    info.className = 'info';
+    const nameEl = document.createElement('div');
+    nameEl.style.fontWeight = '600';
+    nameEl.textContent = item.name;
+    const labelEl = document.createElement('div');
+    labelEl.className = 'small muted';
+    labelEl.textContent = item.label || '';
+    info.appendChild(nameEl);
+    info.appendChild(labelEl);
+    // 单价
+    const priceEl = document.createElement('div');
+    priceEl.className = 'price';
+    priceEl.textContent = `¥${Number(item.unitPrice)||0}`;
+    // 右下角操作：数量加减与删除
+    const ops = document.createElement('div');
+    ops.style.display = 'flex';
+    ops.style.alignItems = 'center';
+    ops.style.gap = '8px';
+    ops.style.position = 'absolute';
+    ops.style.right = '12px';
+    ops.style.bottom = '8px';
+    const minusBtn = document.createElement('button');
+    minusBtn.className = 'qty-btn';
+    minusBtn.setAttribute('aria-label','减少数量');
+    minusBtn.textContent = '−';
+    const qtyText = document.createElement('span');
+    qtyText.style.minWidth = '32px';
+    qtyText.style.textAlign = 'center';
+    qtyText.textContent = String(Number(item.qty)||0);
+    const plusBtn = document.createElement('button');
+    plusBtn.className = 'qty-btn';
+    plusBtn.setAttribute('aria-label','增加数量');
+    plusBtn.textContent = '+';
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn';
+    delBtn.textContent = '删除';
+    delBtn.style.color = '#b91c1c';
+    delBtn.style.borderColor = '#ef4444';
+    // 事件绑定
+    // 避免点击按钮导致购物车收起：阻止冒泡到全局“外部点击关闭”
+    const stop = e=>{ try{ e.stopPropagation(); }catch(_){} };
+    ['click','touchstart','pointerdown'].forEach(evt=>{
+      minusBtn.addEventListener(evt, stop, { passive: true });
+      plusBtn.addEventListener(evt, stop, { passive: true });
+      delBtn.addEventListener(evt, stop, { passive: true });
+    });
+    minusBtn.addEventListener('click', (e)=>{ const q = Math.max(0, (Number(CART[idx]?.qty)||0) - 1); if(CART[idx]){ if(q<=0){ CART.splice(idx,1); } else { CART[idx].qty = q; } } renderCart(); });
+    plusBtn.addEventListener('click', (e)=>{ const q = (Number(CART[idx]?.qty)||0) + 1; if(CART[idx]) CART[idx].qty = q; renderCart(); });
+    delBtn.addEventListener('click', (e)=>{ if(idx>=0){ CART.splice(idx,1); renderCart(); } });
+    ops.appendChild(minusBtn);
+    ops.appendChild(qtyText);
+    ops.appendChild(plusBtn);
+    ops.appendChild(delBtn);
+    // 组装
+    li.appendChild(thumb);
+    li.appendChild(info);
+    li.appendChild(priceEl);
+    li.appendChild(ops);
+    return li;
+  }
+  CART.forEach((item, idx)=>{
+    const li = makeCartItem(item, idx);
     cartList.appendChild(li);
     if(cartListDetail){
-      const li2 = li.cloneNode(true);
+      const li2 = makeCartItem(item, idx);
       cartListDetail.appendChild(li2);
     }
     subtotal += (Number(item.unitPrice)||0) * (Number(item.qty)||0);
@@ -939,7 +1004,63 @@ function renderCart(){
     cartBadge.textContent = String(cnt);
     cartBadge.hidden = cnt<=0;
   }
+  // 为新生成的购物车项与按钮添加按压反馈（轻量缩放效果）
+  try{
+    if(typeof addPressFeedback === 'function'){
+      addPressFeedback(cartList);
+      if(cartListDetail) addPressFeedback(cartListDetail);
+    }
+  }catch(e){}
+  // 同步左侧详细页的数量徽标与输入框（如果当前详细页正在显示该服务）
+  try{ if(typeof syncDetailFromCart === 'function') syncDetailFromCart(); }catch(_){}
   updateCartIconVisibility();
+}
+
+// 根据购物车数据同步当前详细页的数量与徽标
+function syncDetailFromCart(){
+  if(!detailPanel || !pricesEl) return;
+  const svcId = (detailPanel.getAttribute('data-service-id')||'').trim();
+  // 未选择服务或价格卡未渲染时不处理
+  const cards = pricesEl.querySelectorAll('.price-card');
+  if(cards.length===0) return;
+  const isSingle = currentService && Array.isArray(currentService.priceOptions) && currentService.priceOptions.length === 1;
+  const labelToIdx = new Map();
+  cards.forEach(c=>{ labelToIdx.set(c.dataset.label||'', Number(c.dataset.index)||0); });
+
+  if(isSingle){
+    let sum = 0;
+    CART.forEach(it=>{
+      const same = (svcId && String(it.serviceId||'')===svcId) || (!svcId && currentService && it.name === (currentService.title || currentService.name));
+      if(same){ sum += Number(it.qty)||0; }
+    });
+    if(qtyInput) qtyInput.value = sum;
+    if(Array.isArray(optionQtys) && optionQtys.length){ optionQtys[0] = sum; }
+    const firstCard = cards[0];
+    if(firstCard){
+      const badge = firstCard.querySelector('.qty-badge');
+      if(badge) badge.textContent = 'x' + (Array.isArray(optionQtys) && optionQtys.length ? optionQtys[0] : sum);
+      firstCard.classList.toggle('active', sum>0);
+    }
+  } else {
+    if(!Array.isArray(optionQtys) || optionQtys.length !== cards.length){ optionQtys = Array(cards.length).fill(0); }
+    optionQtys = optionQtys.map(()=>0);
+    CART.forEach(it=>{
+      const same = (svcId && String(it.serviceId||'')===svcId) || (!svcId && currentService && it.name === (currentService.title || currentService.name));
+      if(!same) return;
+      const lbl = it.label || '';
+      const idx = labelToIdx.has(lbl) ? labelToIdx.get(lbl) : null;
+      if(idx !== null && idx !== undefined){ optionQtys[idx] = (Number(optionQtys[idx]||0)) + (Number(it.qty)||0); }
+    });
+    const sum = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
+    if(qtyInput) qtyInput.value = sum;
+    cards.forEach((card, idx)=>{
+      const badge = card.querySelector('.qty-badge');
+      if(badge) badge.textContent = 'x' + (Number(optionQtys[idx]||0));
+      card.classList.toggle('active', (Number(optionQtys[idx]||0))>0);
+    });
+  }
+  // 刷新详细页合计
+  updateTotal();
 }
 function toggleCart(open){
   if(!cartPanel) return;
@@ -1018,7 +1139,17 @@ addToCartBtn && addToCartBtn.addEventListener('click', ()=>{
   if(opts.length===0) { alert('请先选一个价格'); return; }
   const pushItem = (label, unitPrice, qty)=>{
     if(qty<=0) return;
-    CART.push({ id: currentService.id || (currentService.title||'')+Date.now(), name: currentService.title || currentService.name || '未命名', label, unitPrice: Number(unitPrice)||0, qty: Number(qty)||0, discount: currentService.discount || null });
+    CART.push({
+      id: currentService.id || (currentService.title||'')+Date.now(),
+      // 记录服务及子集 ID，便于与左侧详细页联动同步数量
+      serviceId: currentService.id || '',
+      subsetId: currentService.subsetId || '',
+      name: currentService.title || currentService.name || '未命名',
+      label,
+      unitPrice: Number(unitPrice)||0,
+      qty: Number(qty)||0,
+      discount: currentService.discount || null
+    });
   };
   if(opts.length===1){
     const q = Math.max(0, Number(qtyInput && qtyInput.value || 0));
@@ -1050,7 +1181,8 @@ function togglePayOverlay(open){
   // 手机端：打开支付弹层时，同样隐藏浮动按钮（与购物车一致）
   try{
     const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
-    if(isMobile){ document.body.classList.toggle('cart-open', willOpen); }
+    // 不影响购物车的 cart-open 状态，改用 pay-open 独立控制
+    if(isMobile){ document.body.classList.toggle('pay-open', willOpen); }
   }catch(e){}
 }
 
@@ -2394,113 +2526,7 @@ function updateTotal(){
   }catch(_){}
 }
 
-// 左下角折扣配置按钮与面板
-(function(){
-  // 右下角折扣设置：小方框触发 + 面板显示在其上方
-  const box = document.getElementById('discountBox');
-  const panel = document.createElement('div');
-  panel.style.position = 'fixed';
-  panel.style.right = '16px';
-  panel.style.bottom = '140px';
-  panel.style.zIndex = '1001';
-  panel.style.background = 'var(--card)';
-  panel.style.border = '1px solid var(--border)';
-  panel.style.borderRadius = '10px';
-  panel.style.padding = '12px';
-  panel.style.width = '280px';
-  panel.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
-  panel.style.display = 'none';
-
-  const title = document.createElement('div');
-  title.textContent = '折扣参数设置';
-  title.style.fontWeight = '700';
-  title.style.marginBottom = '8px';
-  panel.appendChild(title);
-
-  const cfg = ()=> (window.DISCOUNT_CONFIG || { more:{p2:0.08,p3:0.09,p4plus:0.10,cap:0.10}, second:{p:0.10,cap:0.10} });
-  function makeRow(label, value, oninput){
-    const r = document.createElement('div');
-    r.style.display = 'flex';
-    r.style.alignItems = 'center';
-    r.style.gap = '8px';
-    r.style.margin = '6px 0';
-    const span = document.createElement('span');
-    span.textContent = label;
-    span.style.flex = '1';
-    const inp = document.createElement('input');
-    inp.type = 'number';
-    inp.min = '0';
-    inp.max = '100';
-    inp.step = '1';
-    inp.value = Math.round((value||0)*100);
-    inp.style.width = '80px';
-    inp.addEventListener('input', ()=> oninput((Number(inp.value)||0)/100));
-    r.appendChild(span);
-    r.appendChild(inp);
-    return r;
-  }
-
-  const moreTitle = document.createElement('div');
-  moreTitle.textContent = '越多越便宜（%）';
-  moreTitle.style.marginTop = '6px';
-  moreTitle.style.color = 'var(--muted)';
-  panel.appendChild(moreTitle);
-  panel.appendChild(makeRow('2件折扣', cfg().more.p2, v=>{ window.DISCOUNT_CONFIG.more.p2 = v; updateTotal(); }));
-  panel.appendChild(makeRow('3件折扣', cfg().more.p3, v=>{ window.DISCOUNT_CONFIG.more.p3 = v; updateTotal(); }));
-  panel.appendChild(makeRow('4件及以上', cfg().more.p4plus, v=>{ window.DISCOUNT_CONFIG.more.p4plus = v; updateTotal(); }));
-  panel.appendChild(makeRow('上限（cap）', cfg().more.cap, v=>{ window.DISCOUNT_CONFIG.more.cap = v; updateTotal(); }));
-
-  const secondTitle = document.createElement('div');
-  secondTitle.textContent = '第二份开始（%）';
-  secondTitle.style.marginTop = '8px';
-  secondTitle.style.color = 'var(--muted)';
-  panel.appendChild(secondTitle);
-  panel.appendChild(makeRow('固定折扣', cfg().second.p, v=>{ window.DISCOUNT_CONFIG.second.p = v; updateTotal(); }));
-  panel.appendChild(makeRow('上限（cap）', cfg().second.cap, v=>{ window.DISCOUNT_CONFIG.second.cap = v; updateTotal(); }));
-
-  const actions = document.createElement('div');
-  actions.style.display = 'flex';
-  actions.style.gap = '8px';
-  actions.style.marginTop = '10px';
-  const saveBtn = document.createElement('button');
-  saveBtn.className = 'btn';
-  saveBtn.textContent = '保存配置';
-  saveBtn.onclick = ()=>{
-    alert('折扣配置已更新。如需持久保存，请使用“保存到文件”。');
-    panel.style.display = 'none';
-  };
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'btn';
-  closeBtn.textContent = '关闭';
-  closeBtn.onclick = ()=> panel.style.display = 'none';
-  actions.appendChild(saveBtn);
-  actions.appendChild(closeBtn);
-  panel.appendChild(actions);
-
-  if(box){
-    box.addEventListener('click', ()=>{
-      const open = panel.style.display === 'block';
-      panel.style.display = open ? 'none' : 'block';
-      try{ box.setAttribute('aria-expanded', open ? 'false' : 'true'); }catch(e){}
-    });
-  } else {
-    // 兜底：若页面中不存在 box，则在右下角放置按钮作为触发
-    const fallbackBtn = document.createElement('button');
-    fallbackBtn.textContent = '折扣设置';
-    fallbackBtn.className = 'btn';
-    fallbackBtn.style.position = 'fixed';
-    fallbackBtn.style.right = '16px';
-    fallbackBtn.style.bottom = '74px';
-    fallbackBtn.style.zIndex = '1000';
-    fallbackBtn.style.opacity = '0.9';
-    fallbackBtn.addEventListener('click', ()=>{
-      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-    });
-    document.body.appendChild(fallbackBtn);
-  }
-
-  document.body.appendChild(panel);
-})();
+// （公开版移除：折扣设置入口与面板）
 
 // 数量加减与输入
 qtyPlus && qtyPlus.addEventListener('click',()=>{
@@ -2559,7 +2585,7 @@ function registerPressable(el){
   el.addEventListener('pointercancel', up);
 }
 function addPressFeedback(scope=document){
-const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.add-category', '.discount-box', '.back-to-top', '.more-btn', '.subset-header', '.subset .toggleIndicator', '#cartBtn', '#cartCloseBtn', '#cartPayBtn', '#addToCartBtn', '#cartPanel .cart-item', '#cartInDetail .cart-item'];
+const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.add-category', /* 公开版移除: '.discount-box', */ '.back-to-top', '.more-btn', '.subset-header', '.subset .toggleIndicator', '#cartBtn', '#cartCloseBtn', '#cartPayBtn', '#addToCartBtn', '#cartPanel .cart-item', '#cartInDetail .cart-item'];
   const els = scope.querySelectorAll(selectors.join(','));
   els.forEach(registerPressable);
 }
