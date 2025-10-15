@@ -524,9 +524,9 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
                   <div style="margin-top:12px;font-size:13px;color:var(--muted)">
                     下单示例流程：
                     <ol style="padding-left:18px;margin-top:6px">
-                      <li>复制联系方式并添加客服/发工单</li>
-                      <li>说明游戏、服务器、当前段位与目标、期望时限</li>
-                      <li>付款并截图，提供订单编号</li>
+                      <li>选择游戏与服务，计算好价格并截图</li>
+                      <li>添加客服说明游戏和下了哪些单</li>
+                      <li>协商登陆方式</li>
                       <li>客服确认后安排代练并提供进度截图</li>
                     </ol>
                   </div>
@@ -571,7 +571,7 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
             </div>
 
             <div style="margin-top:14px" class="note">
-              安全与协议（示例）：代练过程中不承担账号因违反游戏条款被封的全部责任，代练前请做好账号备份并设置合理权限。
+              安全说明：小鹿是绿玩，可直播，纯手打噢qwq！
             </div>
           </div>
         </main>
@@ -3150,6 +3150,9 @@ function applyUIState(){
 try{
   const editBtn = document.getElementById('editPriceOptionsTitleBtn');
   if(editBtn){ editBtn.style.display='none'; editBtn.setAttribute('aria-hidden','true'); }
+  // 公开版：隐藏“新增品类”按钮
+  const addBtn = document.getElementById('addCategoryBtn');
+  if(addBtn){ addBtn.style.display='none'; addBtn.setAttribute('aria-hidden','true'); }
 }catch(_){ /* ignore */ }
 
 /* ------------------ 初始渲染 ------------------ */
