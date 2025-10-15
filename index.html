@@ -1,18 +1,13 @@
 <!doctype html>
-<html lang="zh-CN">
-<head>
+<html lang="zh-CN" data-theme="black">
+  <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>小鹿帮帮~</title>
   <!-- 预加载两种收款码图片，避免切换支付方式时首次出现的加载延迟 -->
   <link rel="preload" as="image" href="微信收款码.png" />
   <link rel="preload" as="image" href="支付宝收款码.png" />
-  <!-- 公开页：为避免加载早期的闪现，默认隐藏文件读写按钮（管理员页不受影响） -->
   <style>
-    .file-io{ display:none !important; }
-/* 极简模式：不包含保存/导入按钮 */
-  </style>
-<style>
     /* 主题变量（会被 JS 动态切换） */
     :root{
       --bg:#f6f7fb;--card:#ffffff;--muted:#6b7280;--accent:#10b981;--border:#e6e9ef;--border-strong:#cbd5e1;
@@ -43,7 +38,7 @@
     .game{border-radius:10px;margin-bottom:8px;background:transparent;position:relative;display:block}
     .game-row{display:flex;align-items:stretch}
     /* 左侧拖拽把手 */
-.handle{width:40px;display:flex;align-items:center;justify-content:center;cursor:grab;padding:6px}
+    .handle{width:40px;display:flex;align-items:center;justify-content:center;cursor:grab;padding:6px}
     .handle:active{cursor:grabbing}
     .handle .bar{width:16px;height:2px;background:var(--muted);margin:2px 0;border-radius:2px}
     /* 卡片主体 */
@@ -53,42 +48,78 @@
     .game-card.active-cat{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     .meta{font-size:18px;color:#0f172a}
     .tag{font-size:13px;color:var(--muted)}
-    /* 三点菜单区域（公开版未使用，移除对应样式） */
+    /* 三点菜单区域（右下） */
+    .more-wrap{position:relative;margin-left:8px;display:flex;align-items:center;padding-bottom:0}
+    .more-btn{width:34px;height:34px;border-radius:6px;border:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
     .dot{width:4px;height:4px;background:var(--muted);border-radius:50%;margin:1px 0}
+    .menu{position:absolute;right:0;bottom:40px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 24px rgba(2,6,23,0.08);overflow:hidden;display:none;z-index:20}
+    .menu button{display:block;padding:8px 12px;border:none;background:transparent;width:100%;text-align:left;cursor:pointer}
+    .menu button:hover{background:#f6f9ff}
     /* 服务列表：宽度 100%，在卡片下方（默认折叠），只使用 transform/opacity 动画，避免高度动画引发回流 */
-.services{padding:0 8px;display:block;width:100%;height:0;overflow:hidden}
-.services.open{height:auto;padding:8px}
-.anim-content{opacity:0;transform:translateY(-6px);transition:opacity 0.1s ease-out,transform 0.1s ease-out}
-.services.open > .anim-content{opacity:1;transform:translateY(0)}
-.services.closing > .anim-content{opacity:0;transform:translateY(-6px)}
-/* 子集分组（与管理员页保持一致的结构与样式，便于按子集展示服务）*/
-.subset{padding:8px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:8px}
-.subset-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
-.subset-name{font-weight:600}
+    .services{padding:0 8px;display:block;width:100%;height:0;overflow:hidden}
+    .services.open{height:auto;padding:8px}
+    .anim-content{opacity:0;transform:translateY(-6px);transition:opacity 0.1s ease-out,transform 0.1s ease-out}
+    .services.open > .anim-content{opacity:1;transform:translateY(0)}
+    .services.closing > .anim-content{opacity:0;transform:translateY(-6px)}
+    /* 子集分组（第二层级）样式：保持与现有风格一致 */
+    .subset{padding:8px;border:3px solid var(--border-strong);border-radius:8px;background:#fff;margin-bottom:8px}
+    .subset-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+    .subset-name{font-weight:600}
 .subset-services{padding:0 0 0 0;display:block;height:0;overflow:hidden}
 .subset-services.open{height:auto;padding:8px 0 0 0}
 .subset-services > .anim-content{opacity:0;transform:translateY(-6px);transition:opacity 0.1s ease-out,transform 0.1s ease-out}
 .subset-services.open > .anim-content{opacity:1;transform:translateY(0)}
 .subset-services.closing > .anim-content{opacity:0;transform:translateY(-6px)}
 .subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
-/* 子集备注样式：灰色、小字号，位于子集名称下方（加强优先级，避免被父级样式影响） */
-.subset-remark{font-size:12px;color:var(--muted) !important;margin-top:4px;font-weight:400}
-/* 子集展开时的强调效果（与游戏品类强调一致） */
-    .subset.active-subset{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
-    .service{padding:8px;border-radius:8px;border:1px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff}
-    .service:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(2,6,23,0.04)}
+/* 子集备注样式：灰色、小字号，位于子集名称下方 */
+  .subset-remark{font-size:12px;color:var(--muted);margin-top:4px}
+
+  /* 文本可编辑覆盖层与目标定位 */
+.editable-target{position:relative}
+/* 高对比度编辑按钮，紧贴目标文本位置（JS 动态定位） */
+.editable-overlay{position:absolute;top:auto;left:auto;background:#ffcc00;border:1px solid #b58900;border-radius:6px;padding:2px 8px;font-size:12px;color:#111;box-shadow:0 4px 12px rgba(0,0,0,0.25);cursor:pointer;user-select:none;z-index:2147483000}
+.editable-overlay:hover{background:#ffc107;border-color:#a66a00;color:#000}
+  html[data-theme="black"] .editable-overlay{background:#ffd43b;color:#111;border-color:#ffb703}
+  /* 管理员右键菜单样式（可扩展） */
+  .admin-menu{position:fixed;left:0;top:0;display:none;min-width:180px;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.16);z-index:2147483600;padding:6px}
+  .admin-menu .menu-title{font-size:12px;color:#6b7280;padding:4px 8px}
+  .admin-menu .menu-item{font-size:14px;color:#111827;padding:8px 10px;border-radius:6px;margin:2px;cursor:pointer;user-select:none}
+  .admin-menu .menu-item:hover{background:#f3f4f6}
+  .admin-menu .menu-sep{height:1px;background:#e5e7eb;margin:6px 4px}
+  html[data-theme="black"] .admin-menu{background:#111827;border-color:#374151;color:#e5e7eb}
+  html[data-theme="black"] .admin-menu .menu-item{color:#e5e7eb}
+  html[data-theme="black"] .admin-menu .menu-item:hover{background:#1f2937}
+/* 新建文本框的默认样式（可编辑，默认无边框；仅在调整模式显示覆盖层样式） */
+.admin-textbox{position:absolute;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,0.6);color:#111827;cursor:text}
+html[data-theme="black"] .admin-textbox{background:rgba(17,24,39,0.6);color:#e5e7eb}
+/* 调整模式的可视化覆盖层与手柄 */
+.admin-overlay{position:absolute;z-index:2147483700;border:2px dashed #ff1744;box-shadow:0 0 0 2px rgba(255,23,68,0.35) inset;pointer-events:none}
+.admin-overlay.drag{border-style:solid;border-color:#3b82f6;box-shadow:0 0 0 2px rgba(59,130,246,0.35) inset}
+.admin-handle{position:absolute;width:10px;height:10px;background:#111;border:2px solid #fff;border-radius:2px;pointer-events:auto;cursor:nwse-resize}
+.admin-handle.ne{right:-6px;top:-6px;cursor:nesw-resize}
+.admin-handle.nw{left:-6px;top:-6px;cursor:nwse-resize}
+.admin-handle.se{right:-6px;bottom:-6px;cursor:nwse-resize}
+.admin-handle.sw{left:-6px;bottom:-6px;cursor:nesw-resize}
+.admin-handle.n{left:50%;transform:translateX(-50%);top:-6px;cursor:ns-resize}
+.admin-handle.s{left:50%;transform:translateX(-50%);bottom:-6px;cursor:ns-resize}
+.admin-handle.e{top:50%;transform:translateY(-50%);right:-6px;cursor:ew-resize}
+.admin-handle.w{top:50%;transform:translateY(-50%);left:-6px;cursor:ew-resize}
+  .admin-mode-save{position:fixed;right:16px;top:56px;z-index:2147483800;padding:6px 10px;border-radius:6px;border:1px solid #ccc;background:#fff;color:#333;box-shadow:0 2px 6px rgba(0,0,0,0.12);cursor:pointer;font-size:13px;}
+    
+    .service{padding:8px;border-radius:8px;border:2px solid var(--border);margin-bottom:8px;cursor:pointer;background:#fff;box-shadow:0 2px 8px rgba(2,6,23,0.04)}
+    .service:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(2,6,23,0.06)}
     /* 手机端展开时的强调效果：类似按钮被按下（轻微缩放 + 高亮边框/阴影） */
     .service.active-svc{transform:scale(0.98);box-shadow:0 8px 24px rgba(2,6,23,0.10);border-color:#8ABBFF;background:linear-gradient(180deg,#f6f9ff,#ffffff)}
     /* 代肝种类（服务标题）字号：与游戏品类互换为更小字号 */
     .svc-title{font-size:13px}
     /* 详情区 */
     .right-title{display:flex;justify-content:space-between;align-items:flex-start}
-  .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--price-card-minwidth,200px),1fr));gap:var(--price-card-row-gap,20px) var(--price-card-col-gap,16px);margin-top:14px}
-  /* 价格卡容器：控制价格卡之间的上下/左右间距 */
-#prices{display:grid;grid-template-columns:1fr;gap:var(--price-card-row-gap,20px) var(--price-card-col-gap,16px)}
+    .price-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--price-card-minwidth,200px),1fr));gap:var(--price-card-row-gap,20px) var(--price-card-col-gap,16px);margin-top:14px}
+    /* 价格卡容器：控制价格卡之间的上下/左右间距 */
+#prices{display:grid;grid-template-columns:1fr;gap:var(--price-card-row-gap,6px) var(--price-card-col-gap,16px)}
     .price-card{padding:var(--price-card-padding,12px);border-radius:var(--price-card-radius,12px);border:var(--price-card-border-width,2px) solid var(--price-card-border-color,var(--price-card-border-default,var(--border-strong)));background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:var(--price-card-shadow-x,0px) var(--price-card-shadow-y,6px) var(--price-card-shadow-blur,16px) var(--price-card-shadow-spread,0px) var(--price-card-shadow-color,var(--accent))}
-    /* 主题化的价格卡默认边框颜色（可被 --price-card-border-color 覆盖） */
-    html[data-theme="black"]{ --price-card-border-default: var(--border-strong); }
+/* 主题化的价格卡默认边框颜色（可被 --price-card-border-color 覆盖） */
+html[data-theme="black"]{ --price-card-border-default: var(--border-strong); }
 html[data-theme="white"]{ --price-card-border-default: var(--accent); }
 html[data-theme="pink"]{ --price-card-border-default: var(--accent); }
 html[data-theme="lime"]{ --price-card-border-default: var(--accent); }
@@ -96,9 +127,9 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     /* 选中时改为柔和的灰色强调，去掉绿色边框 */
     .price-card.active{border-color:var(--price-card-border-color,var(--price-card-border-default,var(--border-strong)));box-shadow:var(--price-card-shadow-x,0px) var(--price-card-shadow-y,6px) var(--price-card-shadow-blur,16px) var(--price-card-shadow-spread,0px) var(--price-card-shadow-color,var(--accent))}
     .price-card:focus{outline:none}
-    .price-remark{font-size:12px;color:var(--muted)}
     .pay-list{margin:0;padding-left:18px}
     .muted{color:var(--muted);font-size:13px}
+    .price-remark{font-size:12px;color:var(--muted)}
     .btn{padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:transparent;cursor:pointer}
     .btn-primary{background:var(--accent);color:#fff;border:none}
     .footer{padding:12px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
@@ -121,19 +152,99 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     .fade-in{opacity:1}
     /* 支付宝样式：蓝色渐变浅 50%（#8ABBFF -> #FFFFFF） */
     .qr-panel.alipay{background:linear-gradient(180deg,#8ABBFF,#FFFFFF);border-color:var(--border)}
-    /* 公开版不提供新增按钮，此样式在本页无用（管理员页仍保留） */
+    /* 促销提示（淡红色） */
+    .promo-note{display:inline-block;color:#f87171;font-size:14px;font-weight:600;margin-left:8px}
+    /* 新增按钮（品类总框右下角） */
+    /* 新增按钮固定在外层 panel 的右下角，避免被左侧 .aside 覆盖 */
+    .add-category{position:absolute;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(16,185,129,0.18);z-index:20}
+    /* 折扣设置小方框：位于新增按钮正上方，位置效果与新增按钮一致 */
+    .discount-box{position:absolute;right:16px;bottom:76px;min-width:140px;padding:10px 12px;border-radius:12px;background:var(--card);border:1px solid var(--border);box-shadow:0 8px 20px rgba(2,6,23,0.08);z-index:21;cursor:pointer;display:flex;align-items:center;gap:8px}
+    .discount-box .tag{font-size:12px;color:var(--muted)}
     /* 返回顶部按钮：与新增按钮同尺寸，位于其正上方，仅在手机端显示并在滚动一定距离后出现 */
     .back-to-top{position:fixed;right:16px;bottom:16px;width:48px;height:48px;border-radius:12px;background:#64748b;color:#fff;display:none;align-items:center;justify-content:center;font-size:20px;cursor:pointer;border:none;box-shadow:0 8px 20px rgba(2,6,23,0.18);z-index:1000;pointer-events:auto}
     @media (max-width: 768px){
-  .back-to-top.show{display:flex}
+      .back-to-top.show{display:flex}
     }
+    /* 购物车浮动图标：桌面端固定显示；手机端仅 CART.length>0 时由 JS 显示 */
+    .cart-btn{position:fixed;right:16px;bottom:72px;width:48px;height:48px;border-radius:12px;background:var(--card);color:var(--accent);display:flex;align-items:center;justify-content:center;border:1px solid var(--border);box-shadow:0 8px 20px rgba(2,6,23,0.12);z-index:1000;cursor:pointer}
+    .cart-btn .cart-badge{position:absolute;right:-4px;top:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:999px;background:#ef4444;color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;border:1px solid #fff;box-shadow:0 4px 10px rgba(2,6,23,0.18)}
+    /* 黑色主题下：图标描边用淡灰色，底色保持卡片色 */
+    html[data-theme="black"] .cart-btn{color:#B0B0B0}
+    /* 手机端：默认隐藏，JS 控制显示；位置与“重置”按钮对齐（其正上方） */
+    @media (max-width:768px){
+      .cart-btn{display:none;right:16px;bottom:72px}
+      .cart-btn.show{display:flex}
+    }
+    /* 购物车抽屉/面板：仅用 transform/opacity 做过渡，避免回流 */
+    .cart-panel{position:fixed;right:80px;bottom:16px;width:min(1080px,90vw);max-height:88vh;background:var(--card);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 28px rgba(2,6,23,0.22);z-index:999;display:flex;flex-direction:column;opacity:0;transform:translateX(24px);pointer-events:none;transition:transform .22s ease-out, opacity .22s ease-out}
+    .cart-panel.open{opacity:1;transform:translateX(0);pointer-events:auto}
+    .cart-panel__header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border)}
+    .cart-panel__header .title{font-weight:700}
+    .cart-panel__header .close{border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--muted)}
+    .cart-panel__body{padding:10px 12px;overflow:auto;flex:1}
+    .cart-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border)}
+    .cart-item .thumb{width:44px;height:44px;border-radius:8px;background:#f1f5f9;border:1px solid var(--border)}
+    .cart-item .info{flex:1}
+    .cart-item .price{white-space:nowrap}
+    .cart-panel__footer{padding:10px 12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px}
+    /* 桌面端不显示“去支付”按钮 */
+    #cartPayBtn{display:none}
+    /* 默认仅显示桌面版合计区 */
+    .sum-mobile{display:none}
+    .cart-panel__footer .sum{font-size:14px;color:var(--muted)}
+    .cart-panel__footer .sum span{font-weight:700;color:#0f172a}
+    /* 手机端："已减"金额使用淡红色且数字更小 */
+    .sum-mobile #cartSaved{color:#f87171;font-size:12px}
+    .cart-panel__footer .pay{display:flex;align-items:center;gap:10px}
+    /* 收款码保持原比例呈现，避免拉伸变形 */
+    .cart-panel__footer .pay img{display:none}
+    @media (max-width:768px){
+      .cart-panel{left:0;right:0;bottom:0;top:auto;width:100%;height:75vh;max-height:75vh;border-radius:12px 12px 0 0;transform:translateY(100%);opacity:0}
+      .cart-panel.open{transform:translateY(0);opacity:1}
+      /* 移动端：底部区域为“合计金额 + 已减金额” + 右侧“去支付”按钮 */
+      .cart-panel__footer{flex-direction:row;align-items:center;justify-content:space-between}
+      .sum-desktop{display:none}
+      .sum-mobile{display:block}
+      #cartPayBtn{display:inline-flex}
+      /* 移动端购物车内不显示收款码图片 */
+      .cart-panel__footer .pay picture{display:none}
+      /* 移动端：购物车面板打开时，隐藏右下角的购物车按钮与重置按钮，避免遮挡 */
+      body.cart-open #cartBtn, body.cart-open #backToTopBtn{display:none !important}
+    }
+    /* 桌面端：隐藏浮动购物车抽屉，改用嵌入详细页左侧的 cartInDetail */
+    @media (min-width:769px){ #cartPanel{ display:none !important } }
+    /* 桌面端：嵌入式购物车样式（改为覆盖在左侧详情之上，避免布局重排） */
+    .detail-left{position:relative}
+    .cart-in-detail{position:absolute;inset:0;border:1px solid var(--border);border-radius:10px;background:var(--card);padding:10px}
+    .cart-in-detail .cart-list{max-height:48vh;overflow:auto;padding:4px}
+    .cart-in-detail .cart-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border)}
+    .cart-in-detail .cart-item .thumb{width:44px;height:44px;border-radius:8px;background:#f1f5f9;border:1px solid var(--border)}
+    .cart-in-detail .cart-item .info{flex:1}
+    .cart-in-detail .cart-item .price{white-space:nowrap}
+    /* 桌面端左侧与购物车视图切换：仅淡入淡出（0.12s），不做位移；不使用 display: none，避免网格列抖动 */
+    .fade{transition:opacity .12s ease; will-change: opacity}
+    .fade-hide{opacity:0;visibility:hidden;pointer-events:none}
+
+    /* 移动端支付弹层（从底部上拉） */
+    .pay-overlay{position:fixed;left:0;right:0;bottom:0;height:70vh;max-height:70vh;background:var(--card);border:1px solid var(--border);border-top-left-radius:12px;border-top-right-radius:12px;box-shadow:0 12px 28px rgba(2,6,23,0.22);z-index:1200;transform:translateY(100%);opacity:0;pointer-events:none;transition:transform .22s ease-out, opacity .22s ease-out}
+    .pay-overlay.open{transform:translateY(0);opacity:1;pointer-events:auto}
+    .pay-overlay__header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid var(--border)}
+    .pay-overlay__header .title{font-weight:700}
+    .pay-overlay__header .close{border:none;background:transparent;font-size:20px;cursor:pointer;color:var(--muted)}
+    .pay-overlay__body{padding:12px;display:flex;flex-direction:column;gap:12px}
+    .pay-toggle{display:flex;gap:8px}
+    .pay-toggle .btn{padding:6px 10px}
+    .pay-toggle .btn.active{background:var(--accent);color:#fff}
+    .pay-overlay .qr-box{display:flex;flex-direction:column;align-items:center;gap:8px}
+    .pay-overlay .qr-img-wrap img{width:auto;height:auto;max-width:min(70vw,360px);max-height:360px;border-radius:8px;border:1px solid var(--border);object-fit:contain;cursor:pointer}
+    .pay-overlay .small{font-size:12px;color:var(--muted)}
     /* 居中提示（保存成功） */
     #toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(15,23,42,0.92);color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;z-index:2000;display:none;box-shadow:0 8px 20px rgba(2,6,23,0.28)}
     #toast.show{display:block;animation:fadeToast .18s ease-out}
     @keyframes fadeToast{from{opacity:0;transform:translate(-50%,-60%) scale(0.98)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
     /* 模态框 */
     .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.45);display:none;align-items:center;justify-content:center;z-index:60}
-    .modal{width:680px;max-width:95%;background:#fff;/* Eliya备注：模态框整体方框圆角在这里的 border-radius；边框颜色在这里的 border 的颜色变量 */border-radius:12px;padding:16px;border:1px solid var(--border)} 
+.modal{width:66.666vw;height:66.666vh;background:#fff;/* Eliya备注：模态框整体方框圆角在这里的 border-radius；边框颜色在这里的 border 的颜色变量 */border-radius:12px;padding:16px;border:1px solid var(--border);box-sizing:border-box}
     .form-row{display:flex;gap:8px;margin-bottom:8px}
     .form-row input,.form-row textarea{flex:1;padding:8px;border:1px solid var(--border);/* Eliya备注：输入框边框颜色在这里的 border；输入框圆角在这里的 border-radius */border-radius:8px}
     .small{font-size:12px;color:var(--muted)}
@@ -148,12 +259,24 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     /* 点按反馈：按下缩小10%，松开恢复 */
     .pressable{transition:transform .10s ease-out;transform-origin:center center}
     .pressable.pressed{transform:scale(0.9)}
-    /* 促销提示（淡红色） */
-    .promo-note{display:inline-block;color:#f87171;font-size:14px;font-weight:600;margin-left:8px}
+    /* 编辑模态中的服务行边框增强 */
+    .svc-row{border:2px solid var(--border) !important; box-shadow:0 2px 8px rgba(2,6,23,0.04)}
+    /* 服务行拖拽把手与反馈 */
+    .drag-handle{width:18px;height:18px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .drag-handle .bar{width:14px;height:2px;background:var(--muted);margin:2px 0;border-radius:2px}
+    .svc-row.dragging{opacity:0.7}
+    .subset-services.drop-target{outline:2px dashed #93c5fd; outline-offset:2px}
+    /* 子集工具栏（位于模态的服务容器顶部） */
+    .subset-toolbar{display:flex;justify-content:flex-start;gap:8px;margin:8px 0}
+    /* 管理员页标识（左上角高对比色标签） */
+    .admin-badge{position:fixed;left:12px;top:12px;padding:6px 10px;background:#f59e0b;color:#0f172a;border-radius:999px;font-weight:700;box-shadow:0 4px 12px rgba(2,6,23,0.25);z-index:1001}
+    @media (max-width:600px){.admin-badge{left:10px;top:10px;padding:5px 10px;font-size:12px}}
+
     /* 黑色主题覆盖：去掉渐变，统一改为靠内偏灰色的纯底色（不影响二维码面板） */
     html[data-theme="black"] body{color:#f8fafc}
     html[data-theme="black"] .panel,
     html[data-theme="black"] .aside,
+    html[data-theme="black"] .menu,
     html[data-theme="black"] .service,
     html[data-theme="black"] .price-card,
     html[data-theme="black"] .btn,
@@ -161,14 +284,12 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     html[data-theme="black"] .note,
     html[data-theme="black"] .modal,
     html[data-theme="black"] .pill,
+    html[data-theme="black"] .more-btn,
+    html[data-theme="black"] .menu,
     html[data-theme="black"] .subset,
     html[data-theme="black"] .service,
-    html[data-theme="black"] .price-card,
-    html[data-theme="black"] .calc-panel,
     html[data-theme="black"] .qty-btn,
     html[data-theme="black"] .qty-input,
-    html[data-theme="black"] .total-box,
-    html[data-theme="black"] .qr-panel,
     html[data-theme="black"] .search input,
     html[data-theme="black"] .form-row input,
     html[data-theme="black"] .form-row textarea,
@@ -227,9 +348,12 @@ html[data-theme="black"] .muted,
 html[data-theme="black"] .toggleIndicator{
   color: var(--muted) !important;
 }
-/* 深色主题下把手改为蓝色系（仅视觉变化，无实际拖拽功能） */
+/* 深色主题下把手改为蓝色系，管理员页的拖拽把手与装饰把手都统一为蓝色 */
 html[data-theme="black"] .handle .bar{ background: #8ABBFF !important; }
 html[data-theme="black"] .drag-handle .bar{ background: #8ABBFF !important; }
+/* 深色主题下，为把手容器添加淡蓝底色，提升对比度，保证内容可见 */
+html[data-theme="black"] .handle{ background: rgba(138,187,255,0.15) !important; border-radius: 8px; }
+html[data-theme="black"] .drag-handle{ background: rgba(138,187,255,0.15) !important; border-radius: 6px; }
 /* 深色主题下右下“三点”改为蓝色系，确保可见性 */
 html[data-theme="black"] .dot{ background: #8ABBFF !important; }
 
@@ -282,7 +406,7 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
       .game-card{padding:10px}
       .meta{font-size:16px}
       .tag{font-size:12px}
-      /* 公开版无三点菜单，移除相关样式 */
+      .more-btn{width:30px;height:30px}
       .price-grid{grid-template-columns:1fr}
       .qr-box{flex-direction:column;align-items:center}
       #payQrImg{width:min(70vw,160px)}
@@ -291,25 +415,26 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
       .total-box{min-width:120px;font-size:20px}
       .footer{flex-direction:column;gap:8px}
       /* 避免按钮被内容遮挡：小屏使用固定定位 */
-    /* 公开版不提供新增按钮，此样式在本页无用（管理员页仍保留） */
+      .add-category{position:fixed;right:14px;bottom:14px}
+      .discount-box{position:fixed;right:14px;bottom:74px}
       /* 文本过长时自动换行，避免溢出 */
       #contactVal{overflow-wrap:anywhere;word-break:break-all}
     }
-  /* 展示由管理员保存的文本框（只读，默认无边框；仅管理员调整时出现覆盖层） */
-  .admin-textbox{position:absolute;padding:4px 6px;border-radius:6px;background:rgba(255,255,255,0.6);color:#111827}
-  html[data-theme="black"] .admin-textbox{background:rgba(17,24,39,0.6);color:#e5e7eb}
-</style>
-</head>
+  </style>
+    <style>
+      /* 防止在加载期间短暂显示并可点击的管理员按钮：
+         初始隐藏整个页面内容，待页面主脚本执行完再显示。 */
+      html:not(.admin-ready) body { visibility: hidden; pointer-events: none; }
+    </style>
+  </head>
 <body>
   <h1 class="mobile-title">小鹿帮帮 <span class="promo-note">全店首单整单95折</span></h1>
   <style>
-    /* 默认隐藏移动端标题（桌面端不显示） */
     .mobile-title{display:none}
     @media (max-width:600px){
       .mobile-title{display:block;font-size:20px;margin:16px 16px 0 16px}
       .panel-header .desktop-title{display:none}
-      /* 让标题更贴近方框顶部：设置上内边距为 10px */
-      .wrap{padding-top:0px}
+      .wrap{padding-top:0}
     }
   </style>
   <div class="wrap">
@@ -367,35 +492,53 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
             </div>
 
             <div class="price-grid" style="margin-top:16px">
-              <div style="min-width:240px">
-                <div style="font-weight:600;margin-bottom:8px"><span id="priceOptionsTitle">价格选项</span></div>
-                <div id="prices"></div>
-                
-                <!-- 价格计算面板（放在左侧） -->
-                <div id="calcPanel" class="calc-panel" aria-label="价格计算">
-                  <div style="font-weight:600">价格计算</div>
-                  <div class="calc-row">
-                    <span class="muted">数量：</span>
-                    <button id="qtyMinus" class="qty-btn" aria-label="减少数量">−</button>
-                    <input id="qtyInput" class="qty-input" type="number" min="0" step="1" value="0" />
-                    <button id="qtyPlus" class="qty-btn" aria-label="增加数量">+</button>
+              <div id="detailLeft" class="detail-left" style="min-width:240px">
+                <div id="leftContent" class="left-content fade">
+                  <div style="font-weight:600;margin-bottom:8px">
+                    <span id="priceOptionsTitle">价格选项</span>
+                    <button id="editPriceOptionsTitleBtn" class="btn" style="margin-left:8px;padding:2px 6px;font-size:12px">编辑标题</button>
+                    <button id="cardStyleBtn" class="btn" style="margin-left:8px;padding:2px 6px;font-size:12px">卡片管理</button>
                   </div>
-                  <div class="calc-row">
-                    <span class="muted">价格：</span>
-                    <div id="totalPrice" class="total-box">¥0</div>
-                    <div id="unitPriceHint" class="small muted"></div>
+                  <div id="prices"></div>
+
+                  <!-- 价格计算面板（放在左侧） -->
+                  <div id="calcPanel" class="calc-panel" aria-label="价格计算">
+                    <div style="font-weight:600">价格计算</div>
+                    <div class="calc-row">
+                      <span class="muted">数量：</span>
+                      <button id="qtyMinus" class="qty-btn" aria-label="减少数量">−</button>
+                      <input id="qtyInput" class="qty-input" type="number" min="0" step="1" value="0" />
+                      <button id="qtyPlus" class="qty-btn" aria-label="增加数量">+</button>
+                    </div>
+                    <div class="calc-row">
+                      <span class="muted">价格：</span>
+                      <div id="totalPrice" class="total-box">¥0</div>
+                      <div id="unitPriceHint" class="small muted"></div>
+                    </div>
+                    <div class="calc-row" style="justify-content:flex-end">
+                      <button id="addToCartBtn" class="btn btn-primary" disabled>加入购物车</button>
+                    </div>
+                  </div>
+
+                  <!-- 下单示例流程（放在左侧） -->
+                  <div style="margin-top:12px;font-size:13px;color:var(--muted)">
+                    下单示例流程：
+                    <ol style="padding-left:18px;margin-top:6px">
+                      <li>复制联系方式并添加客服/发工单</li>
+                      <li>说明游戏、服务器、当前段位与目标、期望时限</li>
+                      <li>付款并截图，提供订单编号</li>
+                      <li>客服确认后安排代练并提供进度截图</li>
+                    </ol>
                   </div>
                 </div>
-
-                <!-- 下单示例流程（放在左侧） -->
-                <div style="margin-top:12px;font-size:13px;color:var(--muted)">
-                  下单示例流程：
-                  <ol style="padding-left:18px;margin-top:6px">
-                    <li>复制联系方式并添加客服/发工单</li>
-                    <li>说明游戏、服务器、当前段位与目标、期望时限</li>
-                    <li>付款并截图，提供订单编号</li>
-                    <li>客服确认后安排代练并提供进度截图</li>
-                  </ol>
+                <!-- 桌面端：右侧支付方式保持不动；左侧在同一网格单元中覆盖切换到“购物车界面”，避免布局抖动 -->
+                <div id="cartInDetail" class="cart-in-detail fade fade-hide" aria-label="购物车（嵌入详细页左侧）">
+                  <div style="font-weight:600;margin-bottom:8px">购物车</div>
+                  <div id="cartListDetail" class="cart-list"></div>
+                  <div class="cart-sum" style="margin-top:10px;display:flex;gap:16px;color:var(--muted);font-size:14px">
+                    <div>小计：<span id="cartSubtotalDetail">¥0</span></div>
+                    <div>折扣后总价：<span id="cartTotalDetail">¥0</span></div>
+                  </div>
                 </div>
               </div>
               <div>
@@ -435,16 +578,79 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
       </div>
 
       <!-- 手机端优化：返回顶部按钮（与新增按钮同尺寸，位于其正上方，仅在下滑一段后显示） -->
-<button id="backToTopBtn" class="back-to-top" title="重置" aria-label="重置">
-  <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
-    <!-- 圆形箭头（刷新/重置样式）：顶部留缺口并配三角形箭头，风格与现有线性图标一致 -->
-    <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="44 18" />
-    <!-- 将三角箭头放大 2 倍（以中心约 (19.33, 8.5) 为参考） -->
-    <!-- 逆时针旋转 90°，在中心约 (19.67, 8.5) 处进行变换；撤销“变窄20%”，改为“变矮20%”：宽度维持 1.5 倍，高度为 1.2 倍 -->
-    <path d="M17.67 4.5 L22.67 8.5 L17.67 12.5 Z" fill="currentColor" transform="translate(20.67,8.5) rotate(-90) scale(1.5,1.2) translate(-19.67,-8.5) translate(-1.2,-0.2)" />
-  </svg>
-</button>
-      
+  <button id="backToTopBtn" class="back-to-top" title="重置" aria-label="重置">
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+      <!-- 圆形箭头（刷新/重置样式）：顶部留缺口并配三角形箭头，风格与现有线性图标一致 -->
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="44 18" />
+      <!-- 将三角箭头放大 2 倍（以中心约 (19.33, 8.5) 为参考） -->
+      <!-- 逆时针旋转 90°，在中心约 (19.67, 8.5) 处进行变换；撤销“变窄20%”，改为“变矮20%”：宽度维持 1.5 倍，高度为 1.2 倍 -->
+      <path d="M17.67 4.5 L22.67 8.5 L17.67 12.5 Z" fill="currentColor" transform="translate(20.67,8.5) rotate(-90) scale(1.5,1.2) translate(-19.67,-8.5) translate(-1.2,-0.2)" />
+    </svg>
+  </button>
+      <!-- 购物车浮动图标（桌面端始终显示；手机端仅 cart.length>0 时显示，位于重置按钮正上方） -->
+  <button id="cartBtn" class="cart-btn" title="购物车" aria-label="购物车" data-visible="desktop">
+    <span class="cart-badge" hidden>0</span>
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+      <!-- 超市小推车：描边颜色跟随 currentColor（由主题滚动条色决定；黑色主题使用淡灰 #B0B0B0） -->
+      <path d="M7 6h-2m2 0h11l-1.5 7h-9l-1-5m2 0l1 5m8 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm-9 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+    </svg>
+  </button>
+  <!-- 购物车抽屉（桌面）/全屏面板（手机） -->
+  <div id="cartPanel" class="cart-panel" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="cart-panel__header">
+      <div class="title">购物车</div>
+      <button class="close" id="cartCloseBtn" aria-label="关闭">×</button>
+    </div>
+    <div class="cart-panel__body" id="cartList">
+      <!-- 动态渲染：卡片缩略图 + 名称 + 单价 × 数量 -->
+    </div>
+    <div class="cart-panel__footer">
+      <!-- 桌面端合计区（不再在购物车内展示收款码；转用详细页右侧的支付方式） -->
+      <div class="sum sum-desktop">
+        <div>小计：<span id="cartSubtotal">¥0</span></div>
+        <div>折扣后总价：<span id="cartTotal">¥0</span></div>
+      </div>
+      <!-- 移动端合计区（显示“合计金额”和“已减”） -->
+      <div class="sum sum-mobile">
+        <div>合计金额：<span id="cartTotalMobile">¥0</span></div>
+        <div>已减：<span id="cartSaved">¥0</span></div>
+      </div>
+      <div class="pay">
+        <button id="cartPayBtn" class="btn btn-primary">去支付</button>
+      </div>
+    </div>
+  </div>
+  <!-- 移动端支付弹层（与卡片下方收款方式一致） -->
+  <div id="payOverlay" class="pay-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="pay-overlay__header">
+      <div class="title">扫码支付</div>
+      <button id="payOverlayClose" class="close" aria-label="关闭">×</button>
+    </div>
+    <div class="pay-overlay__body">
+      <div id="payOverlayToggle" class="pay-toggle">
+        <button class="btn active" data-pay="wechat">微信</button>
+        <button class="btn" data-pay="alipay">支付宝</button>
+      </div>
+      <div class="qr-box">
+        <picture class="qr-img-wrap">
+          <source id="payOverlayQrSource" srcset="微信收款码.webp" type="image/webp" />
+          <img id="payOverlayQrImg" src="微信收款码.webp" alt="收款码" decoding="async" />
+        </picture>
+        <div id="payOverlayHint" class="small muted">连续点击两次下载图片</div>
+      </div>
+      <div class="contact-box" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="muted">联系方式：<span id="payOverlayContactVal" class="contact"></span></div>
+        <button id="payOverlayCopyBtn" class="btn btn-primary">点击复制联系方式</button>
+      </div>
+    </div>
+  </div>
+      <!-- 新增品类按钮（外框右下角，不遮挡左侧滚动条） -->
+  <!-- 折扣设置小方框（位于新增按钮上方） -->
+  <div id="discountBox" class="discount-box" role="button" aria-haspopup="true" aria-expanded="false" title="折扣设置">
+    <span style="font-weight:600">折扣设置</span>
+    <span class="tag">点击展开</span>
+  </div>
+  <button id="addCategoryBtn" class="add-category" title="新增品类">+</button>
 
       <div class="footer">
         <div>说明：这里是说明还不知道说什么。</div>
@@ -453,14 +659,50 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
     </div>
   </div>
 
-  
+  <!-- 模态：新增/编辑品类（与之前新增界面一致） -->
+   <style id=\"modal-fixes\">#editModal, #modal, .modal, .modal-content, .modal-body { max-height: 80vh; overflow-y: auto; } #editModal input, #editModal textarea, #editModal select, #modal input, #modal textarea, #modal select, .modal input, .modal textarea, .modal select { border-radius: 10px !important; /* Eliya备注：新建/编辑代肝项目里输入框/下拉框的圆角在这里，改 10px 即可 */ } #editModal .box, #editModal .card, #editModal .service-row, #modal .box, #modal .card, #modal .service-row, .modal .box, .modal .card, .modal .service-row { border-radius: 10px; /* Eliya备注：模态内的卡片/服务项目容器圆角在这里，改 10px */ overflow: hidden; }</style>
+  <div id="modalBack" class="modal-backdrop" role="dialog" aria-hidden="true">
+    <div class="modal" role="document" aria-modal="true">
+      <h3 id="modalTitle">新增品类</h3>
+      <div class="form-row"><input id="inpName" placeholder="游戏名称（例：英雄联盟）" /></div>
+      <div class="form-row"><input id="inpTag" placeholder="分类标签（例：MOBA）" /></div>
+      <div class="form-row">
+        <label style="display:flex;align-items:center;gap:6px">
+          <input id="inpNeedsSubset" type="checkbox" /> 需要子集
+        </label>
+      </div>
+      
+      <div id="servicesContainer" style="margin:10px 0 0 0">
+        <!-- 在此处动态插入多个服务项，每一项包含：标题、描述、价格标签、价格，以及删除按钮 -->
+      </div>
+
+      <div class="form-row">
+        <select id="inpPayments" title="选择支付方式">
+          <option value="wechat">微信</option>
+          <option value="alipay">支付宝</option>
+          <option value="both" selected>微信和支付宝</option>
+        </select>
+      </div>
+      <div class="form-row"><input id="inpContactType" placeholder="联系方式类型（例：微信）" /><input id="inpContactValue" placeholder="联系方式值（例：wx123）" /></div>
+
+      <!-- 原位置的取消/保存按钮移至外部底部右侧 -->
+    </div>
+    <!-- 外层底部右侧的操作区（不影响内部滚动区域） -->
+    <!-- 底部左右固定操作按钮：左侧取消，右侧保存 -->
+    <div id="modalActionsLeft" style="position:fixed; left:clamp(8px, 2vw, 24px); bottom:clamp(8px, 2vh, 24px); padding-left:env(safe-area-inset-left); padding-bottom:env(safe-area-inset-bottom); display:flex; gap:clamp(6px, 1vw, 12px); z-index:10000">
+      <button id="modalCancel" class="btn" style="background:#fff;color:#000;border-color:#ddd">取消</button>
+    </div>
+    <div id="modalActionsRight" style="position:fixed; right:clamp(8px, 2vw, 24px); bottom:clamp(8px, 2vh, 24px); padding-right:env(safe-area-inset-right); padding-bottom:env(safe-area-inset-bottom); display:flex; gap:clamp(6px, 1vw, 12px); z-index:10000">
+      <button id="modalSave" class="btn btn-primary">保存</button>
+    </div>
+  </div>
 
 <script>
 /* ------------------
-   代码注释：
-   - 不再使用浏览器 localStorage 保存 DATA 或主题；数据由 data-autoload.js 从 数据库/ JSON 加载。
-   - saveData(): 保留调用但不做任何本地持久化。
-   - loadData(): 初始返回空列表，等待 data-autoload.js 覆盖并渲染。
+   代码注释（给代码小白看的说明）：
+   - 数据来源改为“完全读取 数据库/ 里的 JSON 文件”，不再把 DATA 保存到浏览器 localStorage。
+   - saveData(): 仅保存当前主题到 localStorage；不再保存 DATA。
+   - loadData(): 不再从 localStorage 读取数据，初始返回空列表；随后由 data-autoload.js 自动加载 数据库/ 中的 JSON 并渲染。
    - renderList(): 渲染左侧的游戏列表（包含拖拽把手和三点菜单）。
    - openModal() / closeModal(): 管理新增/编辑模态窗口。
   ------------------ */
@@ -495,41 +737,27 @@ const totalPriceEl = document.getElementById('totalPrice');
 const unitPriceHint = document.getElementById('unitPriceHint');
 const addCategoryBtn = document.getElementById('addCategoryBtn');
 const modalBack = document.getElementById('modalBack');
-const modalTitle = document.getElementById('modalTitle');
-const modalSave = document.getElementById('modalSave');
-const modalCancel = document.getElementById('modalCancel');
-// 极简模式：不再提供保存/导入按钮
-
-// 性能优化状态：
-// 1) 缓存小写索引，避免反复 toLowerCase
-// 2) 仅关闭“上一次展开的品类”，避免每次点击都遍历所有 DOM
-let __INDEX_BUILT = false;
-let __CURRENT_OPEN_SERVICES_EL = null;
-let __CURRENT_ACTIVE_CARD_EL = null;
-
-function __buildSearchIndex(){
-  if(__INDEX_BUILT || !Array.isArray(DATA)) return;
-  for(const g of DATA){
-    try{ g._lcName = (g.name||'').toLowerCase(); }catch(_){ g._lcName = ''; }
-    try{ g._lcTag = (g.tag||'').toLowerCase(); }catch(_){ g._lcTag = ''; }
-    if(Array.isArray(g.services)){
-      for(const s of g.services){
-        try{ s._lcTitle = (s.title||'').toLowerCase(); }catch(_){ s._lcTitle = ''; }
-        try{ s._lcDesc = (s.desc||'').toLowerCase(); }catch(_){ s._lcDesc = ''; }
-      }
-    }
-  }
-  __INDEX_BUILT = true;
-}
+// 管理员相关元素（公开版已移除）
 
 // modal inputs（移除单一服务输入，改为多服务容器）
-const inpName = document.getElementById('inpName');
-const inpTag = document.getElementById('inpTag');
-const servicesContainer = document.getElementById('servicesContainer');
-const btnAddService = document.getElementById('btnAddService');
-const inpPayments = document.getElementById('inpPayments');
-const inpContactType = document.getElementById('inpContactType');
-const inpContactValue = document.getElementById('inpContactValue');
+// 管理员模态输入（公开版已移除）
+// 拖动时允许滚轮滚动，实现远距离自由排序（模态内部滚动）
+(()=>{
+  const getScrollContainer = (el)=>{
+    let node = el;
+    while(node && node !== document.body){
+      try{
+        const style = window.getComputedStyle(node);
+        const oy = style && style.overflowY;
+        if((oy === 'auto' || oy === 'scroll') && node.scrollHeight > node.clientHeight){
+          return node;
+        }
+      }catch(_){ /* 忽略 */ }
+      node = node.parentElement;
+    }
+    return document.querySelector('.modal-body') || null;
+  };
+})();
   // 支付切换与二维码相关元素
   const payToggle = document.getElementById('payToggle');
   const qrPanel = document.getElementById('qrPanel');
@@ -610,9 +838,346 @@ const inpContactValue = document.getElementById('inpContactValue');
   }
 
 let currentService = null; // 当前选中的服务（用于详情区显示与复制）
-let selectedUnitPrice = 0; // 当前选中的单价（用于价格计算）
+let selectedUnitPrice = 0; // 当前选中的单价（用于价格计算，旧逻辑兼容）
 let selectedLabel = '';
-let optionQtys = []; // 新增：各价格选项的数量，用于累计计算（多价格选项模式）
+let optionQtys = []; // 新增：各价格选项的数量，用于累计计算
+// 购物车：全局数组 cart[]，元素 { 卡片ID(id)、名称(name)、单价(unitPrice)、数量(qty)、折扣(discount) }
+const CART = [];
+const cartBtn = document.getElementById('cartBtn');
+const cartBadge = cartBtn && cartBtn.querySelector('.cart-badge');
+const cartPanel = document.getElementById('cartPanel');
+const cartList = document.getElementById('cartList');
+const cartSubtotalEl = document.getElementById('cartSubtotal');
+const cartTotalEl = document.getElementById('cartTotal');
+const cartTotalMobileEl = document.getElementById('cartTotalMobile');
+const cartSavedEl = document.getElementById('cartSaved');
+const cartCloseBtn = document.getElementById('cartCloseBtn');
+const addToCartBtn = document.getElementById('addToCartBtn');
+// 嵌入详细页左侧的购物车（桌面端）
+const cartListDetail = document.getElementById('cartListDetail');
+const cartSubtotalDetailEl = document.getElementById('cartSubtotalDetail');
+const cartTotalDetailEl = document.getElementById('cartTotalDetail');
+let __PREV_SVC_TITLE_HTML = '';
+let __PREV_SVC_META_DISPLAY = '';
+// 移动端支付弹层相关元素
+const payOverlay = document.getElementById('payOverlay');
+const payOverlayClose = document.getElementById('payOverlayClose');
+const payOverlayToggle = document.getElementById('payOverlayToggle');
+const payOverlayQrImg = document.getElementById('payOverlayQrImg');
+const payOverlayQrSource = document.getElementById('payOverlayQrSource');
+const payOverlayHint = document.getElementById('payOverlayHint');
+const payOverlayCopyBtn = document.getElementById('payOverlayCopyBtn');
+const payOverlayContactVal = document.getElementById('payOverlayContactVal');
+function updateCartIconVisibility(){
+  try{
+    const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    if(!cartBtn) return;
+    if(isMobile){ cartBtn.classList.toggle('show', CART.length>0); }
+    // 桌面端始终显示，无需处理
+  }catch(e){}
+}
+function renderCart(){
+  if(!cartList || !cartSubtotalEl || !cartTotalEl) return;
+  cartList.innerHTML = '';
+  if(cartListDetail) cartListDetail.innerHTML = '';
+  let subtotal = 0;
+  CART.forEach(item=>{
+    const li = document.createElement('div');
+    li.className = 'cart-item';
+    li.innerHTML = `<div class="thumb" aria-hidden="true"></div>
+      <div class="info"><div style="font-weight:600">${item.name}</div><div class="small muted">${item.label||''}</div></div>
+      <div class="price">¥${item.unitPrice} × ${item.qty}</div>`;
+    cartList.appendChild(li);
+    if(cartListDetail){
+      const li2 = li.cloneNode(true);
+      cartListDetail.appendChild(li2);
+    }
+    subtotal += (Number(item.unitPrice)||0) * (Number(item.qty)||0);
+  });
+  cartSubtotalEl.textContent = '¥' + Math.floor(subtotal);
+  // 折扣后总价：暂按每项折扣聚合（如有），否则与小计相同
+  let total = subtotal;
+  try{
+    total = CART.reduce((acc,it)=>{
+      const dis = it.discount;
+      if(dis && dis.enabled){
+        // 简化：第二份开始折扣或越多越便宜，根据 it.qty 粗略计算
+        const cfg = window.DISCOUNT_CONFIG || { more:{p2:0.08,p3:0.09,p4plus:0.10,cap:0.10}, second:{p:0.10,cap:0.10} };
+        if(dis.type==='second'){
+          const p = Math.min(cfg.second.p||0, cfg.second.cap||1);
+          const unit = Number(it.unitPrice)||0;
+          const q = Number(it.qty)||0;
+          return acc + (q<=0 ? 0 : (unit*1 + unit*Math.max(0,q-1)*(1-p)));
+        }else if(dis.type==='more'){
+          const p2 = Math.min(cfg.more.p2||0, cfg.more.cap||1);
+          const p3 = Math.min(cfg.more.p3||0, cfg.more.cap||1);
+          const p4 = Math.min(cfg.more.p4plus||0, cfg.more.cap||1);
+          const unit = Number(it.unitPrice)||0;
+          const q = Number(it.qty)||0;
+          if(q<=0) return acc;
+          let t = 0;
+          if(q>=1) t += unit*1;
+          if(q>=2) t += unit*(1-p2);
+          if(q>=3) t += unit*(1-p3);
+          if(q>=4) t += unit*(q-3)*(1-p4);
+          return acc + t;
+        }
+      }
+      return acc + (Number(it.unitPrice)||0) * (Number(it.qty)||0);
+    }, 0);
+  }catch(e){ total = subtotal; }
+  cartTotalEl.textContent = '¥' + Math.floor(total);
+  if(cartTotalMobileEl){ cartTotalMobileEl.textContent = '¥' + Math.floor(total); }
+  if(cartSavedEl){
+    const saved = Math.max(0, Math.floor(subtotal - total));
+    cartSavedEl.textContent = '¥' + saved;
+  }
+  if(cartSubtotalDetailEl){ cartSubtotalDetailEl.textContent = '¥' + Math.floor(subtotal); }
+  if(cartTotalDetailEl){ cartTotalDetailEl.textContent = '¥' + Math.floor(total); }
+  if(cartBadge){
+    const cnt = CART.reduce((a,b)=> a + (Number(b.qty)||0), 0);
+    cartBadge.textContent = String(cnt);
+    cartBadge.hidden = cnt<=0;
+  }
+  updateCartIconVisibility();
+}
+function toggleCart(open){
+  if(!cartPanel) return;
+  const willOpen = (typeof open==='boolean') ? open : !cartPanel.classList.contains('open');
+  cartPanel.classList.toggle('open', willOpen);
+  cartPanel.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+  // 手机端：面板打开时隐藏右下角的购物车按钮与重置按钮（避免遮挡）
+  try{
+    const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    if(isMobile){ document.body.classList.toggle('cart-open', willOpen); }
+  }catch(e){}
+}
+
+// 桌面端：在详细页左侧与购物车视图之间切换
+function toggleCartViewDesktop(open){
+  try{
+    const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    if(isMobile) return false;
+    const left = document.getElementById('detailLeft');
+    const leftContent = document.getElementById('leftContent');
+    const cartView = document.getElementById('cartInDetail');
+    if(!leftContent || !cartView) return false;
+    const willOpen = (typeof open==='boolean') ? open : cartView.classList.contains('fade-hide');
+    // 淡入淡出切换函数：仅透明度变化，不进行位移，不使用 display:none
+    const fadeSwitch = (showEl, hideEl)=>{
+      try{
+        showEl && showEl.classList.add('fade');
+        hideEl && hideEl.classList.add('fade');
+        requestAnimationFrame(()=>{
+          hideEl && hideEl.classList.add('fade-hide');
+          showEl && showEl.classList.remove('fade-hide');
+        });
+      }catch(e){}
+    };
+    if(willOpen){
+      // 打开购物车视图：标题改为“购物车”，隐藏备注
+      try{
+        __PREV_SVC_TITLE_HTML = svcTitle ? svcTitle.innerHTML : '';
+        __PREV_SVC_META_DISPLAY = svcMeta ? svcMeta.style.display : '';
+        if(svcTitle) svcTitle.textContent = '购物车';
+        if(svcMeta) svcMeta.style.display = 'none';
+      }catch(e){}
+      // 仅切换透明度，不隐藏左侧容器，避免网格列变化导致抖动
+      fadeSwitch(cartView, leftContent);
+    } else {
+      // 关闭购物车视图：返回详细页
+      if(currentService){
+        // 已选择某个服务：恢复标题与备注显示，并显示左侧详细区
+        try{
+          if(svcTitle) svcTitle.innerHTML = __PREV_SVC_TITLE_HTML || svcTitle.innerHTML;
+          if(svcMeta) svcMeta.style.display = __PREV_SVC_META_DISPLAY || '';
+        }catch(e){}
+        fadeSwitch(leftContent, cartView);
+      } else {
+        // 尚未选择服务：回到初始“空白详细页”，显示占位提示，不显示价格选项
+        try{ cartView.classList.add('fade'); cartView.classList.add('fade-hide'); }catch(e){}
+        try{
+          // 保证左侧容器自身不带 hidden（避免后续选中服务时不显示）
+          leftContent.classList.remove('fade-hide');
+          // 隐藏整个详细面板，显示占位符
+          smoothHide(detailPanel);
+          detailPlaceholder.classList.remove('hidden');
+          // 清空标题并隐藏备注
+          if(svcTitle) svcTitle.textContent = '';
+          if(svcMeta) svcMeta.style.display = 'none';
+        }catch(e){}
+      }
+    }
+    try{ if(detailPanel.classList.contains('hidden')) smoothShow(detailPanel); }catch(e){}
+    return true;
+  }catch(_){ return false; }
+}
+addToCartBtn && addToCartBtn.addEventListener('click', ()=>{
+  if(!currentService) { alert('请先选一个服务'); return; }
+  const opts = Array.isArray(currentService.priceOptions) ? currentService.priceOptions : [];
+  if(opts.length===0) { alert('请先选一个价格'); return; }
+  const pushItem = (label, unitPrice, qty)=>{
+    if(qty<=0) return;
+    CART.push({ id: currentService.id || (currentService.title||'')+Date.now(), name: currentService.title || currentService.name || '未命名', label, unitPrice: Number(unitPrice)||0, qty: Number(qty)||0, discount: currentService.discount || null });
+  };
+  if(opts.length===1){
+    const q = Math.max(0, Number(qtyInput && qtyInput.value || 0));
+    pushItem(opts[0].label||'', Number(opts[0].price)||0, q);
+  }else{
+    for(let i=0;i<opts.length;i++){
+      const q = Math.max(0, Number(optionQtys[i]||0));
+      pushItem(opts[i].label||'', Number(opts[i].price)||0, q);
+    }
+  }
+  renderCart();
+  showToast('已加入购物车');
+  // 不自动打开购物车：按用户要求，点击购物车图标时才打开
+});
+cartBtn && cartBtn.addEventListener('click', ()=>{
+  const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+  if(isMobile) toggleCart(); else toggleCartViewDesktop();
+});
+cartCloseBtn && cartCloseBtn.addEventListener('click', ()=> toggleCart(false));
+window.addEventListener('resize', updateCartIconVisibility);
+document.addEventListener('DOMContentLoaded', updateCartIconVisibility);
+
+// ------------------ 移动端支付弹层逻辑 ------------------
+function togglePayOverlay(open){
+  if(!payOverlay) return;
+  const willOpen = (typeof open==='boolean') ? open : !payOverlay.classList.contains('open');
+  payOverlay.classList.toggle('open', willOpen);
+  payOverlay.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+  // 手机端：打开支付弹层时，同样隐藏浮动按钮（与购物车一致）
+  try{
+    const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    if(isMobile){ document.body.classList.toggle('cart-open', willOpen); }
+  }catch(e){}
+}
+
+function switchPayOverlay(type){
+  if(!payOverlayToggle || !payOverlayQrImg) return;
+  const baseName = type === 'alipay' ? '支付宝收款码' : '微信收款码';
+  const nextSrcWebp = baseName + '.webp';
+  const nextSrcPng = baseName + '.png';
+  // 按钮高亮
+  payOverlayToggle.querySelectorAll('button').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.pay === type);
+  });
+  // 渐隐→切图→渐显
+  try{
+    payOverlayQrImg.classList.remove('fade-in');
+    payOverlayQrImg.classList.add('fade-out');
+  }catch(e){}
+  setTimeout(()=>{
+    if(payOverlayQrSource){ payOverlayQrSource.srcset = nextSrcWebp; }
+    payOverlayQrImg.onerror = function(){ payOverlayQrImg.onerror = null; payOverlayQrImg.src = nextSrcPng; };
+    payOverlayQrImg.src = nextSrcWebp;
+    payOverlayQrImg.onload = ()=>{ try{ payOverlayQrImg.classList.remove('fade-out'); payOverlayQrImg.classList.add('fade-in'); }catch(e){} };
+  }, 150);
+}
+
+// 移动端：提示语与双击保存
+function setupPayOverlayHintAndSave(){
+  try{
+    if(!payOverlayHint || !payOverlayQrImg) return;
+    const isMobile768 = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    payOverlayHint.textContent = isMobile768 ? '连续点击两次下载图片' : '请使用对应 App 扫码付款';
+    let lastTap = 0; let ignoreUntil = 0;
+    const triggerDownloadPNG = ()=>{
+      try{
+        const activeBtn = payOverlayToggle && payOverlayToggle.querySelector('button.active');
+        const type = activeBtn ? activeBtn.dataset.pay : 'wechat';
+        const baseName = type === 'alipay' ? '支付宝收款码' : '微信收款码';
+        const png = baseName + '.png';
+        const a = document.createElement('a');
+        a.href = png; a.download = (type==='alipay'?'支付宝':'微信') + '收款码.png';
+        document.body.appendChild(a); a.click(); setTimeout(()=>{ try{ document.body.removeChild(a); }catch(e){} },0);
+        showToast('收款码已保存');
+      }catch(e){}
+    };
+    const handleTap = ()=>{
+      const isMobile768x = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+      if(!isMobile768x) return;
+      const now = Date.now();
+      if(now - lastTap <= 200){ if(now < ignoreUntil) return; ignoreUntil = now + 400; triggerDownloadPNG(); lastTap = 0; }
+      else{ lastTap = now; }
+    };
+    if(window.PointerEvent){ payOverlayQrImg.addEventListener('pointerup', (e)=>{ if(e.pointerType==='touch') handleTap(); }, { passive:true }); }
+    else{ payOverlayQrImg.addEventListener('touchend', handleTap, { passive:true }); }
+  }catch(e){}
+}
+
+function updatePayOverlayContact(){
+  try{
+    if(!payOverlayContactVal) return;
+    const text = (currentService && currentService.contact && (currentService.contact.type || currentService.contact.value))
+      ? `${currentService.contact.type || ''}${currentService.contact.type ? ': ' : ''}${currentService.contact.value || ''}`
+      : '';
+    payOverlayContactVal.textContent = text;
+  }catch(e){}
+}
+
+// 事件绑定：移动端“去支付”按钮打开弹层
+const cartPayBtn = document.getElementById('cartPayBtn');
+cartPayBtn && cartPayBtn.addEventListener('click', ()=>{
+  try{
+    const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    if(!isMobile) return; // 仅移动端
+    // 默认使用微信
+    switchPayOverlay('wechat');
+    updatePayOverlayContact();
+    togglePayOverlay(true);
+    // 为弹层内元素添加按压反馈
+    addPressFeedback(payOverlay);
+    setupPayOverlayHintAndSave();
+  }catch(e){}
+});
+
+// 修正：点击支付弹层右上角关闭按钮，仅关闭支付弹层，不触发“外部点击”导致购物车也被收起
+payOverlayClose && payOverlayClose.addEventListener('click', (e)=>{ e.stopPropagation(); togglePayOverlay(false); });
+payOverlayClose && payOverlayClose.addEventListener('touchstart', (e)=>{ e.stopPropagation(); }, { passive: false });
+payOverlayToggle && payOverlayToggle.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  const type = btn.dataset.pay;
+  if(type) switchPayOverlay(type);
+});
+
+payOverlayCopyBtn && payOverlayCopyBtn.addEventListener('click', async ()=>{
+  try{
+    if(!currentService){ alert('请先选一个服务'); return; }
+    const text = currentService.contact && currentService.contact.value;
+    await navigator.clipboard.writeText(text || '');
+    payOverlayCopyBtn.textContent = '已复制';
+    payOverlayCopyBtn.classList.add('copy-ok');
+    setTimeout(()=>{ payOverlayCopyBtn.textContent = '复制联系方式'; payOverlayCopyBtn.classList.remove('copy-ok'); }, 2000);
+  }catch(e){ /* ignore */ }
+});
+
+// ------------------ 手机端：点击界面外任意区域，收起购物车面板与扫码支付弹层 ------------------
+function handleOutsideClose(e){
+  try{
+    const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    if(!isMobile) return;
+    const target = e.target;
+    const payOpen = !!(payOverlay && payOverlay.classList && payOverlay.classList.contains('open'));
+    const insidePay = target.closest && target.closest('#payOverlay');
+    // 购物车面板：外部点击关闭
+    if(cartPanel && cartPanel.classList.contains('open')){
+      const insideCart = target.closest && target.closest('#cartPanel');
+      const onCartBtn = target.closest && target.closest('#cartBtn');
+      // 修正：当支付弹层已打开且点击发生在支付弹层内部时，不收起购物车
+      if(!insideCart && !onCartBtn && !(payOpen && insidePay)){ toggleCart(false); }
+    }
+    // 支付弹层：外部点击关闭
+    if(payOpen){
+      const onPayBtn = target.closest && target.closest('#cartPayBtn');
+      if(!insidePay && !onPayBtn){ togglePayOverlay(false); }
+    }
+  }catch(_){}
+}
+document.addEventListener('click', handleOutsideClose, { passive:true });
+document.addEventListener('touchstart', handleOutsideClose, { passive:true });
 // 全局折扣配置（可在左下角按钮修改）
 window.DISCOUNT_CONFIG = window.DISCOUNT_CONFIG || {
   more: { p2: 0.08, p3: 0.09, p4plus: 0.10, cap: 0.10 },
@@ -620,6 +1185,12 @@ window.DISCOUNT_CONFIG = window.DISCOUNT_CONFIG || {
 };
 
 // --- 动态服务行生成 ---
+// 拖拽：当前被拖动的服务行（作用域：modal 内）
+// 拖拽：当前被拖动的服务行（作用域：modal 内）
+let __dragSvcRow = null;
+// 拖拽：当前被拖动的子集分组（作用域：modal 内）
+let __dragSubsetGroup = null;
+
 function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '', price: undefined }], discount: { enabled: false, type: 'more' } }) {
   const row = document.createElement('div');
   row.className = 'svc-row';
@@ -628,6 +1199,60 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
   row.style.padding = '10px';
   row.style.margin = '10px 0';
   row.style.background = 'var(--card)'; // Eliya备注：服务项方框背景色在这里，修改 var(--card)
+  row.style.position = 'relative';
+
+  // 拖拽把手（三条横线）
+  const dragHandle = document.createElement('div');
+  dragHandle.className = 'drag-handle';
+  dragHandle.title = '按住拖动调整顺序或拖入其他子集';
+  dragHandle.innerHTML = '<div class="bar"></div><div class="bar"></div><div class="bar"></div>';
+  dragHandle.style.position = 'absolute';
+  dragHandle.style.right = '10px';
+  dragHandle.style.top = '10px';
+  dragHandle.style.cursor = 'grab';
+  dragHandle.addEventListener('mousedown', ()=>{
+    row.setAttribute('draggable','true');
+    row.classList.add('draggable-ghost');
+  });
+  dragHandle.addEventListener('mouseup', ()=>{
+    row.removeAttribute('draggable');
+    row.classList.remove('draggable-ghost');
+  });
+  dragHandle.addEventListener('mouseleave', ()=>{
+    row.removeAttribute('draggable');
+    row.classList.remove('draggable-ghost');
+  });
+  row.appendChild(dragHandle);
+
+  // 行拖拽事件
+  row.addEventListener('dragstart', (e)=>{
+    __dragSvcRow = row;
+    row.classList.add('dragging');
+    try{ e.dataTransfer.effectAllowed = 'move'; }catch(_){ }
+  });
+  row.addEventListener('dragend', ()=>{
+    row.classList.remove('dragging');
+    __dragSvcRow = null;
+  });
+  // 行间排序：将拖动的行插入到目标行之前
+  row.addEventListener('dragover', (e)=>{
+    if(__dragSvcRow && __dragSvcRow !== row){ e.preventDefault(); row.classList.add('drop-target'); }
+  });
+  row.addEventListener('dragleave', ()=>{ row.classList.remove('drop-target'); });
+  row.addEventListener('drop', (e)=>{
+    e.preventDefault(); row.classList.remove('drop-target');
+    if(__dragSvcRow && __dragSvcRow !== row){
+      const subsetEl = row.closest('.subset');
+      if(subsetEl){
+        const newId = subsetEl.dataset.subsetId;
+        const nameInput = subsetEl._refs && subsetEl._refs.nameInput;
+        const newName = nameInput ? (nameInput.value || '代肝项目') : (row.dataset.subset || '代肝项目');
+        __dragSvcRow.dataset.subsetId = newId;
+        __dragSvcRow.dataset.subset = newName;
+      }
+      row.parentElement.insertBefore(__dragSvcRow, row);
+    }
+  });
 
   const title = document.createElement('input');
   title.placeholder = '服务标题';
@@ -641,25 +1266,60 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
   desc.style.marginBottom = '8px';
   desc.style.width = '100%';
 
-  const prrow = document.createElement('div');
-  prrow.style.display = 'flex';
-  prrow.style.gap = '8px';
-  prrow.style.marginBottom = '8px';
+  // 多价格选项列表（可新增、删除、编辑标签与单价）
+  const priceList = document.createElement('div');
+  priceList.style.display = 'flex';
+  priceList.style.flexDirection = 'column';
+  priceList.style.gap = '8px';
+  priceList.style.marginBottom = '8px';
 
-  const priceLabel = document.createElement('input');
-  priceLabel.placeholder = '单位（例如：月/次/周）或选项标签';
-  priceLabel.value = (svc.priceOptions && svc.priceOptions[0] && svc.priceOptions[0].label) || '';
-  priceLabel.style.flex = '1';
+  function makePriceItem(opt = { label: '', price: undefined, remark: '' }){
+    const item = document.createElement('div');
+    item.className = 'price-item';
+    item.style.display = 'flex';
+    item.style.gap = '8px';
+    item.style.alignItems = 'center';
 
-  const priceValue = document.createElement('input');
-  priceValue.placeholder = '单价';
-  priceValue.type = 'number';
-  const hasPrice = !!(svc.priceOptions && svc.priceOptions[0] && (typeof svc.priceOptions[0].price !== 'undefined'));
-  priceValue.value = hasPrice ? String(svc.priceOptions[0].price) : '';
-  priceValue.style.width = '140px';
+    const lbl = document.createElement('input');
+    lbl.placeholder = '单位（如：次/周/月）或选项标签';
+    lbl.value = opt && typeof opt.label !== 'undefined' ? (opt.label || '') : '';
+    lbl.style.flex = '1';
 
-  prrow.appendChild(priceLabel);
-  prrow.appendChild(priceValue);
+    const val = document.createElement('input');
+    val.placeholder = '单价';
+    val.type = 'number';
+    val.style.width = '140px';
+    val.value = (opt && typeof opt.price !== 'undefined') ? String(opt.price) : '';
+
+    const note = document.createElement('input');
+    note.placeholder = '备注（小字，可选）';
+    note.value = (opt && typeof opt.remark !== 'undefined') ? (opt.remark || '') : '';
+    note.style.flex = '2';
+    note.style.minWidth = '160px';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn';
+    delBtn.textContent = '删除';
+    delBtn.style.color = '#b91c1c';
+    delBtn.style.borderColor = '#ef4444';
+    delBtn.addEventListener('click',()=>{ item.remove(); });
+
+    item.appendChild(lbl);
+    item.appendChild(val);
+    item.appendChild(note);
+    item.appendChild(delBtn);
+    item._refs = { lbl, val, note };
+    return item;
+  }
+
+  const initOpts = Array.isArray(svc.priceOptions) && svc.priceOptions.length ? svc.priceOptions : [{ label: '', price: undefined }];
+  initOpts.forEach(opt=> priceList.appendChild(makePriceItem(opt)));
+
+  const addPriceBtn = document.createElement('button');
+  addPriceBtn.className = 'btn';
+  addPriceBtn.textContent = '添加价格选项';
+  addPriceBtn.style.alignSelf = 'flex-start';
+  addPriceBtn.addEventListener('click',()=>{ priceList.appendChild(makePriceItem({ label: '', price: undefined })); });
 
   // 折扣设置：参与折扣 + 折扣方式
   const discountRow = document.createElement('div');
@@ -710,13 +1370,418 @@ function makeServiceRow(svc = { title: '', desc: '', priceOptions: [{ label: '',
 
   row.appendChild(title);
   row.appendChild(desc);
-  row.appendChild(prrow);
+  row.appendChild(priceList);
+  row.appendChild(addPriceBtn);
   row.appendChild(discountRow);
   row.appendChild(del);
 
   // 存储引用，便于采集
-  row._refs = { title, desc, priceLabel, priceValue, discountEnabled, discountType };
+  row._refs = { title, desc, priceList, discountEnabled, discountType };
+  // 若传入的 svc 包含归属信息，则同步到 dataset，以便在模式切换时可恢复到原子集
+  try{
+    if(svc && typeof svc === 'object'){
+      if(svc.subset){ row.dataset.subset = svc.subset; }
+      if(svc.subsetId){ row.dataset.subsetId = svc.subsetId; }
+    }
+  }catch(_){/* 忽略 */}
   return row;
+}
+
+// --- 子集容器（含名称与内部新增服务按钮） ---
+function makeSubsetGroup(name = '代肝项目', subsetId, remark = ''){
+  const group = document.createElement('div');
+  group.className = 'subset';
+  // 分配稳定的子集ID（允许同名子集并保持区分）
+  const sid = subsetId || ('ss' + Date.now() + '-' + Math.floor(Math.random()*100000));
+  group.dataset.subsetId = sid;
+
+  const header = document.createElement('div');
+  header.className = 'subset-header';
+  header.style.position = 'relative';
+  const leftCol = document.createElement('div');
+  leftCol.style.display = 'flex';
+  leftCol.style.flexDirection = 'column';
+  leftCol.style.gap = '6px';
+  leftCol.style.overflow = 'visible';
+  const nameInput = document.createElement('input');
+  nameInput.className = 'subset-name';
+  nameInput.type = 'text';
+  nameInput.autocomplete = 'off';
+  nameInput.value = name;
+  nameInput.placeholder = '子集名称（例：练角色）';
+  nameInput.style.flex = '0 0 auto';
+  nameInput.style.border = '1px solid var(--border)';
+  nameInput.style.borderRadius = '6px';
+  nameInput.style.padding = '6px 8px';
+  nameInput.style.background = 'var(--card)';
+  const remarkInput = document.createElement('textarea');
+  remarkInput.rows = 2; // 高度拉长为原来的两倍
+  remarkInput.placeholder = '子集备注（可选）';
+  remarkInput.value = remark || '';
+  remarkInput.style.border = '1px solid var(--border)';
+  remarkInput.style.borderRadius = '6px';
+  remarkInput.style.padding = '6px 8px';
+  remarkInput.style.background = 'var(--card)';
+  // 横向拉长至 2 倍宽度
+  remarkInput.style.width = '200%';
+  remarkInput.style.maxWidth = '200%';
+  remarkInput.style.boxSizing = 'border-box';
+  remarkInput.style.overflowX = 'auto';
+  remarkInput.style.resize = 'vertical';
+  leftCol.appendChild(nameInput);
+  leftCol.appendChild(remarkInput);
+  const indicator = document.createElement('div');
+  indicator.className = 'toggleIndicator';
+  indicator.textContent = '+';
+  header.appendChild(leftCol);
+  header.appendChild(indicator);
+
+  // 子集分组的拖拽把手（右上角三条横线）
+  const subsetDragHandle = document.createElement('div');
+  subsetDragHandle.className = 'drag-handle subset-drag-handle';
+  subsetDragHandle.title = '按住拖动子集以调整顺序';
+  subsetDragHandle.innerHTML = '<div class="bar"></div><div class="bar"></div><div class="bar"></div>';
+  subsetDragHandle.style.position = 'absolute';
+  subsetDragHandle.style.right = '10px';
+  subsetDragHandle.style.top = '8px';
+  subsetDragHandle.style.cursor = 'grab';
+  subsetDragHandle.addEventListener('mousedown', ()=>{
+    group.setAttribute('draggable','true');
+    group.classList.add('draggable-ghost');
+  });
+  subsetDragHandle.addEventListener('mouseup', ()=>{
+    group.removeAttribute('draggable');
+    group.classList.remove('draggable-ghost');
+  });
+  subsetDragHandle.addEventListener('mouseleave', ()=>{
+    group.removeAttribute('draggable');
+    group.classList.remove('draggable-ghost');
+  });
+  header.appendChild(subsetDragHandle);
+
+  const body = document.createElement('div');
+  body.className = 'subset-services';
+  // 允许将项目拖入该子集
+  body.addEventListener('dragover', (e)=>{
+    if(__dragSvcRow){
+      e.preventDefault();
+      // 边缘自动滚动，便于长距离拖动排序
+      const sc = document.querySelector('.modal-body');
+      if(sc){
+        const rect = sc.getBoundingClientRect();
+        const threshold = 48; // 距离边缘阈值
+        const speed = 16;     // 每次滚动像素
+        if(e.clientY < rect.top + threshold){ sc.scrollTop -= speed; }
+        else if(e.clientY > rect.bottom - threshold){ sc.scrollTop += speed; }
+      }
+    }
+    body.classList.add('drop-target');
+  });
+  body.addEventListener('dragleave', ()=>{
+    body.classList.remove('drop-target');
+  });
+  body.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    body.classList.remove('drop-target');
+    if(__dragSvcRow){
+      // 移动并更新所属子集
+      __dragSvcRow.dataset.subsetId = sid;
+      __dragSvcRow.dataset.subset = (nameInput.value || '代肝项目');
+      // 根据鼠标位置自由排序：插入到第一个中线在鼠标下方的元素之前
+      const rows = Array.from(body.querySelectorAll('.svc-row')).filter(r=>r!==__dragSvcRow);
+      const y = (e.clientY || 0);
+      let placed = false;
+      for(const r of rows){
+        const rect = r.getBoundingClientRect();
+        const mid = rect.top + rect.height/2;
+        if(y < mid){
+          body.insertBefore(__dragSvcRow, r);
+          placed = true;
+          break;
+        }
+      }
+      if(!placed){
+        body.appendChild(__dragSvcRow);
+      }
+    }
+  });
+
+  // 子集分组本身的拖拽事件（用于在同级间自由排序）
+  group.addEventListener('dragstart', (e)=>{
+    if(group.getAttribute('draggable') === 'true'){
+      __dragSubsetGroup = group;
+      group.classList.add('dragging');
+      try{ e.dataTransfer.effectAllowed = 'move'; }catch(_){}
+    }
+  });
+  group.addEventListener('dragend', ()=>{
+    group.classList.remove('dragging');
+    __dragSubsetGroup = null;
+    group.removeAttribute('draggable');
+    group.classList.remove('draggable-ghost');
+  });
+  // 同级分组间的排序：插入到目标分组之前（根据鼠标位置）
+  group.addEventListener('dragover', (e)=>{
+    if(__dragSubsetGroup && __dragSubsetGroup !== group){
+      e.preventDefault();
+      group.classList.add('drop-target');
+      // 边缘自动滚动（以 modal-body 为滚动容器）
+      const sc = document.querySelector('.modal-body');
+      if(sc){
+        const rect = sc.getBoundingClientRect();
+        const threshold = 48;
+        const speed = 16;
+        if(e.clientY < rect.top + threshold){ sc.scrollTop -= speed; }
+        else if(e.clientY > rect.bottom - threshold){ sc.scrollTop += speed; }
+      }
+    }
+  });
+  group.addEventListener('dragleave', ()=>{ group.classList.remove('drop-target'); });
+  group.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    group.classList.remove('drop-target');
+    if(__dragSubsetGroup && __dragSubsetGroup !== group){
+      // 计算插入位置：在鼠标所在目标分组中线之上则插入到其前面，否则插入到其后面
+      const rect = group.getBoundingClientRect();
+      const mid = rect.top + rect.height/2;
+      const parent = group.parentElement;
+      if(!parent) return;
+      if((e.clientY||0) < mid){
+        parent.insertBefore(__dragSubsetGroup, group);
+      }else{
+        parent.insertBefore(__dragSubsetGroup, group.nextSibling);
+      }
+    }
+  });
+
+  // 底部操作区：新增服务 + 删除子集
+  const btnRow = document.createElement('div');
+  btnRow.style.display = 'flex';
+  btnRow.style.gap = '8px';
+  btnRow.style.margin = '8px 0 0 0';
+  btnRow.style.position = 'relative';
+  btnRow.style.width = '100%';
+  btnRow.style.justifyContent = 'flex-start';
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn';
+  addBtn.textContent = '+新增服务';
+  addBtn.style.margin = '0';
+  addBtn.onclick = ()=>{
+    // 保证子集处于展开状态
+    if(!body.classList.contains('open')){
+      body.classList.add('open');
+      body.setAttribute('aria-hidden','false');
+      indicator.textContent = '-';
+      group.classList.add('active-subset');
+    }
+
+    // 新增服务并标记归属子集
+    const row = makeServiceRow();
+    row.dataset.subset = (nameInput.value||'代肝项目');
+    row.dataset.subsetId = sid;
+    body.appendChild(row);
+
+    // 平滑滚动至“当前滚动容器”中的该子集最后一个项目
+    try{
+      const getScrollParent = (el)=>{
+        let p = el && el.parentElement;
+        while(p){
+          const st = getComputedStyle(p);
+          const oy = st && st.overflowY;
+          if(oy === 'auto' || oy === 'scroll') return p;
+          p = p.parentElement;
+        }
+        return null;
+      };
+      const scrollable = getScrollParent(body) || document.querySelector('.modal-body');
+      if(scrollable){
+        requestAnimationFrame(()=>{
+          // 将新增的最后一项滚动到容器的可视底部附近
+          const rows = body.querySelectorAll('.svc-row');
+          const last = rows[rows.length - 1] || row;
+          // 优先使用 scrollIntoView 使目标进入可视区域
+          last.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' });
+          // 微调一个内边距偏移（避免紧贴底部）
+          try{
+            const bottomPad = 24;
+            const curTop = scrollable.scrollTop;
+            const maxTop = scrollable.scrollHeight - scrollable.clientHeight;
+            scrollable.scrollTo({ top: Math.min(maxTop, curTop + bottomPad), behavior: 'smooth' });
+          }catch(_){ /* 忽略 */ }
+        });
+      }
+    }catch(_){ /* 忽略滚动异常 */ }
+  };
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'btn';
+  delBtn.textContent = '删除子集';
+  delBtn.style.background = '#c0392b';
+  delBtn.style.color = '#fff';
+  delBtn.style.borderColor = '#a93226';
+  // 右侧紧贴：使用 margin-left:auto 推到最右
+  delBtn.style.marginLeft = 'auto';
+  delBtn.style.marginRight = '0';
+  delBtn.onclick = (e)=>{
+    e.stopPropagation();
+    // 使用自定义确认弹层（取消=深色，确认=浅色）
+    // 若已存在则不重复创建
+    let pop = group.querySelector('.subset-confirm-pop');
+    if(pop){
+      pop.remove();
+    }
+    pop = document.createElement('div');
+    pop.className = 'subset-confirm-pop';
+    // 绝对定位到按钮行的上方，不改变整体高度
+    pop.style.position = 'absolute';
+    pop.style.left = '0';
+    pop.style.right = '0';
+    pop.style.top = '0';
+    pop.style.transform = 'translateY(calc(-100% - 8px))';
+    pop.style.zIndex = '10';
+    pop.style.padding = '10px';
+    pop.style.border = '1px solid var(--border)';
+    pop.style.borderRadius = '8px';
+    pop.style.background = 'var(--card)';
+    pop.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+    const hasServices = !!body.querySelector('.svc-row');
+    const msg = hasServices
+      ? `确认删除子集 “${nameInput.value || '未命名子集'}”，以及其中的所有服务？此操作不可恢复。`
+      : `确认删除空子集 “${nameInput.value || '未命名子集'}”？`;
+    const txt = document.createElement('div');
+    txt.textContent = msg;
+    txt.style.marginBottom = '10px';
+    const btns = document.createElement('div');
+    btns.style.display = 'flex';
+    btns.style.gap = '8px';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = '取消';
+    cancelBtn.className = 'btn';
+    // 深色取消
+    cancelBtn.style.background = '#333';
+    cancelBtn.style.color = '#fff';
+    cancelBtn.style.borderColor = '#2c2c2c';
+    const okBtn = document.createElement('button');
+    okBtn.textContent = '确认';
+    okBtn.className = 'btn';
+    // 浅色确认
+    okBtn.style.background = '#eee';
+    okBtn.style.color = '#000';
+    okBtn.style.borderColor = '#ddd';
+    cancelBtn.onclick = (ev)=>{ ev.stopPropagation(); try{ pop.remove(); }catch(_){ /* 忽略 */ } };
+    okBtn.onclick = (ev)=>{
+      ev.stopPropagation();
+      try{ group.remove(); }catch(_){ /* 忽略 */ }
+    };
+    // 交换按钮位置：先“确认”，后“取消”
+    btns.appendChild(okBtn);
+    btns.appendChild(cancelBtn);
+    pop.appendChild(txt);
+    pop.appendChild(btns);
+    btnRow.appendChild(pop);
+  };
+
+  btnRow.appendChild(addBtn);
+  btnRow.appendChild(delBtn);
+
+  // 子集名称变化时，同步更新内部服务行的 subset 标记
+  nameInput.addEventListener('input', ()=>{
+    const newName = nameInput.value || '代肝项目';
+    Array.from(body.querySelectorAll('.svc-row')).forEach(r=>{ r.dataset.subset = newName; });
+  });
+
+  // 切换展开/收起内部服务（与站点展示页保持一致的动画逻辑：使用 open/closing 类）
+  const toggle = ()=>{
+    const open = body.classList.contains('open');
+    if(open){
+      body.classList.add('closing');
+      body.setAttribute('aria-hidden','true');
+      indicator.textContent = '+';
+      group.classList.remove('active-subset');
+      setTimeout(()=>{ body.classList.remove('open'); body.classList.remove('closing'); }, 130);
+    }else{
+      body.classList.add('open');
+      body.setAttribute('aria-hidden','false');
+      indicator.textContent = '-';
+      group.classList.add('active-subset');
+    }
+  };
+  // 仅在点击指示器或空白区域时切换；点击名称输入框不触发展开/收起
+  header.addEventListener('click', (e)=>{
+    const t = e.target;
+    if(t === nameInput || t === remarkInput || (t && t.tagName === 'INPUT')){
+      e.stopPropagation();
+      return;
+    }
+    toggle();
+  });
+  // 防止输入框的鼠标/触摸事件冒泡到 header 导致误触发
+  nameInput.addEventListener('click', (e)=>e.stopPropagation());
+  nameInput.addEventListener('mousedown', (e)=>e.stopPropagation());
+  nameInput.addEventListener('touchstart', (e)=>{ e.stopPropagation(); }, { passive: true });
+  remarkInput.addEventListener('click', (e)=>e.stopPropagation());
+  remarkInput.addEventListener('mousedown', (e)=>e.stopPropagation());
+  remarkInput.addEventListener('touchstart', (e)=>{ e.stopPropagation(); }, { passive: true });
+
+  group.appendChild(header);
+  group.appendChild(body);
+  group.appendChild(btnRow);
+
+  // 便于采集
+  group._refs = { nameInput, remarkInput, body, sid };
+  return group;
+}
+
+// --- 采集所有子集（包括无服务的空子集，满足“新增子集必须保存”） ---
+function getSubsetsFromUI(){
+  const groups = Array.from(servicesContainer.querySelectorAll('.subset'));
+  return groups.map(g=>{
+    const nameInput = g._refs && g._refs.nameInput;
+    const remarkInput = g._refs && g._refs.remarkInput;
+    const id = g.dataset && g.dataset.subsetId;
+    const name = (nameInput && nameInput.value) ? nameInput.value : '代肝项目';
+    const remark = (remarkInput && remarkInput.value) ? remarkInput.value : '';
+    return { id, name, remark };
+  });
+}
+
+// 原始采集：不依赖“需要子集”，保留 dataset 中的 subset/subsetId（供编辑时切换模式使用）
+function getServicesFromUIRaw(gameId) {
+  const rows = Array.from(servicesContainer.querySelectorAll('.svc-row'));
+  const sel = inpPayments.value || 'both';
+  const pays = sel === 'wechat' ? ['微信'] : (sel === 'alipay' ? ['支付宝'] : ['微信','支付宝']);
+  const ctype = inpContactType.value.trim();
+  const cval = inpContactValue.value.trim();
+  return rows.map((row, idx) => {
+    const { title, desc, priceList, discountEnabled, discountType } = row._refs || {};
+    const t = (title && title.value.trim()) || '未命名服务';
+    const d = (desc && desc.value.trim()) || '';
+    const priceItems = Array.from((priceList && priceList.querySelectorAll('.price-item')) || []);
+    const priceOptions = priceItems.map(it=>{
+      const r = it._refs || {};
+      const lbl = (r.lbl && r.lbl.value.trim()) || '单次';
+      const val = Number((r.val && r.val.value) || 0) || 0;
+      const remark = (r.note && r.note.value.trim()) || '';
+      return { label: lbl, price: val, remark };
+    }).filter(opt=> (opt.label && typeof opt.price !== 'undefined'));
+    const fallbackOptions = priceOptions.length ? priceOptions : [{ label: '单次', price: 0 }];
+    const disEnabled = !!(discountEnabled && discountEnabled.checked);
+    const disType = (discountType && discountType.value) || 'more';
+    const subset = (row.dataset && row.dataset.subset) ? row.dataset.subset : '代肝项目';
+    const subsetId = (row.dataset && row.dataset.subsetId) ? row.dataset.subsetId : null;
+    return {
+      id: `${gameId}-${idx + 1}`,
+      title: t,
+      desc: d,
+      priceOptions: fallbackOptions,
+      discount: { enabled: disEnabled, type: disType },
+      paymentMethods: pays,
+      contact: { type: ctype || '微信', value: cval || '' },
+      subset,
+      subsetId
+    };
+  });
 }
 
 // --- 从UI采集多个服务 ---
@@ -728,108 +1793,83 @@ function getServicesFromUI(gameId) {
   const ctype = inpContactType.value.trim();
   const cval = inpContactValue.value.trim();
   return rows.map((row, idx) => {
-    const { title, desc, priceLabel, priceValue, discountEnabled, discountType } = row._refs || {};
+    const { title, desc, priceList, discountEnabled, discountType } = row._refs || {};
     const t = (title && title.value.trim()) || '未命名服务';
     const d = (desc && desc.value.trim()) || '';
-    const pl = (priceLabel && priceLabel.value.trim()) || '单次';
-    const pv = Number((priceValue && priceValue.value) || 0) || 0;
+    const priceItems = Array.from((priceList && priceList.querySelectorAll('.price-item')) || []);
+    const priceOptions = priceItems.map(it=>{
+      const r = it._refs || {};
+      const lbl = (r.lbl && r.lbl.value.trim()) || '单次';
+      const val = Number((r.val && r.val.value) || 0) || 0;
+      const remark = (r.note && r.note.value.trim()) || '';
+      return { label: lbl, price: val, remark };
+    }).filter(opt=> (opt.label && typeof opt.price !== 'undefined'));
+    const fallbackOptions = priceOptions.length ? priceOptions : [{ label: '单次', price: 0 }];
     const disEnabled = !!(discountEnabled && discountEnabled.checked);
     const disType = (discountType && discountType.value) || 'more';
+    const subset = (row.dataset && row.dataset.subset) ? row.dataset.subset : '代肝项目';
+    const subsetId = (row.dataset && row.dataset.subsetId) ? row.dataset.subsetId : null;
     return {
       id: `${gameId}-${idx + 1}`,
       title: t,
       desc: d,
-      priceOptions: [{ label: pl, price: pv }],
+      priceOptions: fallbackOptions,
       discount: { enabled: disEnabled, type: disType },
       paymentMethods: pays,
-      contact: { type: ctype || '微信', value: cval || '' }
+      contact: { type: ctype || '微信', value: cval || '' },
+      subset,
+      subsetId
     };
   });
 }
 
 /* ------------------ 本地存储工具函数（禁用本地记忆） ------------------ */
-function saveData(){ /* 不进行任何本地持久化 */ }
-function loadData(){ return JSON.parse(JSON.stringify(DEFAULT_DATA)); }
-
-/* ------------------ 文件保存/导入（优先使用文件系统访问 API） ------------------ */
-function serializeBackup(){
-  const theme = document.documentElement.getAttribute('data-theme') || 'white';
-  // 直接使用内存中的 DATA（已包含你在页面上的所有修改）
-  const uiState = (typeof UI_STATE!=='undefined') ? UI_STATE : { elements:{}, boxes:[] };
-  return { data: DATA, theme, discountConfig: window.DISCOUNT_CONFIG, uiState };
+function saveData(){
+  // 不使用任何本地记忆（localStorage/IndexedDB）保存 DATA 或主题
+  // 此函数保留以兼容既有调用，但不做任何持久化操作。
+}
+function loadData(){
+  // 不再从 localStorage 读取 DATA，改为由 data-autoload.js 在加载后覆盖。
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
 }
 
-async function saveToFile(){
-  // 极简模式：只读展示，不支持保存
-  alert('当前页面为只读模式，仅用于展示数据。');
-}
+/* ------------------ 文件保存/导入（公开版移除） ------------------ */
 
-async function loadFromFile(){
-  // 极简模式：只读展示，不支持从本地导入
-  alert('当前页面为只读模式，数据由 data-autoload.js 自动加载。');
-}
+// 公开版移除：getNextNumericVersion
 
-function applyBackupJSON(text){
-  try{
-    const obj = JSON.parse(text);
-    if(!obj || !obj.data || !Array.isArray(obj.data)) throw new Error('文件格式不正确');
-    DATA = obj.data;
-    // 恢复 UI_STATE（包含自定义“价格选项”标题及其它布局文本）
-    try{
-      window.UI_STATE = obj.uiState || window.UI_STATE || { elements:{}, boxes:[] };
-    }catch(_){ window.UI_STATE = window.UI_STATE || { elements:{}, boxes:[] }; }
-    // 不进行本地持久化
-    // 恢复主题：优先使用本地记忆，其次使用文件内主题，默认白色
-    (function(){
-      let saved = null;
-      try{ saved = localStorage.getItem('boost_theme_v1'); }catch(e){}
-      applyTheme(saved || (obj.theme || 'white'));
-    })();
-    // 重新渲染左侧列表
-    renderList(qEl.value || '');
-    // 应用 UI 状态（如果页面提供该函数）：确保标题等文本即时生效
-    try{ if(typeof applyUIState === 'function') applyUIState(); }catch(_){}
-    // 回到占位区
-  /* Eliya备注：隐藏右侧详情改为平滑动画 */
-  smoothHide(detailPanel);
-  detailPlaceholder.classList.remove('hidden');
-    alert('导入成功，已恢复数据');
-  }catch(e){
-    console.error('文件解析失败', e);
-    alert('文件解析失败：'+ e.message);
-  }
-}
+/* 公开版移除：文件系统句柄持久化和权限校验相关函数 */
+
+// 公开版移除：目录授权与标签更新
+
+// 目标目录即用户授权选择的目录；不再强制创建“数据库”子目录
+// 若你选择的是“小店企划/数据库”，则保存会直接写入该目录；若选择其他目录，也直接写入该目录
+
+// 公开版移除：saveToFile
+
+// 公开版移除：changeDatabaseDir
+
+// 公开版移除：loadFromFile/applyBackupJSON/mergeFromFile/mergeBackupJSON
 
 /* ------------------ 渲染函数：把 DATA 渲染到左侧列表 ------------------ */
 function renderList(filter='') {
-  // 构建搜索索引（一次性）
-  __buildSearchIndex();
-  // 清空并准备批量插入
   gamesEl.innerHTML = '';
   const q = filter.trim().toLowerCase();
-  const frag = document.createDocumentFragment();
-  let anyMatch = false;
+  const filtered = q ? DATA.map(g=>({...g, services:g.services.filter(s=>s.title.toLowerCase().includes(q)||s.desc.toLowerCase().includes(q)||g.name.toLowerCase().includes(q))})).filter(g=>g.services.length) : DATA;
+  if(filtered.length===0){
+    gamesEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px">未找到匹配项，试试更宽泛的关键词。</div>';
+    return;
+  }
 
-  // 逐个游戏计算应渲染的服务（避免对整个列表 map/clone）
-  for(const game of (Array.isArray(DATA) ? DATA : [])){
-    const servicesToRender = (q
-      ? (Array.isArray(game.services) ? game.services.filter(s => (s._lcTitle||'').includes(q) || (s._lcDesc||'').includes(q) || (game._lcName||'').includes(q) || (game._lcTag||'').includes(q)) : [])
-      : (Array.isArray(game.services) ? game.services : [])
-    );
-    if(!servicesToRender || servicesToRender.length === 0){
-      // 在有查询时，跳过未匹配的游戏；无查询时，若该游戏无服务也跳过
-      if(q){ continue; } else { continue; }
-    }
-    anyMatch = true;
-
-    // 开始构建该游戏的 DOM
+  filtered.forEach((game, gameIndex)=>{
     const wrap = document.createElement('div');
     wrap.className = 'game';
     wrap.dataset.gameId = game.id;
 
-    // 内部一行：仅卡片主体（公开站点不提供拖拽与更多菜单）
+    // 内部一行：仅卡片主体（公开版不提供拖拽与更多菜单）
     const row = document.createElement('div');
     row.className = 'game-row';
+
+    // （公开版移除拖拽排序把手）
 
     // ===== 卡片主体（游戏名 + 标签 + toggleIndicator） =====
     const card = document.createElement('div');
@@ -839,137 +1879,124 @@ function renderList(filter='') {
                         <div class="tag" style="font-size:13px;color:var(--muted)">${game.tag}</div>
                       </div>
                       <div class="toggleIndicator" style="font-size:20px;color:var(--muted);padding-left:8px">+</div>`;
-
-    // 左侧拖拽把手（仅作为装饰）
-    const handle = document.createElement('div');
-    handle.className = 'handle';
-    handle.setAttribute('aria-hidden','true');
-    handle.title = '拖拽把手（装饰）';
-    handle.innerHTML = '<div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>';
-    row.appendChild(handle);
-
-    // 卡片主体
     row.appendChild(card);
 
-    // 不添加更多菜单（编辑/删除）
+    // （公开版移除右下角“更多”菜单入口）
 
     // 把这一行加入 wrap
     wrap.appendChild(row);
 
-    // ===== 服务列表（默认折叠，点击卡片时淡入/滑出，0.1s 动效，仅 transform/opacity） =====
+    // ===== 服务列表（默认折叠，点击卡片时下拉展开，带 0.1s 动效） =====
     const srvWrap = document.createElement('div');
     srvWrap.className = 'services';
     srvWrap.setAttribute('aria-hidden','true');
     const srvInner = document.createElement('div');
     srvInner.className = 'anim-content';
     srvWrap.appendChild(srvInner);
-    // 如果该品类不需要子集，则直接展示服务列表；否则按“子集”分组
+    // 展示服务：如果该品类不需要子集，则直接列表展示；否则按“子集”分组
     if(game.needsSubset === false){
-      for(const svc of servicesToRender){
+      (game.services||[]).forEach(svc=>{
         const sEl = document.createElement('div');
         sEl.className = 'service';
-        sEl.innerHTML = `<div class=\"svc-title\" style=\"font-weight:600\">${svc.title}</div><div class=\"muted\" style=\"margin-top:6px\">${svc.desc}</div>`;
+        sEl.innerHTML = `<div class="svc-title" style="font-weight:600">${svc.title}</div><div class="muted" style="margin-top:6px">${svc.desc}</div>`;
         sEl.addEventListener('click',()=>showService(svc,game,sEl));
         srvInner.appendChild(sEl);
-      }
-      wrap.appendChild(srvWrap);
-    } else {
-      // 按“子集”分组展示（支持同名子集，基于 subsetId 区分）。
-      // 若无显式 subsets，则按服务的 subset 名称推断，并为缺失的服务补充 subsetId。
-      let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
-      if(!subsets){
-        const map = {};
-        (servicesToRender||[]).forEach(s=>{
-          const nm = s.subset || '代肝项目';
-          if(!map[nm]){ map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm }; }
-        });
-        subsets = Object.values(map);
-        const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
-        (servicesToRender||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
-      }
-      // 创建子集分组及其服务项
-      subsets.forEach(ss=>{
-        const group = document.createElement('div');
-        group.className = 'subset';
-
-        const header = document.createElement('div');
-        header.className = 'subset-header';
-        header.innerHTML = `<div style=\"display:flex;flex-direction:column;gap:2px\"><div class=\"subset-name\">${ss.name}</div>${ss.remark ? `<div class=\"subset-remark\">${ss.remark}</div>` : ''}</div><div class=\"toggleIndicator\">+</div>`;
-
-        const body = document.createElement('div');
-        body.className = 'subset-services';
-        const bodyInner = document.createElement('div');
-        bodyInner.className = 'anim-content';
-
-        // 填充该子集的服务（按 subsetId 精确匹配；兼容旧数据按名称匹配）
-        (servicesToRender||[])
-          .filter(svc => svc.subsetId === ss.id || (!svc.subsetId && (svc.subset||'代肝项目') === ss.name))
-          .forEach(svc=>{
-            const sEl = document.createElement('div');
-            sEl.className = 'service';
-            sEl.innerHTML = `<div class=\"svc-title\" style=\"font-weight:600\">${svc.title}</div><div class=\"muted\" style=\"margin-top:6px\">${svc.desc}</div>`;
-            sEl.addEventListener('click',()=>showService(svc,game,sEl));
-            bodyInner.appendChild(sEl);
-          });
-
-        // 子集折叠/展开（仅使用 transform/opacity 动画；收起先淡出，再移除 open）
-        header.addEventListener('click',()=>{
-          const open = body.classList.contains('open');
-          if(open){
-            body.classList.add('closing');
-            body.setAttribute('aria-hidden','true');
-            header.querySelector('.toggleIndicator').textContent = '+';
-            group.classList.remove('active-subset');
-            setTimeout(()=>{ body.classList.remove('open'); body.classList.remove('closing'); }, 130);
-          }else{
-            body.classList.add('open');
-            body.setAttribute('aria-hidden','false');
-            header.querySelector('.toggleIndicator').textContent = '-';
-            group.classList.add('active-subset');
-          }
-        });
-
-        group.appendChild(header);
-        body.appendChild(bodyInner);
-        group.appendChild(body);
-        srvInner.appendChild(group);
       });
       wrap.appendChild(srvWrap);
+      // 后续绑定与逻辑保持一致
+    } else {
+    // 按“子集”分组展示（支持重名子集，基于 subsetId 区分）
+    let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
+    if(!subsets){
+      const map = {};
+      (game.services||[]).forEach(s=>{
+        const nm = s.subset || '代肝项目';
+        if(!map[nm]) map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm };
+      });
+      subsets = Object.values(map);
+      const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
+      (game.services||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
+    }
+    subsets.forEach(ss=>{
+      const group = document.createElement('div');
+      group.className = 'subset';
+      const header = document.createElement('div');
+      header.className = 'subset-header';
+      header.innerHTML = `<div style="display:flex;flex-direction:column;gap:2px"><div class="subset-name">${ss.name}</div>${ss.remark ? `<div class=\"subset-remark\">${ss.remark}</div>` : ''}</div><div class="toggleIndicator">+</div>`;
+      const indicator = header.querySelector('.toggleIndicator');
+      const body = document.createElement('div');
+      body.className = 'subset-services';
+      const bodyInner = document.createElement('div');
+      bodyInner.className = 'anim-content';
+
+      (game.services||[]).filter(svc=>svc.subsetId===ss.id || (!svc.subsetId && (svc.subset||'代肝项目')===ss.name)).forEach(svc=>{
+        const sEl = document.createElement('div');
+        sEl.className = 'service';
+        sEl.innerHTML = `<div class="svc-title" style="font-weight:600">${svc.title}</div><div class="muted" style="margin-top:6px">${svc.desc}</div>`;
+        sEl.addEventListener('click',()=>showService(svc,game,sEl));
+        bodyInner.appendChild(sEl);
+      });
+
+      // 仅在编辑/新增品类弹窗内允许新增服务，此处不显示按钮
+
+      // 子集折叠/展开（仅使用 transform/opacity 动画；收起先淡出，再收容器高度）
+      header.addEventListener('click',()=>{
+        const open = body.classList.contains('open');
+        if(open){
+          body.classList.add('closing');
+          body.setAttribute('aria-hidden','true');
+          indicator.textContent = '+';
+          group.classList.remove('active-subset');
+          setTimeout(()=>{ body.classList.remove('open'); body.classList.remove('closing'); }, 130);
+        }else{
+          body.classList.add('open');
+          body.setAttribute('aria-hidden','false');
+          indicator.textContent = '-';
+          group.classList.add('active-subset');
+        }
+      });
+
+      group.appendChild(header);
+      body.appendChild(bodyInner);
+      group.appendChild(body);
+      srvInner.appendChild(group);
+    });
+    wrap.appendChild(srvWrap);
     }
 
     // =========== 事件绑定 ===========
 
     // 1) 切换展开/收起服务列表（点击卡片时，仅使用 transform/opacity 动画）
     card.addEventListener('click',()=>{
-      const isOpenNow = srvWrap.classList.contains('open');
+      const open = srvWrap.classList.contains('open');
+      // 折叠其它已打开的服务（这里只影响可见的服务区域）
+      document.querySelectorAll('.game .services').forEach(el=>{
+        el.classList.remove('open');
+        el.classList.remove('closing');
+        el.setAttribute('aria-hidden','true');
+      });
+      document.querySelectorAll('.game .toggleIndicator').forEach(el=>el.textContent='+');
+      // 移除所有卡片的强调态
+      document.querySelectorAll('.game-card').forEach(el=>el.classList.remove('active-cat'));
 
-      // 仅关闭“之前打开的品类”，避免全量 querySelectorAll
-      if(__CURRENT_OPEN_SERVICES_EL && __CURRENT_OPEN_SERVICES_EL !== srvWrap){
-        try{
-          __CURRENT_OPEN_SERVICES_EL.classList.add('closing');
-          __CURRENT_OPEN_SERVICES_EL.setAttribute('aria-hidden','true');
-          setTimeout(()=>{ __CURRENT_OPEN_SERVICES_EL.classList.remove('open'); __CURRENT_OPEN_SERVICES_EL.classList.remove('closing'); }, 130);
-        }catch(e){}
-        try{ if(__CURRENT_ACTIVE_CARD_EL){ __CURRENT_ACTIVE_CARD_EL.classList.remove('active-cat'); __CURRENT_ACTIVE_CARD_EL.querySelector('.toggleIndicator').textContent = '+'; } }catch(e){}
-        try{
-          // 同步收起其子集，并移除强调态
-          __CURRENT_OPEN_SERVICES_EL.querySelectorAll('.subset-services').forEach(el=>{ el.classList.add('closing'); el.setAttribute('aria-hidden','true'); setTimeout(()=>{ el.classList.remove('open'); el.classList.remove('closing'); }, 130); });
-          __CURRENT_OPEN_SERVICES_EL.querySelectorAll('.subset .toggleIndicator').forEach(el=>el.textContent='+');
-          __CURRENT_OPEN_SERVICES_EL.querySelectorAll('.subset').forEach(el=>el.classList.remove('active-subset'));
-        }catch(e){}
-        __CURRENT_OPEN_SERVICES_EL = null;
-        __CURRENT_ACTIVE_CARD_EL = null;
-      }
-
-      if(isOpenNow){
-        // 收起当前：先淡出，再移除 open
+      if(open){
+        // 收起当前：先淡出，再收高度
         srvWrap.classList.add('closing');
         srvWrap.setAttribute('aria-hidden','true');
         card.querySelector('.toggleIndicator').textContent = '+';
         card.classList.remove('active-cat');
         setTimeout(()=>{ srvWrap.classList.remove('open'); srvWrap.classList.remove('closing'); }, 130);
+      }else{
+        // 打开当前（先设为内容高度，动画结束后放宽高度避免内层变化被裁剪）
+        srvWrap.classList.add('open');
+        srvWrap.setAttribute('aria-hidden','false');
+        // 切换当前指示器为 - 并强调卡片
+        card.querySelector('.toggleIndicator').textContent = '-';
+        card.classList.add('active-cat');
+      }
 
-        // 若是收起该品类，同时收起当前代肝项目的内嵌面板，并重置状态
+      // 若是收起该品类，同时收起当前代肝项目的内嵌面板，并重置状态
+      if(open){
         try{
           const mobileMount = document.getElementById('mobileDetail');
           if(mobileMount && !mobileMount.classList.contains('hidden')){
@@ -990,39 +2017,26 @@ function renderList(filter='') {
           }
         }catch(e){}
         try{
-          // 收起该品类下所有子集面板并移除强调态（动画版）
+          // 收起当前品类下所有子集面板并移除强调态（动画版）
           srvWrap.querySelectorAll('.subset-services').forEach(el=>{ el.classList.add('closing'); el.setAttribute('aria-hidden','true'); setTimeout(()=>{ el.classList.remove('open'); el.classList.remove('closing'); }, 130); });
           srvWrap.querySelectorAll('.subset .toggleIndicator').forEach(el=>el.textContent='+');
           srvWrap.querySelectorAll('.subset').forEach(el=>el.classList.remove('active-subset'));
         }catch(e){}
-
-        __CURRENT_OPEN_SERVICES_EL = null;
-        __CURRENT_ACTIVE_CARD_EL = null;
-      }else{
-        // 打开当前：直接添加 open，内容淡入/下滑
-        srvWrap.classList.add('open');
-        srvWrap.setAttribute('aria-hidden','false');
-        // 切换当前指示器为 - 并强调卡片
-        card.querySelector('.toggleIndicator').textContent = '-';
-        card.classList.add('active-cat');
-        __CURRENT_OPEN_SERVICES_EL = srvWrap;
-        __CURRENT_ACTIVE_CARD_EL = card;
       }
     });
 
-    // 公开站点不提供更多菜单与拖拽排序
+    // （公开版移除更多菜单相关交互）
 
-    frag.appendChild(wrap);
-  }
+    // （公开版移除编辑入口）
 
-  if(!anyMatch){
-    gamesEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px">未找到匹配项，试试更宽泛的关键词。</div>';
-    return;
-  }
+    // （公开版移除删除入口）
 
-  // 批量插入，减少重排
-  gamesEl.appendChild(frag);
+    // （公开版移除拖拽排序交互）
 
+    // （公开版无更多菜单，不需阻止事件）
+
+    gamesEl.appendChild(wrap);
+  });
   // 为新渲染的列表元素绑定点按反馈（游戏卡片、服务项、按钮等）
   if(typeof addPressFeedback === 'function'){
     try{ addPressFeedback(document); }catch(e){}
@@ -1035,6 +2049,20 @@ function showService(svc, game, mountTarget){
   /* Eliya备注：显示右侧详情改为平滑动画（0.1s） */
   // 针对移动端：将价格与支付模块插入到点击的服务项下方
   const isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+  // 若当前处于“购物车界面”，点击服务时自动切回该服务的详情
+  try{
+    if(isMobile){
+      // 关闭底部购物车抽屉
+      if(typeof toggleCart === 'function') toggleCart(false);
+    } else {
+      // 关闭左侧覆盖的购物车视图，并恢复标题/备注
+      if(typeof toggleCartViewDesktop === 'function') toggleCartViewDesktop(false);
+      // 恢复左侧内容层可见（避免上次切换残留 fade-hide）
+      const leftContent = document.getElementById('leftContent');
+      try{ leftContent && leftContent.classList.remove('fade-hide'); }catch(e){}
+      if(typeof svcMeta !== 'undefined' && svcMeta) svcMeta.style.display = '';
+    }
+  }catch(e){}
   const priceGrid = detailPanel.querySelector('.price-grid');
   let mobileMount = document.getElementById('mobileDetail');
   // 记录当前展开的服务项（用于再次点击收起）
@@ -1090,7 +2118,7 @@ function showService(svc, game, mountTarget){
       if(isMobileNow){
         setTimeout(()=>{
           try{ (mountTarget || mobileMount).scrollIntoView({ behavior: 'smooth', block: 'start' }); }catch(e){}
-        }, 140); // 等待 smoothShow 开始展开后再滚动
+        }, 60);
       }
     }catch(e){}
   } else {
@@ -1102,12 +2130,10 @@ function showService(svc, game, mountTarget){
     }catch(e){}
     detailPlaceholder.classList.add('hidden');
     smoothShow(detailPanel);
-    // 桌面端也进行强调：先移除旧的，再设置新的
     try{ if(window.MOBILE_CURRENT_TARGET && window.MOBILE_CURRENT_TARGET !== mountTarget){ window.MOBILE_CURRENT_TARGET.classList.remove('active-svc'); } }catch(e){}
     try{ if(mountTarget){ mountTarget.classList.add('active-svc'); } }catch(e){}
     window.MOBILE_CURRENT_TARGET = mountTarget || null;
   }
-  svcTitle.textContent = svc.title;
   // 在主标题旁显示折扣标签（当存在多个价格选项且折扣统一时只显示一次）
   try{
     const needsSubset = !!game.needsSubset;
@@ -1124,13 +2150,10 @@ function showService(svc, game, mountTarget){
     // 备注区仅显示基础信息，不再重复折扣标签
     svcMeta.textContent = baseMeta;
   }catch(_){ svcTitle.textContent = svc.title; svcMeta.textContent = `${game.name} · ${svc.desc}`; }
-  // 兼容旧数据：若未提供联系方式字段则不显示
-  try{
-    const contactText = (svc.contact && (svc.contact.type || svc.contact.value))
-      ? `${svc.contact.type || ''}${svc.contact.type ? ': ' : ''}${svc.contact.value || ''}`
-      : '';
-    contactVal.textContent = contactText;
-  }catch(e){ contactVal.textContent = ''; }
+  contactVal.textContent = `${svc.contact.type}: ${svc.contact.value}`;
+  // 为编辑按钮提供当前服务ID与子集ID（用于按服务或子集覆盖标题）
+  try{ detailPanel.setAttribute('data-subset-id', (svc && svc.subsetId) ? String(svc.subsetId) : ''); }catch(_){ /* ignore */ }
+  try{ detailPanel.setAttribute('data-service-id', (svc && svc.id) ? String(svc.id) : ''); }catch(_){ /* ignore */ }
 
   // 根据服务ID/子集ID应用“价格选项”标题（优先级：服务 > 子集 > 全局）
   try{
@@ -1146,12 +2169,12 @@ function showService(svc, game, mountTarget){
   }catch(_){ /* ignore */ }
 
   pricesEl.innerHTML = '';
-  // 重置当前选择的单价
+  // 重置：多选数量与状态
+  optionQtys = Array.isArray(svc.priceOptions) ? svc.priceOptions.map(()=>0) : [];
   selectedUnitPrice = 0;
   selectedLabel = '';
   const isSingleOption = Array.isArray(svc.priceOptions) && svc.priceOptions.length === 1;
-  optionQtys = Array.isArray(svc.priceOptions) ? svc.priceOptions.map(()=>0) : [];
-  (svc.priceOptions || []).forEach((p, idx)=>{
+  svc.priceOptions.forEach((p, idx)=>{
     const pc = document.createElement('div');
     pc.className = 'price-card';
     const discountText = (svc.discount && svc.discount.enabled)
@@ -1176,16 +2199,19 @@ function showService(svc, game, mountTarget){
     pc.dataset.label = p.label;
     pc.dataset.index = String(idx);
     if(isSingleOption){
-      // 单个选项：左键增加、右键减少；数量>0 时高亮
+      // 单个选项：点击增加数量；右键减少数量（桌面端）。仍保留高亮选择。
       pc.addEventListener('click',()=>{
         const cur = Number(qtyInput && qtyInput.value || 0);
         const next = cur + 1;
         if(qtyInput){ qtyInput.value = next; }
+        // 设置选中态（有数量时高亮）
         pricesEl.querySelectorAll('.price-card').forEach(el=> el.classList.toggle('active', el===pc && next>0));
+        // 选中单价与标签（用于下单信息）
         selectedUnitPrice = Number(p.price)||0;
         selectedLabel = p.label||'';
         updateTotal();
       });
+      // 右键减少（屏蔽默认菜单）
       pc.addEventListener('contextmenu',(e)=>{
         e.preventDefault();
         const cur = Number(qtyInput && qtyInput.value || 0);
@@ -1197,7 +2223,6 @@ function showService(svc, game, mountTarget){
         updateTotal();
       });
     } else {
-      // 多个选项：点击或加减按钮改变此卡片的数量
       pc.addEventListener('click',(e)=>{
         const t = e.target;
         if(t && t.classList && t.classList.contains('qty-btn')) return;
@@ -1234,8 +2259,8 @@ function showService(svc, game, mountTarget){
     if(qtyRow){ qtyRow.style.display = isSingleOption ? '' : 'none'; }
   }catch(_){/* ignore */}
 
-  // 单个选项不自动选择；点击增加数量后高亮
-  unitPriceHint.textContent = isSingleOption ? '' : unitPriceHint.textContent;
+  // 不自动选择价格，等待用户点击
+  unitPriceHint.textContent = '';
 
   // 重置数量与总价
   if(qtyInput){ qtyInput.value = 0; }
@@ -1292,7 +2317,6 @@ function updateTotal(){
   const cfg = window.DISCOUNT_CONFIG || { more:{p2:0.08,p3:0.09,p4plus:0.10,cap:0.10}, second:{p:0.10,cap:0.10} };
   if(dis && dis.enabled){
     if(dis.type === 'more'){
-      // 阶梯计算：第1件原价，第2件(1-p2)，第3件(1-p3)，第4及以上(1-p4plus)
       const p2 = Math.min(cfg.more.p2 || 0, cfg.more.cap || 1);
       const p3 = Math.min(cfg.more.p3 || 0, cfg.more.cap || 1);
       const p4 = Math.min(cfg.more.p4plus || 0, cfg.more.cap || 1);
@@ -1359,26 +2383,126 @@ function updateTotal(){
   } else {
     totalPriceEl.textContent = `¥${total}`;
   }
-  // 单价提示：显示有效折扣百分比（基于加权）
-  // 单价提示仅在单个价格选项时显示；多个选项时不显示
   if(unitPriceHint){
-    if(opts.length === 1){
-      const unit = Number(opts[0].price)||0;
-      const effPercent = baseTotal>0 ? (discountAmount / baseTotal) : 0;
-      if(unit > 0){
-        unitPriceHint.textContent = effPercent > 0 ? `(单价 ¥${unit}，折扣 -${Math.round(effPercent*100)}%)` : `(单价 ¥${unit})`;
-      } else {
-        unitPriceHint.textContent = '';
-      }
-    } else {
-      unitPriceHint.textContent = '';
-    }
+    const effPercent = baseTotal>0 ? (discountAmount / baseTotal) : 0;
+    unitPriceHint.textContent = qSum>0 ? `（合计 ${qSum} 件，折扣 -${Math.round(effPercent*100)}%）` : '';
   }
+  // 联动“加入购物车”按钮：有数量时可用
+  try{
+    const addBtn = document.getElementById('addToCartBtn');
+    if(addBtn){ addBtn.disabled = !(qSum > 0); }
+  }catch(_){}
 }
 
-// 折扣设置仅在“管理员.html”中显示；用户页不提供调整面板。
+// 左下角折扣配置按钮与面板
+(function(){
+  // 右下角折扣设置：小方框触发 + 面板显示在其上方
+  const box = document.getElementById('discountBox');
+  const panel = document.createElement('div');
+  panel.style.position = 'fixed';
+  panel.style.right = '16px';
+  panel.style.bottom = '140px';
+  panel.style.zIndex = '1001';
+  panel.style.background = 'var(--card)';
+  panel.style.border = '1px solid var(--border)';
+  panel.style.borderRadius = '10px';
+  panel.style.padding = '12px';
+  panel.style.width = '280px';
+  panel.style.boxShadow = '0 6px 18px rgba(0,0,0,0.12)';
+  panel.style.display = 'none';
 
-// 数量加减与输入（多选项时作用于当前激活卡片；单个选项时作用于数量输入框）
+  const title = document.createElement('div');
+  title.textContent = '折扣参数设置';
+  title.style.fontWeight = '700';
+  title.style.marginBottom = '8px';
+  panel.appendChild(title);
+
+  const cfg = ()=> (window.DISCOUNT_CONFIG || { more:{p2:0.08,p3:0.09,p4plus:0.10,cap:0.10}, second:{p:0.10,cap:0.10} });
+  function makeRow(label, value, oninput){
+    const r = document.createElement('div');
+    r.style.display = 'flex';
+    r.style.alignItems = 'center';
+    r.style.gap = '8px';
+    r.style.margin = '6px 0';
+    const span = document.createElement('span');
+    span.textContent = label;
+    span.style.flex = '1';
+    const inp = document.createElement('input');
+    inp.type = 'number';
+    inp.min = '0';
+    inp.max = '100';
+    inp.step = '1';
+    inp.value = Math.round((value||0)*100);
+    inp.style.width = '80px';
+    inp.addEventListener('input', ()=> oninput((Number(inp.value)||0)/100));
+    r.appendChild(span);
+    r.appendChild(inp);
+    return r;
+  }
+
+  const moreTitle = document.createElement('div');
+  moreTitle.textContent = '越多越便宜（%）';
+  moreTitle.style.marginTop = '6px';
+  moreTitle.style.color = 'var(--muted)';
+  panel.appendChild(moreTitle);
+  panel.appendChild(makeRow('2件折扣', cfg().more.p2, v=>{ window.DISCOUNT_CONFIG.more.p2 = v; updateTotal(); }));
+  panel.appendChild(makeRow('3件折扣', cfg().more.p3, v=>{ window.DISCOUNT_CONFIG.more.p3 = v; updateTotal(); }));
+  panel.appendChild(makeRow('4件及以上', cfg().more.p4plus, v=>{ window.DISCOUNT_CONFIG.more.p4plus = v; updateTotal(); }));
+  panel.appendChild(makeRow('上限（cap）', cfg().more.cap, v=>{ window.DISCOUNT_CONFIG.more.cap = v; updateTotal(); }));
+
+  const secondTitle = document.createElement('div');
+  secondTitle.textContent = '第二份开始（%）';
+  secondTitle.style.marginTop = '8px';
+  secondTitle.style.color = 'var(--muted)';
+  panel.appendChild(secondTitle);
+  panel.appendChild(makeRow('固定折扣', cfg().second.p, v=>{ window.DISCOUNT_CONFIG.second.p = v; updateTotal(); }));
+  panel.appendChild(makeRow('上限（cap）', cfg().second.cap, v=>{ window.DISCOUNT_CONFIG.second.cap = v; updateTotal(); }));
+
+  const actions = document.createElement('div');
+  actions.style.display = 'flex';
+  actions.style.gap = '8px';
+  actions.style.marginTop = '10px';
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'btn';
+  saveBtn.textContent = '保存配置';
+  saveBtn.onclick = ()=>{
+    alert('折扣配置已更新。如需持久保存，请使用“保存到文件”。');
+    panel.style.display = 'none';
+  };
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn';
+  closeBtn.textContent = '关闭';
+  closeBtn.onclick = ()=> panel.style.display = 'none';
+  actions.appendChild(saveBtn);
+  actions.appendChild(closeBtn);
+  panel.appendChild(actions);
+
+  if(box){
+    box.addEventListener('click', ()=>{
+      const open = panel.style.display === 'block';
+      panel.style.display = open ? 'none' : 'block';
+      try{ box.setAttribute('aria-expanded', open ? 'false' : 'true'); }catch(e){}
+    });
+  } else {
+    // 兜底：若页面中不存在 box，则在右下角放置按钮作为触发
+    const fallbackBtn = document.createElement('button');
+    fallbackBtn.textContent = '折扣设置';
+    fallbackBtn.className = 'btn';
+    fallbackBtn.style.position = 'fixed';
+    fallbackBtn.style.right = '16px';
+    fallbackBtn.style.bottom = '74px';
+    fallbackBtn.style.zIndex = '1000';
+    fallbackBtn.style.opacity = '0.9';
+    fallbackBtn.addEventListener('click', ()=>{
+      panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+    });
+    document.body.appendChild(fallbackBtn);
+  }
+
+  document.body.appendChild(panel);
+})();
+
+// 数量加减与输入
 qtyPlus && qtyPlus.addEventListener('click',()=>{
   const active = pricesEl && pricesEl.querySelector('.price-card.active');
   const target = active || (pricesEl && pricesEl.querySelector('.price-card'));
@@ -1427,7 +2551,7 @@ function registerPressable(el){
   el.classList.add('pressable');
   if(el.dataset.pressable==='1') return; // 防止重复绑定
   el.dataset.pressable='1';
-  const down = ()=> el.classList.add('pressed');
+  const down = (ev)=>{ if(ev && ev.button !== 0) return; el.classList.add('pressed'); };
   const up = ()=> el.classList.remove('pressed');
   el.addEventListener('pointerdown', down);
   el.addEventListener('pointerup', up);
@@ -1435,8 +2559,7 @@ function registerPressable(el){
   el.addEventListener('pointercancel', up);
 }
 function addPressFeedback(scope=document){
-  // 移除公开版未使用的选择器（.add-category、.more-btn）
-  const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.back-to-top', '.subset-header', '.subset .toggleIndicator'];
+const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service', '.game-card', '.add-category', '.discount-box', '.back-to-top', '.more-btn', '.subset-header', '.subset .toggleIndicator', '#cartBtn', '#cartCloseBtn', '#cartPayBtn', '#addToCartBtn', '#cartPanel .cart-item', '#cartInDetail .cart-item'];
   const els = scope.querySelectorAll(selectors.join(','));
   els.forEach(registerPressable);
 }
@@ -1473,7 +2596,7 @@ function switchPay(type){
   const nextSrcPng = baseName + '.png';
   setTimeout(()=>{
     // 优先尝试 WebP，失败则回退到 PNG（保证兼容性与加载速度）
-    // 由于图片使用了 <picture> + <source>，需要同时更新 <source> 的 srcset，否则可能持续显示上一张（如微信）
+    // 使用 <picture> + <source> 时需要同步更新 <source> 的 srcset，避免仍显示上一张二维码
     try{
       const sourceEl = document.querySelector('#qrPanel .qr-img-wrap source');
       if(sourceEl){ sourceEl.srcset = nextSrcWebp; }
@@ -1529,12 +2652,265 @@ payGuide.addEventListener('click',()=>{
 clearBtn.addEventListener('click',()=>{ qEl.value=''; renderList(''); });
 qEl.addEventListener('input',(e)=>renderList(e.target.value));
 
-// 顶部文件保存/导入按钮事件（极简模式已移除）
-// 已移除导入按钮事件（极简模式）
+// 公开版移除：文件保存/导入按钮与目录授权标签
 
-/* 已移除管理员模态相关功能（公开站点不支持新增/编辑品类） */
+/* ------------------ 模态：新增/编辑 品类 ------------------ */
+function openModal(mode, game=null, gameIndex=null, targetSubset=null){
+  modalBack.style.display = 'flex';
+  modalBack.setAttribute('aria-hidden','false');
 
-// 已移除管理员模态与新增品类按钮（公开站点不支持新增/编辑）
+  // 重置
+  servicesContainer.innerHTML = '';
+  // 工具栏：子集模式 与 直接新增服务模式（根据“需要子集”展示）
+  const subsetToolbar = document.createElement('div');
+  subsetToolbar.className = 'subset-toolbar';
+  const btnAddSubsetTop = document.createElement('button');
+  btnAddSubsetTop.className = 'btn';
+  btnAddSubsetTop.textContent = '+添加子集';
+  btnAddSubsetTop.addEventListener('click',()=>{
+    const g = makeSubsetGroup('代肝项目');
+    servicesContainer.appendChild(g);
+  });
+  subsetToolbar.appendChild(btnAddSubsetTop);
+
+  const directToolbar = document.createElement('div');
+  directToolbar.className = 'subset-toolbar';
+  const btnAddServiceDirect = document.createElement('button');
+  btnAddServiceDirect.className = 'btn';
+  btnAddServiceDirect.textContent = '+新增服务';
+  btnAddServiceDirect.addEventListener('click',()=>{
+    const row = makeServiceRow();
+    servicesContainer.appendChild(row);
+    try{ row.scrollIntoView({ behavior: 'smooth', block: 'end', inline: 'nearest' }); }catch(_){}
+  });
+  directToolbar.appendChild(btnAddServiceDirect);
+
+  if(mode === 'edit' && game){
+    modalTitle.textContent = '编辑品类';
+    inpName.value = game.name;
+    inpTag.value = game.tag || '';
+
+    // 使用该品类第一个服务的支付与联系方式作为默认
+    const baseSvc = game.services[0] || {};
+    // 根据第一个服务的支付方式推断下拉默认值
+    const pm = (baseSvc.paymentMethods||[]);
+    if(pm.includes('微信') && pm.includes('支付宝')){ inpPayments.value = 'both'; }
+    else if(pm.includes('支付宝')){ inpPayments.value = 'alipay'; }
+    else { inpPayments.value = 'wechat'; }
+    inpContactType.value = (baseSvc.contact && baseSvc.contact.type) || '';
+    inpContactValue.value = (baseSvc.contact && baseSvc.contact.value) || '';
+
+    // 根据“需要子集”渲染不同界面
+    const needsSubset = (typeof game.needsSubset === 'boolean') ? game.needsSubset : true;
+    inpNeedsSubset.checked = !!needsSubset;
+    // 用于在编辑模式切换时保留子集配置
+    let __edit_lastSubsets = null;
+    if(needsSubset){
+      servicesContainer.appendChild(subsetToolbar);
+      // 渲染已有服务项：优先使用 game.subsets（支持同名子集且保持区分）；否则从服务按名称推断并生成ID
+      let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
+      if(!subsets){
+        const map = {};
+        (game.services||[]).forEach(s=>{
+          const nm = s.subset || '代肝项目';
+          if(!map[nm]) map[nm] = { id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: nm };
+        });
+        subsets = Object.values(map);
+        // 为旧数据补充 subsetId（按名称归属到首个匹配）
+        const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
+        (game.services||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
+      }
+      if(subsets.length===0){ subsets = [{ id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: '代肝项目' }]; }
+      // 记录当前子集配置以便切回时恢复
+      __edit_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'' }));
+      subsets.forEach(ss=>{
+        const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '');
+        servicesContainer.appendChild(grp);
+        const body = grp._refs.body;
+        (game.services||[]).filter(svc=>svc.subsetId===ss.id).forEach(svc=>{
+          const row = makeServiceRow(svc);
+          row.dataset.subset = ss.name;
+          row.dataset.subsetId = ss.id;
+          body.appendChild(row);
+        });
+        const match = targetSubset && (typeof targetSubset === 'object' ? (targetSubset.id ? (ss.id === targetSubset.id) : (ss.name === targetSubset.name)) : ((ss.id === targetSubset) || (ss.name === targetSubset)));
+        if(match){ body.classList.add('open'); body.setAttribute('aria-hidden','false'); grp.querySelector('.toggleIndicator').textContent='-'; grp.classList.add('active-subset'); }
+      });
+    }else{
+      // 不需要子集：直接渲染服务行 + 顶部“新增服务”按钮
+      servicesContainer.appendChild(directToolbar);
+      (game.services||[]).forEach(svc=>{
+        const row = makeServiceRow(svc);
+        servicesContainer.appendChild(row);
+      });
+    }
+
+    // 允许在编辑时切换“需要子集”，并即时重绘当前界面
+    const rerenderEdit = ()=>{
+      // 先从当前界面采集数据，再根据复选框状态重绘
+      // 使用 Raw 版本保留 subset/subsetId，避免在切换到直列模式时丢失归属信息
+      const tempServices = getServicesFromUIRaw(game.id);
+      const tempSubsets = getSubsetsFromUI();
+      servicesContainer.innerHTML = '';
+      if(inpNeedsSubset.checked){
+        servicesContainer.appendChild(subsetToolbar);
+        let subsets = (Array.isArray(tempSubsets) && tempSubsets.length>0)
+          ? tempSubsets
+          : ((Array.isArray(__edit_lastSubsets) && __edit_lastSubsets.length>0) ? __edit_lastSubsets : [{ id: 'ss'+Date.now(), name: '代肝项目', remark: '' }]);
+        // 更新缓存，保持最新
+        __edit_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'' }));
+        subsets.forEach(ss=>{
+          const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '');
+          servicesContainer.appendChild(grp);
+          const body = grp._refs.body;
+          tempServices.filter(svc=>{
+            // 优先使用 subsetId 匹配，其次按名称归属
+            if(svc.subsetId){ return svc.subsetId === ss.id; }
+            return (svc.subset || '代肝项目') === ss.name;
+          }).forEach(svc=>{
+            const row = makeServiceRow(svc);
+            row.dataset.subset = ss.name;
+            row.dataset.subsetId = ss.id;
+            body.appendChild(row);
+          });
+        });
+      }else{
+        // 切到直列模式前，若当前存在子集配置，则缓存起来
+        if(Array.isArray(tempSubsets) && tempSubsets.length>0){
+          __edit_lastSubsets = tempSubsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'' }));
+        }
+        servicesContainer.appendChild(directToolbar);
+        tempServices.forEach(svc=>{
+          const row = makeServiceRow(svc);
+          servicesContainer.appendChild(row);
+        });
+      }
+    };
+    inpNeedsSubset.addEventListener('change', rerenderEdit);
+
+    // 保存逻辑：收集多个服务项与子集（包含空子集）
+    modalSave.onclick = ()=>{
+      const updated = {
+        id: game.id,
+        name: inpName.value.trim() || game.name,
+        tag: inpTag.value.trim() || game.tag,
+        needsSubset: !!inpNeedsSubset.checked,
+        // 当不需要子集时，保留原有子集配置，避免下次启用时丢失
+        subsets: inpNeedsSubset.checked ? getSubsetsFromUI() : (
+          (Array.isArray(__edit_lastSubsets) && __edit_lastSubsets.length>0) ? __edit_lastSubsets : (
+            Array.isArray(game.subsets) ? game.subsets.slice() : []
+          )
+        ),
+        services: getServicesFromUI(game.id)
+      };
+      DATA[gameIndex] = updated;
+      saveData();
+      closeModal();
+      renderList(qEl.value);
+    };
+  } else {
+    modalTitle.textContent = '新增品类';
+    inpName.value=''; inpTag.value='';
+    inpPayments.value='both'; inpContactType.value=''; inpContactValue.value='';
+
+    // 新增品类：根据“需要子集”决定初始界面
+    // 默认值：勾选（保持与旧逻辑一致），用户可切换
+    inpNeedsSubset.checked = true;
+    // 新增模式：在切换“需要子集”时保留当前输入的服务与子集
+    let __create_lastSubsets = null;
+    const renderCreateUI = ()=>{
+      // 采集当前（切换前）的 UI 数据
+      const tempServices = getServicesFromUIRaw('new');
+      const tempSubsets = getSubsetsFromUI();
+
+      servicesContainer.innerHTML = '';
+      if(inpNeedsSubset.checked){
+        servicesContainer.appendChild(subsetToolbar);
+        // 恢复已有子集（优先当前采集，其次上次缓存，否则默认）
+        let subsets = (Array.isArray(tempSubsets) && tempSubsets.length>0)
+          ? tempSubsets
+          : ((Array.isArray(__create_lastSubsets) && __create_lastSubsets.length>0) ? __create_lastSubsets : [{ id: 'ss'+Date.now(), name: '代肝项目', remark: '' }]);
+        __create_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'' }));
+        // 渲染子集与服务归属
+        subsets.forEach(ss=>{
+          const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '');
+          servicesContainer.appendChild(grp);
+          const body = grp._refs.body;
+          tempServices.filter(svc=>{
+            if(svc.subsetId){ return svc.subsetId === ss.id; }
+            return (svc.subset || '代肝项目') === ss.name;
+          }).forEach(svc=>{
+            const row = makeServiceRow(svc);
+            row.dataset.subset = ss.name;
+            row.dataset.subsetId = ss.id;
+            body.appendChild(row);
+          });
+        });
+      }else{
+        // 切到直列模式前，缓存当前子集配置
+        if(Array.isArray(tempSubsets) && tempSubsets.length>0){
+          __create_lastSubsets = tempSubsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'' }));
+        }
+        servicesContainer.appendChild(directToolbar);
+        tempServices.forEach(svc=>{
+          const row = makeServiceRow(svc);
+          servicesContainer.appendChild(row);
+        });
+      }
+    };
+    renderCreateUI();
+    inpNeedsSubset.addEventListener('change', renderCreateUI);
+
+    modalSave.onclick = ()=>{
+      const nid = 'g'+Date.now();
+      const newGame = {
+        id: nid,
+        name: inpName.value.trim() || '新游戏',
+        tag: inpTag.value.trim() || '',
+        needsSubset: !!inpNeedsSubset.checked,
+        subsets: getSubsetsFromUI(),
+        services: getServicesFromUI(nid)
+      };
+      DATA.push(newGame);
+      saveData();
+      closeModal();
+      renderList(qEl.value);
+    };
+  }
+}
+
+// 全局新增按钮已移除；新增操作仅在子集界面内进行（子集头部或子集工具栏）
+
+modalCancel.addEventListener('click', closeModal);
+// 修改为：右键点击遮罩关闭；左键和触屏不关闭。并屏蔽遮罩上的右键菜单。
+let __backdropDown = false;
+modalBack.addEventListener('mousedown',(e)=>{
+  // 仅当按下的是右键（button===2）且目标是遮罩时，记录按下
+  __backdropDown = (e.button === 2 && e.target === modalBack);
+});
+modalBack.addEventListener('mouseup',(e)=>{
+  // 不在 mouseup 里关闭，避免先隐藏遮罩导致 contextmenu 穿透到页面
+  __backdropDown = false;
+});
+// 触屏不关闭（避免误触）；保留占位以阻止误判
+modalBack.addEventListener('touchstart',()=>{ __backdropDown=false; }, { passive: true });
+modalBack.addEventListener('touchend',()=>{ __backdropDown=false; }, { passive: true });
+// 遮罩区域阻止右键菜单弹出
+modalBack.addEventListener('contextmenu',(e)=>{
+  if(e.target === modalBack){
+    // 阻止系统/自定义右键菜单，并在此处关闭编辑界面，避免“穿透”
+    e.preventDefault();
+    e.stopPropagation();
+    closeModal();
+  }
+});
+
+function closeModal(){
+  modalBack.style.display='none';
+  modalBack.setAttribute('aria-hidden','true');
+}
+
+/* 公开版移除新增/编辑入口：不再绑定新增按钮事件 */
 
 /* ------------------ 手机端：返回顶部按钮（滚动后显示） ------------------ */
 const backToTopBtn = document.getElementById('backToTopBtn');
@@ -1654,6 +3030,7 @@ function applyTheme(t){
     document.documentElement.style.setProperty('--accent','#3b82f6');
     document.documentElement.style.setProperty('--border','#2a2a2a');
     document.body.style.color = '#e5e7eb';
+    // 黑色主题：统一关闭价格卡片阴影
     document.documentElement.style.setProperty('--price-card-shadow-color','transparent');
   } else if(t==='white'){
     document.documentElement.style.setProperty('--bg','#f6f7fb');
@@ -1662,6 +3039,7 @@ function applyTheme(t){
     document.documentElement.style.setProperty('--accent','#10b981');
     document.documentElement.style.setProperty('--border','#e6e9ef');
     document.body.style.color = '#0f172a';
+    // 非黑色主题按照不透明度生成 rgba 阴影色
     try{
       const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
       const alpha = Math.max(0, Math.min(100, s.shadowAlpha!=null ? s.shadowAlpha : 10))/100;
@@ -1670,7 +3048,9 @@ function applyTheme(t){
       if(/^#/.test(v)){
         let h = v.replace('#',''); if(h.length===3) h = h.split('').map(x=>x+x).join('');
         r = parseInt(h.slice(0,2),16); g = parseInt(h.slice(2,4),16); b = parseInt(h.slice(4,6),16);
-      } else { const m = v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ r=parseInt(m[1]); g=parseInt(m[2]); b=parseInt(m[3]); } }
+      } else {
+        const m = v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i); if(m){ r=parseInt(m[1]); g=parseInt(m[2]); b=parseInt(m[3]); }
+      }
       document.documentElement.style.setProperty('--price-card-shadow-color', `rgba(${r},${g},${b},${alpha})`);
     }catch(_){ document.documentElement.style.setProperty('--price-card-shadow-color', getComputedStyle(document.documentElement).getPropertyValue('--accent')); }
   } else if(t==='pink'){
@@ -1759,13 +3139,30 @@ function smoothHide(el){
   }, 110); // Eliya备注：略大于 0.1s，保证动画完成
 }
 
+/* 公开版移除：文本编辑与右键菜单模块。保留空的 applyUIState，避免 data-autoload.js 调用时报错。 */
+function applyUIState(){
+  try{
+    window.UI_STATE = window.UI_STATE || {};
+    UI_STATE.uiTexts = UI_STATE.uiTexts || {};
+  }catch(_){ /* ignore */ }
+}
+// 公开版：隐藏“编辑标题”按钮
+try{
+  const editBtn = document.getElementById('editPriceOptionsTitleBtn');
+  if(editBtn){ editBtn.style.display='none'; editBtn.setAttribute('aria-hidden','true'); }
+}catch(_){ /* ignore */ }
+
 /* ------------------ 初始渲染 ------------------ */
-renderList();
+  renderList();
 
 // End of script
 </script>
+ 
+<!-- 自动从仓库中的 JSON 备份加载数据（仅影响默认数据，不改桌面样式） -->
+<script src="data-autoload.js"></script>
+
+<!-- 初始化应用已保存的价格卡样式变量（如有） -->
 <script>
-// 公开页：应用管理员在本机保存的价格卡样式（如有）
 (function(){
   try{
     const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
@@ -1777,7 +3174,6 @@ renderList();
     if(s.colGap!=null) r.setProperty('--price-card-col-gap', s.colGap+'px');
     if(s.borderWidth!=null) r.setProperty('--price-card-border-width', s.borderWidth+'px');
     if(s.borderColor) r.setProperty('--price-card-border-color', s.borderColor);
-    // 阴影参数（水平/垂直偏移、模糊、扩散、颜色）
     if(s.shadowX!=null) r.setProperty('--price-card-shadow-x', s.shadowX+'px');
     if(s.shadowY!=null) r.setProperty('--price-card-shadow-y', s.shadowY+'px');
     if(s.shadowBlur!=null) r.setProperty('--price-card-shadow-blur', s.shadowBlur+'px');
@@ -1803,52 +3199,174 @@ renderList();
   }catch(e){ /* ignore */ }
 })();
 </script>
-<script>
-// 应用 UI_STATE：根据备份中的 boxes 渲染文本框，同时应用 elements 的尺寸与位置
-function applyUIState(){
-  try{
-    const S = (typeof UI_STATE!=='undefined') ? UI_STATE : null;
-    if(!S) return;
-    // 文本框
-    (S.boxes||[]).forEach(box=>{
-      if(!box || !box.id) return;
-      if(document.querySelector(`[data-admin-box-id="${box.id}"]`)) return; // 已存在
-      const div = document.createElement('div');
-      div.className = 'admin-textbox';
-      div.setAttribute('data-admin-box-id', box.id);
-      div.textContent = box.text || '文本框';
-      if(box.left) div.style.left = box.left;
-      if(box.top) div.style.top = box.top;
-      if(box.width) div.style.width = box.width;
-      if(box.height) div.style.height = box.height;
-      document.body.appendChild(div);
-    });
-    // 通用元素
-    const map = S.elements || {};
-    Object.keys(map).forEach(sel=>{
-      const cfg = map[sel];
-      const el = document.querySelector(sel);
-      if(!el || !cfg) return;
-      el.style.position = cfg.position || 'absolute';
-      if(cfg.left) el.style.left = cfg.left;
-      if(cfg.top) el.style.top = cfg.top;
-      if(cfg.width) el.style.width = cfg.width;
-      if(cfg.height) el.style.height = cfg.height;
-    });
-    // 应用文案配置（方案B）：价格选项标题
-    try{
-      const tEl = document.getElementById('priceOptionsTitle');
-      if(tEl && S.uiTexts && typeof S.uiTexts.priceOptionsTitle !== 'undefined'){
-        tEl.textContent = S.uiTexts.priceOptionsTitle || '价格选项';
-      }
-    }catch(_){ /* ignore */ }
-  }catch(e){ console.warn('applyUIState 失败', e); }
-}
-</script>
-<!-- 自动从仓库中的 JSON 备份加载数据（仅影响默认数据，不改桌面样式） -->
-<script src="data-autoload.js"></script>
-<!-- 公开版只读模式：隐藏编辑/导入/保存/拖拽等控件，保留查看/复制/支付切换等 -->
-<script src="viewer-mode.js"></script>
 
-</body>
+  </body>
+  <!-- 卡片样式管理弹窗 -->
+  <div id="cardStyleModalBackdrop" class="modal-backdrop" style="display:none">
+    <div class="modal" role="dialog" aria-labelledby="cardStyleTitle" aria-modal="true">
+      <div style="font-weight:600;margin-bottom:8px" id="cardStyleTitle">卡片样式管理</div>
+      <div class="modal-body">
+        <div class="form-row" style="display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:center;margin-bottom:10px">
+          <label for="csRowGap">卡片上下间距（px）</label>
+          <input id="csRowGap" type="number" min="0" step="1" placeholder="例如 20" />
+        </div>
+      <div style="font-weight:600;margin:14px 0 6px">阴影参数</div>
+        <div class="form-row" style="display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:center;margin-bottom:10px">
+          <label for="csShadowX">水平偏移 X（px）</label>
+          <input id="csShadowX" type="number" step="1" />
+        </div>
+        <div class="form-row" style="display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:center;margin-bottom:10px">
+          <label for="csShadowY">垂直偏移 Y（px）</label>
+          <input id="csShadowY" type="number" step="1" />
+        </div>
+        <div class="form-row" style="display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:center;margin-bottom:10px">
+          <label for="csShadowBlur">模糊（px）</label>
+          <input id="csShadowBlur" type="number" min="0" step="1" />
+        </div>
+        <div class="form-row" style="display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:center;margin-bottom:10px">
+          <label for="csShadowSpread">扩散（px）</label>
+          <input id="csShadowSpread" type="number" step="1" />
+        </div>
+        <!-- 颜色已取消，统一跟随主题的滚动条颜色；黑色主题下无阴影。保留不透明度控制。 -->
+        <div class="form-row" style="display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:center;margin-bottom:10px">
+          <label for="csShadowAlpha">不透明度（%）</label>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input id="csShadowAlpha" type="range" min="0" max="100" step="1" />
+            <span id="csShadowAlphaVal" class="muted">10%</span>
+          </div>
+        </div>
+        <div style="font-weight:600;margin:14px 0 6px">实时预览</div>
+        <div id="cardStylePreview" style="display:grid;grid-template-columns:1fr;gap:var(--price-card-row-gap,20px) 16px;padding:12px;border:1px dashed var(--border);border-radius:10px;background:#f8fafc">
+          <div class="price-card">
+            <div style="font-weight:600;margin-bottom:6px">示例卡片 A</div>
+            <div class="price-remark">这里展示当前阴影与间距效果</div>
+          </div>
+          <div class="price-card">
+            <div style="font-weight:600;margin-bottom:6px">示例卡片 B</div>
+            <div class="price-remark">这里展示当前阴影与间距效果</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer" style="gap:8px">
+        <div>
+          <button id="saveCardStyle" class="btn btn-primary">保存</button>
+          <button id="closeCardStyle" class="btn" style="margin-left:8px">关闭</button>
+        </div>
+        <div class="muted">提示：保存仅在本机生效（存储到浏览器）。公开页会自动读取并应用。</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 打开/关闭弹窗
+    (function(){
+      const backdrop = document.getElementById('cardStyleModalBackdrop');
+      const openBtn = document.getElementById('cardStyleBtn');
+      const closeBtn = document.getElementById('closeCardStyle');
+      const saveBtn = document.getElementById('saveCardStyle');
+      const preview = document.getElementById('cardStylePreview');
+      const inputs = {
+        rowGap: document.getElementById('csRowGap'),
+        shadowX: document.getElementById('csShadowX'),
+        shadowY: document.getElementById('csShadowY'),
+        shadowBlur: document.getElementById('csShadowBlur'),
+        shadowSpread: document.getElementById('csShadowSpread'),
+        shadowAlpha: document.getElementById('csShadowAlpha'),
+        shadowAlphaVal: document.getElementById('csShadowAlphaVal')
+      };
+
+      function getAccentRgb(){
+        const v = (getComputedStyle(document.documentElement).getPropertyValue('--accent')||'').trim() || '#10b981';
+        if(/^#/.test(v)){
+          let h = v.replace('#','');
+          if(h.length===3){ h = h.split('').map(x=>x+x).join(''); }
+          const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+          return {r,g,b};
+        }
+        const m = v.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+        if(m){ return {r:parseInt(m[1]), g:parseInt(m[2]), b:parseInt(m[3])}; }
+        return {r:16,g:185,b:129};
+      }
+      function getThemeShadowColor(alpha){
+        const theme = document.documentElement.getAttribute('data-theme') || 'white';
+        if(theme === 'black') return 'transparent';
+        const {r,g,b} = getAccentRgb();
+        const a = Math.max(0, Math.min(1, alpha==null ? 0.10 : alpha));
+        return `rgba(${r},${g},${b},${a})`;
+      }
+
+      function open(){
+        try{
+          // 先读 localStorage，如果没有则读 CSS 变量当前值
+          const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
+          const cs = getComputedStyle(document.documentElement);
+          inputs.rowGap.value = s.rowGap!=null ? s.rowGap : parseInt(cs.getPropertyValue('--price-card-row-gap'))||20;
+          inputs.shadowX.value = s.shadowX!=null ? s.shadowX : parseInt(cs.getPropertyValue('--price-card-shadow-x'))||0;
+          inputs.shadowY.value = s.shadowY!=null ? s.shadowY : parseInt(cs.getPropertyValue('--price-card-shadow-y'))||6;
+          inputs.shadowBlur.value = s.shadowBlur!=null ? s.shadowBlur : parseInt(cs.getPropertyValue('--price-card-shadow-blur'))||16;
+          inputs.shadowSpread.value = s.shadowSpread!=null ? s.shadowSpread : parseInt(cs.getPropertyValue('--price-card-shadow-spread'))||0;
+          // 不透明度：优先取本地保存；否则从当前变量解析；再否则默认 10%
+          const current = cs.getPropertyValue('--price-card-shadow-color').trim();
+          let a = 10;
+          const m = current.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([0-9.]+)\)/i);
+          if(m){ a = Math.round(parseFloat(m[1])*100); }
+          inputs.shadowAlpha.value = (s.shadowAlpha!=null ? s.shadowAlpha : a);
+          inputs.shadowAlphaVal.textContent = inputs.shadowAlpha.value + '%';
+        }catch(e){ /* ignore */ }
+        // 初始化预览
+        updatePreview();
+        backdrop.style.display = 'flex';
+      }
+      function close(){ backdrop.style.display = 'none'; }
+      function updatePreview(){
+        if(!preview) return;
+        const color = getThemeShadowColor(Math.max(0, Math.min(100, parseInt(inputs.shadowAlpha.value||'10')))/100);
+        const r = preview.style; // 仅作用于预览容器，不影响整页
+        r.setProperty('--price-card-row-gap', (parseInt(inputs.rowGap.value)||0)+'px');
+        r.setProperty('--price-card-shadow-x', (parseInt(inputs.shadowX.value)||0)+'px');
+        r.setProperty('--price-card-shadow-y', (parseInt(inputs.shadowY.value)||0)+'px');
+        r.setProperty('--price-card-shadow-blur', (parseInt(inputs.shadowBlur.value)||0)+'px');
+        r.setProperty('--price-card-shadow-spread', (parseInt(inputs.shadowSpread.value)||0)+'px');
+        r.setProperty('--price-card-shadow-color', color);
+      }
+      function applyAndSave(){
+        const s = JSON.parse(localStorage.getItem('priceCardStyle')||'{}');
+        // 写入 localStorage
+        s.rowGap = parseInt(inputs.rowGap.value)||0;
+        s.shadowX = parseInt(inputs.shadowX.value)||0;
+        s.shadowY = parseInt(inputs.shadowY.value)||0;
+        s.shadowBlur = parseInt(inputs.shadowBlur.value)||0;
+        s.shadowSpread = parseInt(inputs.shadowSpread.value)||0;
+        s.shadowAlpha = Math.max(0, Math.min(100, parseInt(inputs.shadowAlpha.value||'10')));
+        localStorage.setItem('priceCardStyle', JSON.stringify(s));
+        // 立即应用到当前页面
+        const r = document.documentElement.style;
+        r.setProperty('--price-card-row-gap', s.rowGap+'px');
+        r.setProperty('--price-card-shadow-x', s.shadowX+'px');
+        r.setProperty('--price-card-shadow-y', s.shadowY+'px');
+        r.setProperty('--price-card-shadow-blur', s.shadowBlur+'px');
+        r.setProperty('--price-card-shadow-spread', s.shadowSpread+'px');
+        r.setProperty('--price-card-shadow-color', getThemeShadowColor((s.shadowAlpha||10)/100));
+        close();
+      }
+
+      function bindLivePreview(el){ el && el.addEventListener('input', updatePreview); }
+      inputs.rowGap && bindLivePreview(inputs.rowGap);
+      inputs.shadowX && bindLivePreview(inputs.shadowX);
+      inputs.shadowY && bindLivePreview(inputs.shadowY);
+      inputs.shadowBlur && bindLivePreview(inputs.shadowBlur);
+      inputs.shadowSpread && bindLivePreview(inputs.shadowSpread);
+      inputs.shadowAlpha && inputs.shadowAlpha.addEventListener('input', ()=>{
+        inputs.shadowAlphaVal.textContent = inputs.shadowAlpha.value + '%';
+        updatePreview();
+      });
+      openBtn && openBtn.addEventListener('click', open);
+      closeBtn && closeBtn.addEventListener('click', close);
+      saveBtn && saveBtn.addEventListener('click', applyAndSave);
+    })();
+  </script>
+  <!-- 页面就绪后再显示内容，避免加载过程中管理员控件被短暂展示并可点击 -->
+  <script>
+    try{ document.documentElement.classList.add('admin-ready'); }catch(e){}
+  </script>
 </html>
