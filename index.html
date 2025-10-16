@@ -193,6 +193,21 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     .cart-panel__footer .sum span{font-weight:700;color:#0f172a}
     /* 手机端："已减"金额使用淡红色且数字更小 */
     .sum-mobile #cartSaved{color:#f87171;font-size:12px}
+    /* 二维码点击缩放动画（手机端与桌面端通用） */
+    .qr-img-wrap img, #payOverlayQrImg{transition:transform .18s ease-out;transform-origin:center;cursor:pointer}
+    @keyframes popZoom{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
+    .qr-img-wrap img.pop, #payOverlayQrImg.pop{animation:popZoom .2s ease-out}
+    /* 桌面端：购物车合计与已减显示样式（字号加大，已减用淡红色且略小） */
+    .sum-desktop .sum-total{font-size:16px}
+    .sum-desktop .sum-total span{font-size:20px}
+    .sum-desktop .sum-saved{font-size:13px;color:#f87171}
+    .sum-desktop .sum-saved span{font-size:14px;color:#f87171}
+    /* 桌面端：嵌入式购物车内的合计区样式 */
+    .cart-in-detail .cart-sum{margin-top:10px;color:var(--muted)}
+    .cart-in-detail .cart-sum .sum-total{font-size:16px}
+    .cart-in-detail .cart-sum .sum-total span{font-size:20px;font-weight:700;color:#0f172a}
+    .cart-in-detail .cart-sum .sum-saved{font-size:13px;color:#f87171}
+    .cart-in-detail .cart-sum .sum-saved span{font-size:14px;color:#f87171;font-weight:700}
     .cart-panel__footer .pay{display:flex;align-items:center;gap:10px}
     /* 收款码保持原比例呈现，避免拉伸变形 */
     .cart-panel__footer .pay img{display:none}
@@ -538,9 +553,9 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
                 <div id="cartInDetail" class="cart-in-detail fade fade-hide" aria-label="购物车（嵌入详细页左侧）">
                   <div style="font-weight:600;margin-bottom:8px">购物车</div>
                   <div id="cartListDetail" class="cart-list"></div>
-                  <div class="cart-sum" style="margin-top:10px;display:flex;gap:16px;color:var(--muted);font-size:14px">
-                    <div>小计：<span id="cartSubtotalDetail">¥0</span></div>
-                    <div>折扣后总价：<span id="cartTotalDetail">¥0</span></div>
+                  <div class="cart-sum">
+                    <div class="sum-total">合计金额：<span id="cartTotalDetail">¥0</span></div>
+                    <div class="sum-saved">已减：<span id="cartSavedDetail">¥0</span></div>
                   </div>
                 </div>
               </div>
@@ -610,8 +625,8 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
     <div class="cart-panel__footer">
       <!-- 桌面端合计区（不再在购物车内展示收款码；转用详细页右侧的支付方式） -->
       <div class="sum sum-desktop">
-        <div>小计：<span id="cartSubtotal">¥0</span></div>
-        <div>折扣后总价：<span id="cartTotal">¥0</span></div>
+        <div class="sum-total">合计金额：<span id="cartTotal">¥0</span></div>
+        <div class="sum-saved">已减：<span id="cartSavedDesktop">¥0</span></div>
       </div>
       <!-- 移动端合计区（显示“合计金额”和“已减”） -->
       <div class="sum sum-mobile">
@@ -850,12 +865,14 @@ const cartSubtotalEl = document.getElementById('cartSubtotal');
 const cartTotalEl = document.getElementById('cartTotal');
 const cartTotalMobileEl = document.getElementById('cartTotalMobile');
 const cartSavedEl = document.getElementById('cartSaved');
+const cartSavedDesktopEl = document.getElementById('cartSavedDesktop');
 const cartCloseBtn = document.getElementById('cartCloseBtn');
 const addToCartBtn = document.getElementById('addToCartBtn');
 // 嵌入详细页左侧的购物车（桌面端）
 const cartListDetail = document.getElementById('cartListDetail');
 const cartSubtotalDetailEl = document.getElementById('cartSubtotalDetail');
 const cartTotalDetailEl = document.getElementById('cartTotalDetail');
+const cartSavedDetailEl = document.getElementById('cartSavedDetail');
 let __PREV_SVC_TITLE_HTML = '';
 let __PREV_SVC_META_DISPLAY = '';
 // 移动端支付弹层相关元素
@@ -867,6 +884,31 @@ const payOverlayQrSource = document.getElementById('payOverlayQrSource');
 const payOverlayHint = document.getElementById('payOverlayHint');
 const payOverlayCopyBtn = document.getElementById('payOverlayCopyBtn');
 const payOverlayContactVal = document.getElementById('payOverlayContactVal');
+// 点击二维码轻微缩放反馈（避免 file:// 下缺少反馈）
+function bindQrZoom(){
+  try{
+    const imgs = [];
+    const img1 = document.getElementById('payQrImg');
+    if(img1) imgs.push(img1);
+    const img2 = document.getElementById('payOverlayQrImg');
+    if(img2) imgs.push(img2);
+    imgs.forEach(img=>{
+      if(img.__zoomBound) return;
+      img.__zoomBound = true;
+      const handler = ()=>{
+        try{
+          img.classList.remove('pop');
+          void img.offsetWidth; // 重新触发动画
+          img.classList.add('pop');
+          setTimeout(()=>{ img.classList.remove('pop'); }, 220);
+        }catch(e){}
+      };
+      img.addEventListener('click', handler, { passive: true });
+      img.addEventListener('touchstart', handler, { passive: true });
+    });
+  }catch(e){}
+}
+bindQrZoom();
 function updateCartIconVisibility(){
   try{
     const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
@@ -876,7 +918,7 @@ function updateCartIconVisibility(){
   }catch(e){}
 }
 function renderCart(){
-  if(!cartList || !cartSubtotalEl || !cartTotalEl) return;
+  if(!cartList || !cartTotalEl) return;
   cartList.innerHTML = '';
   if(cartListDetail) cartListDetail.innerHTML = '';
   let subtotal = 0;
@@ -959,7 +1001,7 @@ function renderCart(){
     }
     subtotal += (Number(item.unitPrice)||0) * (Number(item.qty)||0);
   });
-  cartSubtotalEl.textContent = '¥' + Math.floor(subtotal);
+  if(cartSubtotalEl){ cartSubtotalEl.textContent = '¥' + Math.floor(subtotal); }
   // 折扣后总价：暂按每项折扣聚合（如有），否则与小计相同
   let total = subtotal;
   try{
@@ -993,9 +1035,11 @@ function renderCart(){
   }catch(e){ total = subtotal; }
   cartTotalEl.textContent = '¥' + Math.floor(total);
   if(cartTotalMobileEl){ cartTotalMobileEl.textContent = '¥' + Math.floor(total); }
-  if(cartSavedEl){
+  {
     const saved = Math.max(0, Math.floor(subtotal - total));
-    cartSavedEl.textContent = '¥' + saved;
+    if(cartSavedEl){ cartSavedEl.textContent = '¥' + saved; }
+    if(cartSavedDesktopEl){ cartSavedDesktopEl.textContent = '¥' + saved; }
+    if(cartSavedDetailEl){ cartSavedDetailEl.textContent = '¥' + saved; }
   }
   if(cartSubtotalDetailEl){ cartSubtotalDetailEl.textContent = '¥' + Math.floor(subtotal); }
   if(cartTotalDetailEl){ cartTotalDetailEl.textContent = '¥' + Math.floor(total); }
@@ -1038,7 +1082,7 @@ function syncDetailFromCart(){
     const firstCard = cards[0];
     if(firstCard){
       const badge = firstCard.querySelector('.qty-badge');
-      if(badge) badge.textContent = 'x' + (Array.isArray(optionQtys) && optionQtys.length ? optionQtys[0] : sum);
+      if(badge) badge.textContent = String(Array.isArray(optionQtys) && optionQtys.length ? optionQtys[0] : sum);
       firstCard.classList.toggle('active', sum>0);
     }
   } else {
@@ -1055,7 +1099,7 @@ function syncDetailFromCart(){
     if(qtyInput) qtyInput.value = sum;
     cards.forEach((card, idx)=>{
       const badge = card.querySelector('.qty-badge');
-      if(badge) badge.textContent = 'x' + (Number(optionQtys[idx]||0));
+      if(badge) badge.textContent = String(Number(optionQtys[idx]||0));
       card.classList.toggle('active', (Number(optionQtys[idx]||0))>0);
     });
   }
@@ -1214,6 +1258,16 @@ function setupPayOverlayHintAndSave(){
     if(!payOverlayHint || !payOverlayQrImg) return;
     const isMobile768 = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     payOverlayHint.textContent = isMobile768 ? '连续点击两次下载图片' : '请使用对应 App 扫码付款';
+    // 手机端强调动画：与详细页一致，按下时缩小；桌面端不添加该效果
+    try{
+      const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+      if(isMobile600){
+        registerPressable(payOverlayQrImg);
+      }else{
+        payOverlayQrImg.classList.remove('pressed','pressable');
+        try{ if(payOverlayQrImg.dataset) delete payOverlayQrImg.dataset.pressable; }catch(e){}
+      }
+    }catch(_){ /* ignore */ }
     let lastTap = 0; let ignoreUntil = 0;
     const triggerDownloadPNG = ()=>{
       try{
@@ -2321,7 +2375,7 @@ function showService(svc, game, mountTarget){
       <div style="margin-top:6px;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px">
         <span>¥${p.price}</span>
         ${isSingleOption ? '' : `
-          <span class="qty-badge" style="padding:2px 8px;border-radius:999px;background:#eef;color:#334;font-size:12px">x0</span>
+          <span class="qty-badge" style="padding:2px 8px;border-radius:999px;background:#eef;color:#334;font-size:12px">0</span>
           <button class="qty-btn" style="padding:2px 8px" data-act="minus">−</button>
           <button class="qty-btn" style="padding:2px 8px" data-act="plus">+</button>
         `}
@@ -2360,7 +2414,7 @@ function showService(svc, game, mountTarget){
         if(t && t.classList && t.classList.contains('qty-btn')) return;
         optionQtys[idx] = (optionQtys[idx]||0) + 1;
         const badge = pc.querySelector('.qty-badge');
-        if(badge){ badge.textContent = 'x' + optionQtys[idx]; }
+        if(badge){ badge.textContent = String(optionQtys[idx]); }
         pc.classList.toggle('active', optionQtys[idx]>0);
         qtyInput.value = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
         updateTotal();
@@ -2375,7 +2429,7 @@ function showService(svc, game, mountTarget){
             optionQtys[idx] = Math.max(0, (optionQtys[idx]||0) - 1);
           }
           const badge = pc.querySelector('.qty-badge');
-          if(badge){ badge.textContent = 'x' + optionQtys[idx]; }
+          if(badge){ badge.textContent = String(optionQtys[idx]); }
           pc.classList.toggle('active', optionQtys[idx]>0);
           qtyInput.value = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
           updateTotal();
@@ -2536,7 +2590,7 @@ qtyPlus && qtyPlus.addEventListener('click',()=>{
     const idx = Number(target.dataset.index)||0;
     optionQtys[idx] = (optionQtys[idx]||0) + 1;
     const badge = target.querySelector('.qty-badge');
-    if(badge){ badge.textContent = 'x' + optionQtys[idx]; }
+    if(badge){ badge.textContent = String(optionQtys[idx]); }
     target.classList.toggle('active', optionQtys[idx]>0);
   }
   qtyInput.value = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
@@ -2549,7 +2603,7 @@ qtyMinus && qtyMinus.addEventListener('click',()=>{
     const idx = Number(target.dataset.index)||0;
     optionQtys[idx] = Math.max(0, (optionQtys[idx]||0) - 1);
     const badge = target.querySelector('.qty-badge');
-    if(badge){ badge.textContent = 'x' + optionQtys[idx]; }
+    if(badge){ badge.textContent = String(optionQtys[idx]); }
     target.classList.toggle('active', optionQtys[idx]>0);
   }
   qtyInput.value = optionQtys.reduce((a,b)=> a + (Number(b)||0), 0);
@@ -2564,7 +2618,7 @@ qtyInput && qtyInput.addEventListener('input',()=>{
     const firstCard = pricesEl && pricesEl.querySelector('.price-card');
     if(firstCard){
       const badge = firstCard.querySelector('.qty-badge');
-      if(badge){ badge.textContent = 'x' + optionQtys[0]; }
+      if(badge){ badge.textContent = String(optionQtys[0]); }
       firstCard.classList.toggle('active', optionQtys[0]>0);
     }
   }
