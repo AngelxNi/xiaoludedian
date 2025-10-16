@@ -917,6 +917,17 @@ function updateCartIconVisibility(){
     // 桌面端始终显示，无需处理
   }catch(e){}
 }
+// 手机端：隐藏“加入购物车”按钮；桌面端保留
+function updateAddToCartBtnVisibility(){
+  try{
+    if(!addToCartBtn) return;
+    const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+    addToCartBtn.style.display = isMobile ? 'none' : '';
+    addToCartBtn.setAttribute('aria-hidden', isMobile ? 'true' : 'false');
+    // 移动端禁用点击逻辑以避免误触
+    addToCartBtn.disabled = !!isMobile;
+  }catch(e){}
+}
 function renderCart(){
   if(!cartList || !cartTotalEl) return;
   cartList.innerHTML = '';
@@ -1058,6 +1069,57 @@ function renderCart(){
   // 同步左侧详细页的数量徽标与输入框（如果当前详细页正在显示该服务）
   try{ if(typeof syncDetailFromCart === 'function') syncDetailFromCart(); }catch(_){}
   updateCartIconVisibility();
+}
+
+// 手机端辅助函数：根据服务与选项标签查找购物车条目
+function findCartIndex(svc, label){
+  try{
+    return CART.findIndex(it => {
+      const sameServiceId = (svc && (svc.id!==undefined)) ? (String(it.serviceId||'') === String(svc.id)) : false;
+      const sameName = (!sameServiceId && svc && (svc.title || svc.name)) ? (it.name === (svc.title || svc.name)) : false;
+      const sameLabel = ((it.label||'') === (label||''));
+      return (sameServiceId || sameName) && sameLabel;
+    });
+  }catch(_){ return -1; }
+}
+
+// 手机端：点击卡片直接加入购物车（或增加数量）
+function cartAddByServiceOption(svc, label, unitPrice, deltaQty){
+  try{
+    const idx = findCartIndex(svc, label);
+    const addQty = Math.max(1, Number(deltaQty)||1);
+    if(idx>=0){
+      CART[idx].qty = (Number(CART[idx].qty)||0) + addQty;
+    } else {
+      CART.push({
+        id: svc && (svc.id!==undefined) ? svc.id : ((svc && (svc.title||svc.name)) ? (svc.title||svc.name) : (Date.now()+'')),
+        serviceId: svc && (svc.id!==undefined) ? svc.id : '',
+        subsetId: svc && (svc.subsetId!==undefined) ? svc.subsetId : '',
+        name: (svc && (svc.title || svc.name)) ? (svc.title || svc.name) : '未命名',
+        label: label || '',
+        unitPrice: Number(unitPrice)||0,
+        qty: addQty,
+        discount: svc && svc.discount ? svc.discount : null
+      });
+    }
+    renderCart();
+    if(typeof updateCartIconVisibility === 'function') updateCartIconVisibility();
+    try{ showToast && showToast('已加入购物车'); }catch(e){}
+  }catch(e){ /* ignore */ }
+}
+
+// 手机端：减少购物车中对应选项的数量（至 0 则移除该项）
+function cartMinusByServiceOption(svc, label, deltaQty){
+  try{
+    const idx = findCartIndex(svc, label);
+    if(idx>=0){
+      const minusQty = Math.max(1, Number(deltaQty)||1);
+      const q = Math.max(0, (Number(CART[idx].qty)||0) - minusQty);
+      if(q<=0){ CART.splice(idx,1); } else { CART[idx].qty = q; }
+      renderCart();
+      if(typeof updateCartIconVisibility === 'function') updateCartIconVisibility();
+    }
+  }catch(e){ /* ignore */ }
 }
 
 // 根据购物车数据同步当前详细页的数量与徽标
@@ -1215,6 +1277,8 @@ cartBtn && cartBtn.addEventListener('click', ()=>{
 cartCloseBtn && cartCloseBtn.addEventListener('click', ()=> toggleCart(false));
 window.addEventListener('resize', updateCartIconVisibility);
 document.addEventListener('DOMContentLoaded', updateCartIconVisibility);
+window.addEventListener('resize', updateAddToCartBtnVisibility);
+document.addEventListener('DOMContentLoaded', updateAddToCartBtnVisibility);
 
 // ------------------ 移动端支付弹层逻辑 ------------------
 function togglePayOverlay(open){
@@ -2040,7 +2104,125 @@ function loadData(){
 function renderList(filter='') {
   gamesEl.innerHTML = '';
   const q = filter.trim().toLowerCase();
-  const filtered = q ? DATA.map(g=>({...g, services:g.services.filter(s=>s.title.toLowerCase().includes(q)||s.desc.toLowerCase().includes(q)||g.name.toLowerCase().includes(q))})).filter(g=>g.services.length) : DATA;
+  // ==== 搜索增强：支持中文、拼音全拼、拼音首字母缩写，并支持对子集名称的匹配 ====
+  // 工具：判断中文字符
+  const isChineseChar = (ch)=>{
+    const code = ch.charCodeAt(0);
+    return code >= 0x4E00 && code <= 0x9FFF;
+  };
+  const isLetterQuery = /^[a-z]+$/;
+  const letterOnly = isLetterQuery.test(q);
+  // 常用字的拼音字典（不标声调，覆盖常见子集与项目）
+  const PINYIN_MAP = {
+    '托':'tuo','管':'guan','相':'xiang','关':'guan',
+    '探':'tan','索':'suo','任':'ren','务':'wu',
+    '活':'huo','动':'dong','角':'jiao','色':'se',
+    '采':'cai','集':'ji','套':'tao','餐':'can',
+    '超':'chao','值':'zhi','代':'dai','肝':'gan',
+    '项':'xiang','目':'mu','测':'ce','试':'shi',
+    '版':'ban','本':'ben','纪':'ji','行':'xing',
+    '日':'ri','常':'chang','体':'ti','力':'li',
+    '声':'sheng','望':'wang','深':'shen','渊':'yuan',
+    '养':'yang','成':'cheng','等':'deng','级':'ji',
+    '突':'tu','破':'po','材':'cai','料':'liao',
+    '天':'tian','赋':'fu','武':'wu','器':'qi',
+    '圣':'sheng','遗':'yi','物':'wu','强':'qiang','化':'hua',
+    // 常见词补充
+    '原':'yuan','神':'shen','周':'zhou','常':'chang','首':'shou','领':'ling',
+    '璃':'li','月':'yue','风':'feng','岩':'yan','雷':'lei','草':'cao','水':'shui','火':'huo','冰':'bing',
+    '元':'yuan','素':'su','委':'wei','普':'pu','精':'jing','愿':'yuan','航':'hang','行':'xing',
+    '试':'shi','炼':'lian','造':'zao','赠':'zeng','送':'song','质':'zhi','变':'bian','换':'huan',
+    '抽':'chou','卡':'ka','加':'jia','急':'ji','速':'su','勘':'kan','探':'tan','矿':'kuang','钓':'diao','鱼':'yu',
+    '螺':'luo','露':'lu','莹':'ying','海':'hai','大':'da','世':'shi','界':'jie','跑':'pao','图':'tu','修':'xiu','复':'fu'
+  };
+  // 改进：中文首字母回退算法（常用锚点法，更稳定地覆盖 a-z 的 23 个拼音声母）
+  const INITIAL_ANCHORS = [
+    {h:'吖', l:'a'}, {h:'八', l:'b'}, {h:'嚓', l:'c'}, {h:'咑', l:'d'}, {h:'妸', l:'e'}, {h:'发', l:'f'},
+    {h:'旮', l:'g'}, {h:'铪', l:'h'}, {h:'丌', l:'j'}, {h:'咔', l:'k'}, {h:'垃', l:'l'}, {h:'嘸', l:'m'},
+    {h:'拏', l:'n'}, {h:'噢', l:'o'}, {h:'妑', l:'p'}, {h:'七', l:'q'}, {h:'呥', l:'r'}, {h:'仨', l:'s'},
+    {h:'他', l:'t'}, {h:'屲', l:'w'}, {h:'夕', l:'x'}, {h:'丫', l:'y'}, {h:'帀', l:'z'}
+  ];
+  const initialFromHanzi = (hanzi)=>{
+    for(let i=INITIAL_ANCHORS.length-1; i>=0; i--){
+      if(hanzi.localeCompare(INITIAL_ANCHORS[i].h) >= 0) return INITIAL_ANCHORS[i].l;
+    }
+    return 'z';
+  };
+  const toPinyinFull = (str)=>{
+    let out = '';
+    for(const ch of str){
+      if(isChineseChar(ch)){
+        out += (PINYIN_MAP[ch] || '');
+      }else{
+        out += ch;
+      }
+    }
+    return out;
+  };
+  const toPinyinAbbr = (str)=>{
+    let out = '';
+    for(const ch of str){
+      if(isChineseChar(ch)){
+        const p = PINYIN_MAP[ch];
+        out += p ? p[0] : initialFromHanzi(ch);
+      }else if(/[a-zA-Z]/.test(ch)){
+        out += ch.toLowerCase();
+      }
+    }
+    return out;
+  };
+  const __PINYIN_CACHE = new Map();
+  const getPinyinIndex = (str)=>{
+    const key = 'k:'+str;
+    const cached = __PINYIN_CACHE.get(key);
+    if(cached) return cached;
+    const obj = { full: toPinyinFull(str).toLowerCase(), abbr: toPinyinAbbr(str).toLowerCase() };
+    __PINYIN_CACHE.set(key, obj);
+    return obj;
+  };
+  const subsetMatchIdsForGame = (g)=>{
+    const set = new Set();
+    const pushIfMatch = (id, name)=>{
+      const nm = (name||'').toLowerCase();
+      if(!q) return;
+      if(nm.includes(q)) { set.add(id); return; }
+      if(letterOnly){
+        const pi = getPinyinIndex(name||'');
+        if(pi.full.includes(q) || pi.abbr.includes(q)) set.add(id);
+      }
+    };
+    if(Array.isArray(g.subsets) && g.subsets.length){
+      g.subsets.forEach(ss=> pushIfMatch(ss.id, ss.name));
+    }else{
+      const map = {};
+      (g.services||[]).forEach(s=>{
+        const nm = s.subset || '代肝项目';
+        const id = s.subsetId || nm;
+        if(!map[id]) map[id] = nm;
+      });
+      Object.keys(map).forEach(id=> pushIfMatch(id, map[id]));
+    }
+    return set;
+  };
+  const matchesSvc = (g, s)=>{
+    const subsetName = s.subset || '代肝项目';
+    const base = (s.title||'').toLowerCase().includes(q) || (s.desc||'').toLowerCase().includes(q) || (g.name||'').toLowerCase().includes(q) || (subsetName||'').toLowerCase().includes(q);
+    if(base) return true;
+    if(letterOnly){
+      const sp = getPinyinIndex(subsetName||'');
+      if(sp.full.includes(q) || sp.abbr.includes(q)) return true;
+      const tp = getPinyinIndex(s.title||'');
+      if(tp.full.includes(q) || tp.abbr.includes(q)) return true;
+      const gp = getPinyinIndex(g.name||'');
+      if(gp.full.includes(q) || gp.abbr.includes(q)) return true;
+    }
+    return false;
+  };
+  const filtered = q ? DATA.map(g=>{
+    const ssMatches = subsetMatchIdsForGame(g);
+    const services = (g.services||[]).filter(s=> matchesSvc(g,s) || (ssMatches.size && ssMatches.has(s.subsetId || (s.subset || '代肝项目'))));
+    return {...g, services};
+  }).filter(g=>g.services.length) : DATA;
   if(filtered.length===0){
     gamesEl.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:10px">未找到匹配项，试试更宽泛的关键词。</div>';
     return;
@@ -2092,6 +2274,7 @@ function renderList(filter='') {
       // 后续绑定与逻辑保持一致
     } else {
     // 按“子集”分组展示（支持重名子集，基于 subsetId 区分）
+    // 根据筛选后的 services 决定要展示的子集：避免出现无匹配服务的空子集
     let subsets = Array.isArray(game.subsets) ? game.subsets.slice() : null;
     if(!subsets){
       const map = {};
@@ -2102,6 +2285,9 @@ function renderList(filter='') {
       subsets = Object.values(map);
       const nameToId = {}; subsets.forEach(ss=>{ nameToId[ss.name] = ss.id; });
       (game.services||[]).forEach(s=>{ if(!s.subsetId){ s.subsetId = nameToId[s.subset || '代肝项目']; } });
+    } else {
+      // 若已有显式子集定义，仅保留在当前筛选服务中出现过的子集，隐藏其他子集
+      subsets = subsets.filter(ss=> (game.services||[]).some(svc=> svc.subsetId===ss.id || (!svc.subsetId && (svc.subset||'代肝项目')===ss.name)) );
     }
     subsets.forEach(ss=>{
       const group = document.createElement('div');
@@ -2151,6 +2337,27 @@ function renderList(filter='') {
     }
 
     // =========== 事件绑定 ===========
+
+    // 搜索时自动展开匹配项并突出显示
+    if(q){
+      try{
+        srvWrap.classList.add('open');
+        srvWrap.setAttribute('aria-hidden','false');
+        card.querySelector('.toggleIndicator').textContent = '-';
+        card.classList.add('active-cat');
+        // 若存在子集，自动展开包含服务的子集
+        srvWrap.querySelectorAll('.subset').forEach(grp=>{
+          const body = grp.querySelector('.subset-services');
+          const indicator = grp.querySelector('.toggleIndicator');
+          if(body && body.querySelector('.service')){
+            body.classList.add('open');
+            body.setAttribute('aria-hidden','false');
+            if(indicator) indicator.textContent = '-';
+            grp.classList.add('active-subset');
+          }
+        });
+      }catch(e){}
+    }
 
     // 1) 切换展开/收起服务列表（点击卡片时，仅使用 transform/opacity 动画）
     card.addEventListener('click',()=>{
@@ -2385,14 +2592,17 @@ function showService(svc, game, mountTarget){
     pc.dataset.label = p.label;
     pc.dataset.index = String(idx);
     if(isSingleOption){
-      // 单个选项：点击增加数量；右键减少数量（桌面端）。仍保留高亮选择。
+      // 单个选项：桌面端仅增加详情数量；手机端直接加入购物车（每次 +1）。
       pc.addEventListener('click',()=>{
+        const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+        if(isMobile){
+          try{ cartAddByServiceOption(currentService, p.label||'', Number(p.price)||0, 1); }catch(e){}
+          return;
+        }
         const cur = Number(qtyInput && qtyInput.value || 0);
         const next = cur + 1;
         if(qtyInput){ qtyInput.value = next; }
-        // 设置选中态（有数量时高亮）
         pricesEl.querySelectorAll('.price-card').forEach(el=> el.classList.toggle('active', el===pc && next>0));
-        // 选中单价与标签（用于下单信息）
         selectedUnitPrice = Number(p.price)||0;
         selectedLabel = p.label||'';
         updateTotal();
@@ -2400,6 +2610,8 @@ function showService(svc, game, mountTarget){
       // 右键减少（屏蔽默认菜单）
       pc.addEventListener('contextmenu',(e)=>{
         e.preventDefault();
+        const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+        if(isMobile){ try{ cartMinusByServiceOption(currentService, p.label||'', 1); }catch(e){} return; }
         const cur = Number(qtyInput && qtyInput.value || 0);
         const next = Math.max(0, cur - 1);
         if(qtyInput){ qtyInput.value = next; }
@@ -2412,6 +2624,8 @@ function showService(svc, game, mountTarget){
       pc.addEventListener('click',(e)=>{
         const t = e.target;
         if(t && t.classList && t.classList.contains('qty-btn')) return;
+        const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+        if(isMobile){ try{ cartAddByServiceOption(currentService, p.label||'', Number(p.price)||0, 1); }catch(e){} return; }
         optionQtys[idx] = (optionQtys[idx]||0) + 1;
         const badge = pc.querySelector('.qty-badge');
         if(badge){ badge.textContent = String(optionQtys[idx]); }
@@ -2423,6 +2637,14 @@ function showService(svc, game, mountTarget){
         btn.addEventListener('click', (e)=>{
           e.stopPropagation();
           const act = btn.dataset.act;
+          const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+          if(isMobile){
+            try{
+              if(act === 'plus') cartAddByServiceOption(currentService, p.label||'', Number(p.price)||0, 1);
+              else if(act === 'minus') cartMinusByServiceOption(currentService, p.label||'', 1);
+            }catch(e){}
+            return;
+          }
           if(act === 'plus'){
             optionQtys[idx] = (optionQtys[idx]||0) + 1;
           } else if(act === 'minus'){
@@ -2584,8 +2806,15 @@ function updateTotal(){
 
 // 数量加减与输入
 qtyPlus && qtyPlus.addEventListener('click',()=>{
+  const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
   const active = pricesEl && pricesEl.querySelector('.price-card.active');
   const target = active || (pricesEl && pricesEl.querySelector('.price-card'));
+  if(isMobile && target){
+    const label = target && (target.dataset.label||'');
+    const price = target && Number(target.dataset.price||'0');
+    try{ cartAddByServiceOption(currentService, label, price, 1); }catch(e){}
+    return;
+  }
   if(target){
     const idx = Number(target.dataset.index)||0;
     optionQtys[idx] = (optionQtys[idx]||0) + 1;
@@ -2597,8 +2826,14 @@ qtyPlus && qtyPlus.addEventListener('click',()=>{
   updateTotal();
 });
 qtyMinus && qtyMinus.addEventListener('click',()=>{
+  const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
   const active = pricesEl && pricesEl.querySelector('.price-card.active');
   const target = active || (pricesEl && pricesEl.querySelector('.price-card'));
+  if(isMobile && target){
+    const label = target && (target.dataset.label||'');
+    try{ cartMinusByServiceOption(currentService, label, 1); }catch(e){}
+    return;
+  }
   if(target){
     const idx = Number(target.dataset.index)||0;
     optionQtys[idx] = Math.max(0, (optionQtys[idx]||0) - 1);
@@ -2612,6 +2847,19 @@ qtyMinus && qtyMinus.addEventListener('click',()=>{
 qtyInput && qtyInput.addEventListener('input',()=>{
   const v = Math.max(0, Math.floor(Number(qtyInput.value)||0));
   qtyInput.value = v;
+  const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+  if(isMobile){
+    try{
+      const opt = currentService && Array.isArray(currentService.priceOptions) ? currentService.priceOptions[0] : null;
+      if(opt){
+        const idx = findCartIndex(currentService, opt.label||'');
+        if(idx>=0){ if(v<=0){ CART.splice(idx,1); } else { CART[idx].qty = v; } }
+        else { if(v>0){ cartAddByServiceOption(currentService, opt.label||'', Number(opt.price)||0, v); } }
+        renderCart();
+      }
+    }catch(e){}
+    return;
+  }
   if(Array.isArray(optionQtys) && optionQtys.length){
     const otherSum = optionQtys.slice(1).reduce((a,b)=> a + (Number(b)||0), 0);
     optionQtys[0] = Math.max(0, v - otherSum);

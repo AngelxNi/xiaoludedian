@@ -7,11 +7,6 @@
       "needsSubset": true,
       "subsets": [
         {
-          "id": "ss1760428296318-9764",
-          "name": "测试测试测试",
-          "remark": "测试"
-        },
-        {
           "id": "ss-genshin",
           "name": "托管套餐 超值！！",
           "remark": "套餐越多越便宜！"
@@ -27,11 +22,6 @@
           "remark": "探索度 全宝箱 神瞳"
         },
         {
-          "id": "ss1760287456570-20370",
-          "name": "任务相关",
-          "remark": "魔神 传说 世界 邀约 前置"
-        },
-        {
           "id": "ss1760288775230-92870",
           "name": "活动相关",
           "remark": "麻烦找一下客服小鹿"
@@ -45,42 +35,21 @@
           "id": "ss1760361700842-81317",
           "name": "采集相关",
           "remark": "地区特产 怪物掉落 素材 食材 晶蝶"
+        },
+        {
+          "id": "ss1760636590465-52059",
+          "name": "任务相关",
+          "remark": "魔神 传说 世界 邀约 前置"
+        },
+        {
+          "id": "ss1760642238013-22313",
+          "name": "代肝项目",
+          "remark": ""
         }
       ],
       "services": [
         {
           "id": "genshin-1",
-          "title": "测试测试测试测试",
-          "desc": "测试测试",
-          "priceOptions": [
-            {
-              "label": "测试",
-              "price": 99999,
-              "remark": "测试测试测试测试测试测试测试测试测试测试测试"
-            },
-            {
-              "label": "测试测试测试",
-              "price": 99999,
-              "remark": "测试测试测试测试测试测试"
-            }
-          ],
-          "discount": {
-            "enabled": true,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "测试测试测试",
-          "subsetId": "ss1760428296318-9764"
-        },
-        {
-          "id": "genshin-2",
           "title": "日常委托+每日体力【普托】",
           "desc": "有130及以上历练点，则-30￥，找客服退钱qwq 可随意指定，一天清一次",
           "priceOptions": [
@@ -106,7 +75,7 @@
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-3",
+          "id": "genshin-2",
           "title": "普托+大小活动【原石托】",
           "desc": "一月内普托+大小活动 超值！",
           "priceOptions": [
@@ -132,7 +101,7 @@
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-4",
+          "id": "genshin-3",
           "title": "普托+大月卡【半托】",
           "desc": "一月内普托+大月卡等级",
           "priceOptions": [
@@ -158,7 +127,7 @@
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-5",
+          "id": "genshin-4",
           "title": "半托+大小活动 【精托】",
           "desc": "一月内半托+大小活动 超值！",
           "priceOptions": [
@@ -184,7 +153,7 @@
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-6",
+          "id": "genshin-5",
           "title": "精托+声望+角色养成+圣遗物强化+深渊尽量打【全托】",
           "desc": "角色养成指帮配圣遗物 帮配队（按攻略视频）尽量高分养成 每天上两次号",
           "priceOptions": [
@@ -210,7 +179,7 @@
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-7",
+          "id": "genshin-6",
           "title": "全托+养角色+一些零零碎碎的【养成完全托】",
           "desc": "养1~2个角色 可以从零开始练 按打深渊练度练 每天上两次号",
           "priceOptions": [
@@ -236,7 +205,7 @@
           "subsetId": "ss-genshin"
         },
         {
-          "id": "genshin-8",
+          "id": "genshin-7",
           "title": "日常委托",
           "desc": "只有每日任务",
           "priceOptions": [
@@ -262,7 +231,7 @@
           "subsetId": "ss1760262896078-95239"
         },
         {
-          "id": "genshin-9",
+          "id": "genshin-8",
           "title": "打每日体力",
           "desc": "只打每日体力，可随意指定副本和boss，一天清一次，有历练点可帮领 有100以上晶蝶-5￥",
           "priceOptions": [
@@ -288,7 +257,7 @@
           "subsetId": "ss1760262896078-95239"
         },
         {
-          "id": "genshin-10",
+          "id": "genshin-9",
           "title": "版本纪行",
           "desc": "大月卡等级",
           "priceOptions": [
@@ -314,7 +283,7 @@
           "subsetId": "ss1760262896078-95239"
         },
         {
-          "id": "genshin-11",
+          "id": "genshin-10",
           "title": "每周声望任务",
           "desc": "地区声望任务",
           "priceOptions": [
@@ -340,7 +309,7 @@
           "subsetId": "ss1760262896078-95239"
         },
         {
-          "id": "genshin-12",
+          "id": "genshin-11",
           "title": "一天日体",
           "desc": "单日常3r 单体力3r",
           "priceOptions": [
@@ -366,7 +335,7 @@
           "subsetId": "ss1760262896078-95239"
         },
         {
-          "id": "genshin-13",
+          "id": "genshin-12",
           "title": "探索度需知",
           "desc": "55%-65%=9折 65%-75%=8折 75%-85%=7折 85%-95%=5折 95%以上=3折",
           "priceOptions": [
@@ -397,7 +366,7 @@
           "subsetId": "ss1760262914493-18202"
         },
         {
-          "id": "genshin-14",
+          "id": "genshin-13",
           "title": "全宝箱价格=原本价格+原本价格的20%",
           "desc": "探索度≈90%宝箱+神瞳+传送点+地灵龛  探索度100%≠全宝箱 全宝箱≠探索度100%",
           "priceOptions": [
@@ -423,39 +392,64 @@
           "subsetId": "ss1760262914493-18202"
         },
         {
-          "id": "genshin-15",
+          "id": "genshin-14",
           "title": "各国探索度100%",
-          "desc": "含区域全神瞳 不含前置任务 需要单个区域请找客服小鹿",
+          "desc": "含全神瞳 不含前置任务 需要单个区域请找客服小鹿",
           "priceOptions": [
             {
               "label": "蒙德",
-              "price": 190,
-              "remark": ""
+              "price": 180,
+              "remark": "190含前置主线 已做可退"
             },
             {
               "label": "璃月",
-              "price": 380,
-              "remark": ""
+              "price": 390,
+              "remark": "400含前置主线 已做可退"
             },
             {
               "label": "稻妻",
-              "price": 400,
-              "remark": ""
+              "price": 410,
+              "remark": "490含前置主线 已做可退"
             },
             {
               "label": "须弥",
               "price": 880,
-              "remark": ""
+              "remark": "1200含前置主线 已做可退"
             },
             {
               "label": "枫丹",
               "price": 520,
-              "remark": ""
+              "remark": "740含前置主线 已做可退"
             },
             {
               "label": "纳塔",
-              "price": 0,
-              "remark": ""
+              "price": 520,
+              "remark": "680含前置主线 已做可退"
+            },
+            {
+              "label": "挪德卡莱 月之一",
+              "price": 220,
+              "remark": "300含前置主线 已做可退"
+            },
+            {
+              "label": "渊下宫",
+              "price": 130,
+              "remark": "170含前置主线 已做可退"
+            },
+            {
+              "label": "层岩巨渊",
+              "price": 180,
+              "remark": "250含前置主线 已做可退"
+            },
+            {
+              "label": "龙脊雪山",
+              "price": 140,
+              "remark": "160含前置主线 已做可退"
+            },
+            {
+              "label": "全图100%包前置主线",
+              "price": 4580,
+              "remark": "全图100%包前置主线 已做可退"
             }
           ],
           "discount": {
@@ -474,7 +468,7 @@
           "subsetId": "ss1760262914493-18202"
         },
         {
-          "id": "genshin-16",
+          "id": "genshin-15",
           "title": "版本活动全包",
           "desc": "除了夏活",
           "priceOptions": [
@@ -500,7 +494,7 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-17",
+          "id": "genshin-16",
           "title": "小活动",
           "desc": "25~35r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -526,7 +520,7 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-18",
+          "id": "genshin-17",
           "title": "小活动",
           "desc": "25~35r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -552,7 +546,7 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-19",
+          "id": "genshin-18",
           "title": "大活动",
           "desc": "70~90r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -578,7 +572,7 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-20",
+          "id": "genshin-19",
           "title": "大活动",
           "desc": "70~90r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -604,7 +598,7 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-21",
+          "id": "genshin-20",
           "title": "深渊9-12",
           "desc": "看号打不过退钱qwq",
           "priceOptions": [
@@ -630,7 +624,7 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-22",
+          "id": "genshin-21",
           "title": "幽境危战 幻想真境剧诗",
           "desc": "幽20-30r 幻30-50r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -656,7 +650,7 @@
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-23",
+          "id": "genshin-22",
           "title": "角色升级0-90级",
           "desc": "指定角色练等级到90级 最晚7天内 加急一天内75r(要有足够树脂)",
           "priceOptions": [
@@ -682,7 +676,7 @@
           "subsetId": "ss1760361237456-76114"
         },
         {
-          "id": "genshin-24",
+          "id": "genshin-23",
           "title": "突破材料",
           "desc": "指定角色的boos突破材料",
           "priceOptions": [
@@ -708,7 +702,7 @@
           "subsetId": "ss1760361237456-76114"
         },
         {
-          "id": "genshin-25",
+          "id": "genshin-24",
           "title": "地区特产",
           "desc": "给角色突破的地方特产",
           "priceOptions": [
@@ -1019,7 +1013,7 @@
       "services": []
     }
   ],
-  "theme": "pink",
+  "theme": "white",
   "discountConfig": {
     "more": {
       "p2": 0.08,
@@ -1033,7 +1027,56 @@
     }
   },
   "uiState": {
-    "elements": {},
+    "elements": {
+      "body:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)": {
+        "position": "",
+        "left": "",
+        "top": "",
+        "width": "",
+        "height": "",
+        "color": "#e64c4c",
+        "fontSize": "13px",
+        "fontFamily": "",
+        "fontWeight": "600",
+        "text": "探索度需知"
+      },
+      "body:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2)": {
+        "position": "",
+        "left": "",
+        "top": "",
+        "width": "",
+        "height": "",
+        "color": "#fe6767",
+        "fontSize": "13px",
+        "fontFamily": "",
+        "fontWeight": "400",
+        "text": "55%-65%=9折 65%-75%=8折 75%-85%=7折 85%-95%=5折 95%以上=3折"
+      },
+      "body:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1)": {
+        "position": "",
+        "left": "",
+        "top": "",
+        "width": "",
+        "height": "",
+        "color": "#f53838",
+        "fontSize": "13px",
+        "fontFamily": "",
+        "fontWeight": "600",
+        "text": "全宝箱价格=原本价格+原本价格的20%"
+      },
+      "body:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > aside:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(3) > div:nth-of-type(2) > div:nth-of-type(1) > div:nth-of-type(2) > div:nth-of-type(2)": {
+        "position": "",
+        "left": "",
+        "top": "",
+        "width": "",
+        "height": "",
+        "color": "#fe7171",
+        "fontSize": "13px",
+        "fontFamily": "",
+        "fontWeight": "400",
+        "text": "探索度≈90%宝箱+神瞳+传送点+地灵龛  探索度100%≠全宝箱 全宝箱≠探索度100%"
+      }
+    },
     "boxes": [],
     "uiTexts": {
       "priceOptionsTitle": "价格选项",
@@ -1043,18 +1086,5 @@
       }
     }
   },
-  "priceCardStyle": {
-    "minWidth": 200,
-    "padding": 12,
-    "radius": 12,
-    "rowGap": 6,
-    "colGap": 16,
-    "borderWidth": 2,
-    "borderColor": "#cbd5e1",
-    "shadowX": 5,
-    "shadowY": 5,
-    "shadowBlur": 4,
-    "shadowSpread": -2,
-    "shadowAlpha": 67
-  }
+  "priceCardStyle": {}
 }
