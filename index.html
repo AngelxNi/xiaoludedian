@@ -223,7 +223,11 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
       /* 移动端购物车内不显示收款码图片 */
       .cart-panel__footer .pay picture{display:none}
       /* 移动端：购物车面板打开时，隐藏右下角的购物车按钮与重置按钮，避免遮挡 */
-      body.cart-open #cartBtn, body.cart-open #backToTopBtn{display:none !important}
+      body.cart-open{overflow:hidden}
+body.cart-open #cartBtn, body.cart-open #backToTopBtn{display:none !important}
+/* 购物车遮罩：覆盖内容并拦截点击（手机端打开购物车时） */
+.cart-backdrop{position:fixed;inset:0;z-index:998;background:transparent;display:none;pointer-events:auto;}
+.cart-backdrop.visible{display:block}
       /* 移动端：支付弹层打开时同样隐藏，避免覆盖 */
       body.pay-open #cartBtn, body.pay-open #backToTopBtn{display:none !important}
     }
@@ -639,6 +643,7 @@ html[data-theme="white"] { scrollbar-width: thin; scrollbar-color: var(--accent)
       </div>
     </div>
   </div>
+  <div id="cartBackdrop" class="cart-backdrop" aria-hidden="true" hidden></div>
   <!-- 移动端支付弹层（与卡片下方收款方式一致） -->
   <div id="payOverlay" class="pay-overlay" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="pay-overlay__header">
@@ -861,6 +866,7 @@ const CART = [];
 const cartBtn = document.getElementById('cartBtn');
 const cartBadge = cartBtn && cartBtn.querySelector('.cart-badge');
 const cartPanel = document.getElementById('cartPanel');
+const cartBackdrop = document.getElementById('cartBackdrop');
 const cartList = document.getElementById('cartList');
 const cartSubtotalEl = document.getElementById('cartSubtotal');
 const cartTotalEl = document.getElementById('cartTotal');
@@ -1174,7 +1180,13 @@ function toggleCart(open){
   // 手机端：面板打开时隐藏右下角的购物车按钮与重置按钮（避免遮挡）
   try{
     const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
-    if(isMobile){ document.body.classList.toggle('cart-open', willOpen); }
+    if(isMobile){
+      document.body.classList.toggle('cart-open', willOpen);
+      if(cartBackdrop){
+        cartBackdrop.classList.toggle('visible', willOpen);
+        cartBackdrop.hidden = !willOpen;
+      }
+    }
   }catch(e){}
 }
 
@@ -1273,6 +1285,20 @@ cartBtn && cartBtn.addEventListener('click', ()=>{
   if(isMobile) toggleCart(); else toggleCartViewDesktop();
 });
 cartCloseBtn && cartCloseBtn.addEventListener('click', ()=> toggleCart(false));
+// 遮罩点击关闭购物车（仅手机端），并拦截底层点击事件
+if(cartBackdrop){
+  const backdropClose = (evt)=>{
+    try{
+      const isMobile = window.matchMedia && window.matchMedia('(max-width:768px)').matches;
+      if(!isMobile) return;
+      evt.preventDefault();
+      evt.stopPropagation();
+      toggleCart(false);
+    }catch(e){}
+  };
+  cartBackdrop.addEventListener('click', backdropClose, { passive:false });
+  cartBackdrop.addEventListener('touchstart', backdropClose, { passive:false });
+}
 window.addEventListener('resize', updateCartIconVisibility);
 document.addEventListener('DOMContentLoaded', updateCartIconVisibility);
 window.addEventListener('resize', updateAddToCartBtnVisibility);
