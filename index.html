@@ -2104,6 +2104,24 @@ function loadData(){
 
 /* ------------------ 渲染函数：把 DATA 渲染到左侧列表 ------------------ */
 function renderList(filter='') {
+  // 修复（移动端）：在重新渲染左侧列表之前，若价格栅格已被移动到服务项下方（mobileDetail），
+  // 先将其移回右侧的详细面板，避免随后清空 gamesEl 时把 price-grid 一并删掉，导致再次点击服务时详情为空。
+  try{
+    const dp = detailPanel;
+    const priceGridEl = document.querySelector('.price-grid');
+    if(dp && priceGridEl && priceGridEl.parentElement !== dp){
+      dp.appendChild(priceGridEl);
+    }
+    const mobileMount = document.getElementById('mobileDetail');
+    if(mobileMount){
+      mobileMount.classList.add('hidden');
+      // 不清空内部，避免误删；price-grid 已移回 dp
+    }
+    if(window.MOBILE_CURRENT_TARGET){
+      window.MOBILE_CURRENT_TARGET.classList.remove('active-svc');
+      window.MOBILE_CURRENT_TARGET = null;
+    }
+  }catch(_){ /* ignore */ }
   gamesEl.innerHTML = '';
   const q = filter.trim().toLowerCase();
   // ==== 搜索增强：支持中文、拼音全拼、拼音首字母缩写，并支持对子集名称的匹配 ====
