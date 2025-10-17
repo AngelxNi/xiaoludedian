@@ -196,9 +196,8 @@ html[data-theme="orange"]{ --price-card-border-default: var(--accent); }
     /* 手机端："已减"金额使用淡红色且数字更小 */
     .sum-mobile #cartSaved{color:#f87171;font-size:12px}
     /* 二维码点击缩放动画（手机端与桌面端通用） */
-    .qr-img-wrap img, #payOverlayQrImg{transition:transform .18s ease-out;transform-origin:center;cursor:pointer}
-    @keyframes popZoom{0%{transform:scale(1)}50%{transform:scale(1.06)}100%{transform:scale(1)}}
-    .qr-img-wrap img.pop, #payOverlayQrImg.pop{animation:popZoom .2s ease-out}
+    .qr-img-wrap img, #payOverlayQrImg{transition:transform .18s ease-out;transform-origin:center;}
+@media (min-width: 769px){ .qr-img-wrap img, #payOverlayQrImg{ pointer-events: none; cursor: default; } }
     /* 桌面端：购物车合计与已减显示样式（字号加大，已减用淡红色且略小） */
     .sum-desktop .sum-total{font-size:16px}
     .sum-desktop .sum-total span{font-size:20px}
@@ -801,9 +800,9 @@ const modalBack = document.getElementById('modalBack');
   // 手机端提示语与点击保存
   function updateQrHintForViewport(){
     try{
-      const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
+      const isMobile768 = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
       if(qrHint){
-        qrHint.textContent = isMobile600 ? '连续点击两次下载图片' : '请使用对应 App 扫码付款';
+        qrHint.textContent = isMobile768 ? '连续点击两次下载图片' : '请使用对应 App 扫码付款';
       }
     }catch(e){}
   }
@@ -831,8 +830,8 @@ const modalBack = document.getElementById('modalBack');
     };
     const handleTap = ()=>{
       try{
-        const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
-        if(!isMobile600) return;
+        const isMobile768 = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        if(!isMobile768) return;
         const now = Date.now();
         if(now - __qrLastTap <= 200){
           if(now < __qrIgnoreClicksUntil) return;
@@ -888,7 +887,9 @@ const payOverlayCopyBtn = document.getElementById('payOverlayCopyBtn');
 const payOverlayContactVal = document.getElementById('payOverlayContactVal');
 // 点击二维码轻微缩放反馈（避免 file:// 下缺少反馈）
 function bindQrZoom(){
+  // 已废弃：改为手机端按压缩小 10%，桌面端禁用点击，不再使用点击放大动画
   try{
+    const isMobile768 = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
     const imgs = [];
     const img1 = document.getElementById('payQrImg');
     if(img1) imgs.push(img1);
@@ -897,16 +898,11 @@ function bindQrZoom(){
     imgs.forEach(img=>{
       if(img.__zoomBound) return;
       img.__zoomBound = true;
-      const handler = ()=>{
-        try{
-          img.classList.remove('pop');
-          void img.offsetWidth; // 重新触发动画
-          img.classList.add('pop');
-          setTimeout(()=>{ img.classList.remove('pop'); }, 220);
-        }catch(e){}
-      };
-      img.addEventListener('click', handler, { passive: true });
-      img.addEventListener('touchstart', handler, { passive: true });
+      if(!isMobile768){
+        // 桌面端：彻底禁用点击与指针样式（CSS 已有覆盖，这里双保险）
+        try{ img.style.pointerEvents = 'none'; img.style.cursor = 'default'; }catch(e){}
+      }
+      // 移动端：按压反馈通过 setupQrPressFeedback 注册，无需额外事件
     });
   }catch(e){}
 }
@@ -1326,8 +1322,8 @@ function setupPayOverlayHintAndSave(){
     payOverlayHint.textContent = isMobile768 ? '连续点击两次下载图片' : '请使用对应 App 扫码付款';
     // 手机端强调动画：与详细页一致，按下时缩小；桌面端不添加该效果
     try{
-      const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
-      if(isMobile600){
+      const isMobile768 = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+      if(isMobile768){
         registerPressable(payOverlayQrImg);
       }else{
         payOverlayQrImg.classList.remove('pressed','pressable');
@@ -2939,16 +2935,19 @@ const selectors = ['#prices .price-card', '.pill', '.qty-btn', '.btn', '.service
 // 初次加载时也为现有按钮添加反馈
 document.addEventListener('DOMContentLoaded', ()=> addPressFeedback(document));
 
-// 仅手机端为二维码图片添加按压反馈；桌面端不添加缩放效果
+// 仅手机端为二维码图片添加按压反馈（缩小 10%）；桌面端不添加缩放效果并禁用点击
 function setupQrPressFeedback(){
   try{
-    const isMobile600 = window.matchMedia && window.matchMedia('(max-width: 600px)').matches;
-    if(!payQrImg) return;
-    if(isMobile600){
-      registerPressable(payQrImg);
+    const isMobile768 = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    // 两处二维码：详情页与支付弹层
+    const imgs = [payQrImg, payOverlayQrImg].filter(Boolean);
+    if(isMobile768){
+      imgs.forEach(registerPressable);
     }else{
-      payQrImg.classList.remove('pressed','pressable');
-      try{ if(payQrImg.dataset) delete payQrImg.dataset.pressable; }catch(e){}
+      imgs.forEach(img=>{
+        img.classList.remove('pressed','pressable');
+        try{ if(img.dataset) delete img.dataset.pressable; }catch(e){}
+      });
     }
   }catch(e){}
 }
