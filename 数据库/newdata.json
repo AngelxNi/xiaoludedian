@@ -9,48 +9,120 @@
         {
           "id": "ss-genshin",
           "name": "托管套餐 超值！！",
-          "remark": "套餐越多越便宜！"
+          "remark": "套餐越多越便宜！",
+          "announce": {
+            "text": "",
+            "style": {
+              "color": "#1f2937",
+              "bgColor": "#ffffff",
+              "fontSize": 14,
+              "bold": false
+            }
+          }
         },
         {
           "id": "ss1760262896078-95239",
-          "name": "托管相关",
-          "remark": "默认领 派遣+每日纪行+前瞻奖励"
+          "name": "托管类（单点）",
+          "remark": "默认领 派遣+每日纪行+前瞻奖励",
+          "announce": {
+            "text": "",
+            "style": {
+              "color": "#1f2937",
+              "bgColor": "#ffffff",
+              "fontSize": 14,
+              "bold": false
+            }
+          }
         },
         {
           "id": "ss1760262914493-18202",
-          "name": "探索相关",
-          "remark": "探索度 全宝箱 神瞳"
+          "name": "探索类",
+          "remark": "探索度 全宝箱 神瞳",
+          "announce": {
+            "text": "[探索度需知]\n·55%-65%=9折\n·65%-75%=8折\n·75%-85%=7折\n·85%-95%=5折\n·95%以上=3折\n———————————————————————\n·全宝箱价格=原本价格+原本价格的20%\n·探索度≈90%宝箱+神瞳+传送点+地灵龛\n·探索度100%≠全宝箱\n·全宝箱≠探索度100%",
+            "style": {
+              "color": "#ff6666",
+              "bgColor": "#fcfcfc",
+              "fontSize": 16,
+              "bold": true
+            }
+          }
         },
         {
           "id": "ss1760288775230-92870",
-          "name": "活动相关",
-          "remark": "麻烦找一下客服小鹿"
+          "name": "活动类",
+          "remark": "麻烦找一下客服小鹿",
+          "announce": {
+            "text": "",
+            "style": {
+              "color": "#1f2937",
+              "bgColor": "#ffffff",
+              "fontSize": 14,
+              "bold": false
+            }
+          }
         },
         {
           "id": "ss1760361237456-76114",
-          "name": "角色相关",
-          "remark": "突破材料 等级 天赋 武器"
+          "name": "角色类",
+          "remark": "突破材料 等级 天赋 武器",
+          "announce": {
+            "text": "",
+            "style": {
+              "color": "#1f2937",
+              "bgColor": "#ffffff",
+              "fontSize": 14,
+              "bold": false
+            }
+          }
         },
         {
           "id": "ss1760361700842-81317",
-          "name": "采集相关",
-          "remark": "地区特产 怪物掉落 素材 食材 晶蝶"
+          "name": "采集类",
+          "remark": "地区特产 怪物掉落 素材 食材 晶蝶",
+          "announce": {
+            "text": "",
+            "style": {
+              "color": "#1f2937",
+              "bgColor": "#ffffff",
+              "fontSize": 14,
+              "bold": false
+            }
+          }
         },
         {
           "id": "ss1760636590465-52059",
-          "name": "任务相关",
-          "remark": "魔神 传说 世界 邀约 前置"
+          "name": "任务类",
+          "remark": "魔神 传说 世界 邀约 前置",
+          "announce": {
+            "text": "",
+            "style": {
+              "color": "#1f2937",
+              "bgColor": "#ffffff",
+              "fontSize": 14,
+              "bold": false
+            }
+          }
         },
         {
           "id": "ss1760642238013-22313",
           "name": "代肝项目",
-          "remark": ""
+          "remark": "",
+          "announce": {
+            "text": "",
+            "style": {
+              "color": "#1f2937",
+              "bgColor": "#ffffff",
+              "fontSize": 14,
+              "bold": false
+            }
+          }
         }
       ],
       "services": [
         {
           "id": "genshin-1",
-          "title": "日常委托+每日体力【普托】",
+          "title": "【普托】日常委托+每日体力",
           "desc": "有130及以上历练点，则-30￥，找客服退钱qwq 可随意指定，一天清一次",
           "priceOptions": [
             {
@@ -76,7 +148,7 @@
         },
         {
           "id": "genshin-2",
-          "title": "普托+大小活动【原石托】",
+          "title": "【原石托】普托+大小活动",
           "desc": "一月内普托+大小活动 超值！",
           "priceOptions": [
             {
@@ -102,7 +174,7 @@
         },
         {
           "id": "genshin-3",
-          "title": "普托+大月卡【半托】",
+          "title": "【半托】普托+大月卡",
           "desc": "一月内普托+大月卡等级",
           "priceOptions": [
             {
@@ -128,7 +200,7 @@
         },
         {
           "id": "genshin-4",
-          "title": "半托+大小活动 【精托】",
+          "title": "【精托】半托+大小活动",
           "desc": "一月内半托+大小活动 超值！",
           "priceOptions": [
             {
@@ -154,7 +226,7 @@
         },
         {
           "id": "genshin-5",
-          "title": "精托+声望+角色养成+圣遗物强化+深渊尽量打【全托】",
+          "title": "【全托】精托+声望+角色养成+圣遗物强化+深渊尽量打",
           "desc": "角色养成指帮配圣遗物 帮配队（按攻略视频）尽量高分养成 每天上两次号",
           "priceOptions": [
             {
@@ -180,7 +252,7 @@
         },
         {
           "id": "genshin-6",
-          "title": "全托+养角色+一些零零碎碎的【养成完全托】",
+          "title": "【养成完全托】全托+养角色+一些零零碎碎的",
           "desc": "养1~2个角色 可以从零开始练 按打深渊练度练 每天上两次号",
           "priceOptions": [
             {
@@ -216,7 +288,7 @@
             }
           ],
           "discount": {
-            "enabled": false,
+            "enabled": true,
             "type": "more"
           },
           "paymentMethods": [
@@ -227,7 +299,7 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管类（单点）",
           "subsetId": "ss1760262896078-95239"
         },
         {
@@ -242,7 +314,7 @@
             }
           ],
           "discount": {
-            "enabled": false,
+            "enabled": true,
             "type": "more"
           },
           "paymentMethods": [
@@ -253,7 +325,7 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管类（单点）",
           "subsetId": "ss1760262896078-95239"
         },
         {
@@ -268,7 +340,7 @@
             }
           ],
           "discount": {
-            "enabled": false,
+            "enabled": true,
             "type": "more"
           },
           "paymentMethods": [
@@ -279,7 +351,7 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管类（单点）",
           "subsetId": "ss1760262896078-95239"
         },
         {
@@ -294,7 +366,7 @@
             }
           ],
           "discount": {
-            "enabled": false,
+            "enabled": true,
             "type": "more"
           },
           "paymentMethods": [
@@ -305,7 +377,7 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管类（单点）",
           "subsetId": "ss1760262896078-95239"
         },
         {
@@ -331,68 +403,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "托管相关",
+          "subset": "托管类（单点）",
           "subsetId": "ss1760262896078-95239"
         },
         {
           "id": "genshin-12",
-          "title": "探索度需知",
-          "desc": "55%-65%=9折 65%-75%=8折 75%-85%=7折 85%-95%=5折 95%以上=3折",
-          "priceOptions": [
-            {
-              "label": "次",
-              "price": 99999999,
-              "remark": ""
-            },
-            {
-              "label": "单次",
-              "price": 0,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "second"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "探索相关",
-          "subsetId": "ss1760262914493-18202"
-        },
-        {
-          "id": "genshin-13",
-          "title": "全宝箱价格=原本价格+原本价格的20%",
-          "desc": "探索度≈90%宝箱+神瞳+传送点+地灵龛  探索度100%≠全宝箱 全宝箱≠探索度100%",
-          "priceOptions": [
-            {
-              "label": "次",
-              "price": 99999999,
-              "remark": ""
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "探索相关",
-          "subsetId": "ss1760262914493-18202"
-        },
-        {
-          "id": "genshin-14",
           "title": "各国探索度100%",
           "desc": "含全神瞳 不含前置任务 需要单个区域请找客服小鹿",
           "priceOptions": [
@@ -464,11 +479,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "探索相关",
+          "subset": "探索类",
           "subsetId": "ss1760262914493-18202"
         },
         {
-          "id": "genshin-15",
+          "id": "genshin-13",
           "title": "版本活动全包",
           "desc": "除了夏活",
           "priceOptions": [
@@ -490,11 +505,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "活动相关",
+          "subset": "活动类",
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-16",
+          "id": "genshin-14",
           "title": "小活动",
           "desc": "25~35r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -516,11 +531,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "活动相关",
+          "subset": "活动类",
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-17",
+          "id": "genshin-15",
           "title": "小活动",
           "desc": "25~35r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -542,11 +557,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "活动相关",
+          "subset": "活动类",
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-18",
+          "id": "genshin-16",
           "title": "大活动",
           "desc": "70~90r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -568,11 +583,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "活动相关",
+          "subset": "活动类",
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-19",
+          "id": "genshin-17",
           "title": "大活动",
           "desc": "70~90r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -594,11 +609,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "活动相关",
+          "subset": "活动类",
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-20",
+          "id": "genshin-18",
           "title": "深渊9-12",
           "desc": "看号打不过退钱qwq",
           "priceOptions": [
@@ -620,11 +635,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "活动相关",
+          "subset": "活动类",
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-21",
+          "id": "genshin-19",
           "title": "幽境危战 幻想真境剧诗",
           "desc": "幽20-30r 幻30-50r 麻烦找一下客服小鹿",
           "priceOptions": [
@@ -646,11 +661,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "活动相关",
+          "subset": "活动类",
           "subsetId": "ss1760288775230-92870"
         },
         {
-          "id": "genshin-22",
+          "id": "genshin-20",
           "title": "角色升级0-90级",
           "desc": "指定角色练等级到90级 最晚7天内 加急一天内75r(要有足够树脂)",
           "priceOptions": [
@@ -672,11 +687,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "角色相关",
+          "subset": "角色类",
           "subsetId": "ss1760361237456-76114"
         },
         {
-          "id": "genshin-23",
+          "id": "genshin-21",
           "title": "突破材料",
           "desc": "指定角色的boos突破材料",
           "priceOptions": [
@@ -698,11 +713,11 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "角色相关",
+          "subset": "角色类",
           "subsetId": "ss1760361237456-76114"
         },
         {
-          "id": "genshin-24",
+          "id": "genshin-22",
           "title": "地区特产",
           "desc": "给角色突破的地方特产",
           "priceOptions": [
@@ -724,89 +739,10 @@
             "type": "微信",
             "value": "shikacyayuzu"
           },
-          "subset": "采集相关",
+          "subset": "采集类",
           "subsetId": "ss1760361700842-81317"
         }
       ]
-    },
-    {
-      "id": "g1760091190321",
-      "name": "崩坏：星穹铁道",
-      "tag": "不开放世界（",
-      "needsSubset": true,
-      "subsets": [
-        {
-          "id": "ss-g1760091190321",
-          "name": "托管相关",
-          "remark": ""
-        }
-      ],
-      "services": [
-        {
-          "id": "g1760091190321-1",
-          "title": "体力",
-          "desc": "只打体力",
-          "priceOptions": [
-            {
-              "label": "一个月",
-              "price": 35
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "托管相关",
-          "subsetId": "ss-g1760091190321"
-        },
-        {
-          "id": "g1760091190321-2",
-          "title": "日常+体力",
-          "desc": "",
-          "priceOptions": [
-            {
-              "label": "月",
-              "price": 60
-            }
-          ],
-          "discount": {
-            "enabled": false,
-            "type": "more"
-          },
-          "paymentMethods": [
-            "微信",
-            "支付宝"
-          ],
-          "contact": {
-            "type": "微信",
-            "value": "shikacyayuzu"
-          },
-          "subset": "托管相关",
-          "subsetId": "ss-g1760091190321"
-        }
-      ]
-    },
-    {
-      "id": "g1760356471697",
-      "name": "绝区零",
-      "tag": "",
-      "needsSubset": true,
-      "subsets": [
-        {
-          "id": "ss1760356468686",
-          "name": "代肝项目",
-          "remark": ""
-        }
-      ],
-      "services": []
     },
     {
       "id": "g1760353905502",
@@ -852,7 +788,7 @@
           ],
           "contact": {
             "type": "微信",
-            "value": ""
+            "value": "shikacyayuzu"
           },
           "subset": "跑刀",
           "subsetId": "ss1760353545879"
@@ -878,10 +814,113 @@
           ],
           "contact": {
             "type": "微信",
-            "value": ""
+            "value": "shikacyayuzu"
           },
           "subset": "赛季3X3",
           "subsetId": "ss1760353848576-24502"
+        },
+        {
+          "id": "g1760353905502-3",
+          "title": "部门任务",
+          "desc": "升级你的特勤处",
+          "priceOptions": [
+            {
+              "label": "1升2",
+              "price": 3.5,
+              "remark": "单个任务"
+            },
+            {
+              "label": "2升3",
+              "price": 5,
+              "remark": "单个任务"
+            },
+            {
+              "label": "3升4",
+              "price": 7.5,
+              "remark": "单个任务"
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          },
+          "subset": "代肝项目",
+          "subsetId": null
+        }
+      ]
+    },
+    {
+      "id": "g1760091190321",
+      "name": "崩坏：星穹铁道",
+      "tag": "不开放世界（",
+      "needsSubset": true,
+      "subsets": [
+        {
+          "id": "ss-g1760091190321",
+          "name": "托管相关",
+          "remark": ""
+        }
+      ],
+      "services": [
+        {
+          "id": "g1760091190321-1",
+          "title": "体力",
+          "desc": "只打体力",
+          "priceOptions": [
+            {
+              "label": "一个月",
+              "price": 35,
+              "remark": ""
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          },
+          "subset": "托管相关",
+          "subsetId": "ss-g1760091190321"
+        },
+        {
+          "id": "g1760091190321-2",
+          "title": "日常+体力",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "月",
+              "price": 60,
+              "remark": ""
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信",
+            "支付宝"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": "shikacyayuzu"
+          },
+          "subset": "托管相关",
+          "subsetId": "ss-g1760091190321"
         }
       ]
     },
@@ -905,7 +944,8 @@
           "priceOptions": [
             {
               "label": "月",
-              "price": 58
+              "price": 58,
+              "remark": ""
             }
           ],
           "discount": {
@@ -918,10 +958,50 @@
           ],
           "contact": {
             "type": "微信",
-            "value": ""
+            "value": "shikacyayuzu"
           },
           "subset": "委托相关",
           "subsetId": "ss1760354373724"
+        }
+      ]
+    },
+    {
+      "id": "g1760356466428",
+      "name": "无畏契约",
+      "tag": "哈哈哈！颗秒！邦邦邦邦邦！",
+      "needsSubset": false,
+      "subsets": [
+        {
+          "id": "ss1760356455976",
+          "name": "代肝项目",
+          "remark": ""
+        }
+      ],
+      "services": [
+        {
+          "id": "g1760356466428-1",
+          "title": "赛季通行证",
+          "desc": "",
+          "priceOptions": [
+            {
+              "label": "单次",
+              "price": 0,
+              "remark": ""
+            }
+          ],
+          "discount": {
+            "enabled": false,
+            "type": "more"
+          },
+          "paymentMethods": [
+            "微信"
+          ],
+          "contact": {
+            "type": "微信",
+            "value": ""
+          },
+          "subset": "代肝项目",
+          "subsetId": null
         }
       ]
     },
@@ -939,7 +1019,8 @@
           "priceOptions": [
             {
               "label": "单次",
-              "price": 0
+              "price": 0,
+              "remark": ""
             }
           ],
           "discount": {
@@ -952,7 +1033,7 @@
           ],
           "contact": {
             "type": "微信",
-            "value": ""
+            "value": "shikacyayuzu"
           },
           "subset": "代肝项目",
           "subsetId": null
@@ -964,7 +1045,8 @@
           "priceOptions": [
             {
               "label": "小段",
-              "price": 10000
+              "price": 10000,
+              "remark": ""
             }
           ],
           "discount": {
@@ -977,7 +1059,7 @@
           ],
           "contact": {
             "type": "微信",
-            "value": ""
+            "value": "shikacyayuzu"
           },
           "subset": "代肝项目",
           "subsetId": null
@@ -985,13 +1067,13 @@
       ]
     },
     {
-      "id": "g1760356466428",
-      "name": "无畏契约",
+      "id": "g1760356471697",
+      "name": "绝区零",
       "tag": "",
       "needsSubset": true,
       "subsets": [
         {
-          "id": "ss1760356455976",
+          "id": "ss1760356468686",
           "name": "代肝项目",
           "remark": ""
         }

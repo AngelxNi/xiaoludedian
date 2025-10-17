@@ -72,7 +72,9 @@
 .subset-services.closing > .anim-content{opacity:0;transform:translateY(-6px)}
 .subset .toggleIndicator{font-size:18px;color:var(--muted);padding-left:8px}
 /* 子集备注样式：灰色、小字号，位于子集名称下方 */
-  .subset-remark{font-size:12px;color:var(--muted);margin-top:4px}
+  .subset-remark{font-size:12px;color:var(--muted);margin-top:4px;white-space:pre-line}
+  .price-remark{font-size:12px;color:var(--muted);margin-top:4px;white-space:pre-line}
+  .subset-announce{white-space:pre-line}
 
   /* 文本可编辑覆盖层与目标定位 */
 .editable-target{position:relative}
@@ -2295,6 +2297,9 @@ function renderList(filter='') {
       const header = document.createElement('div');
       header.className = 'subset-header';
       header.innerHTML = `<div style="display:flex;flex-direction:column;gap:2px"><div class="subset-name">${ss.name}</div>${ss.remark ? `<div class=\"subset-remark\">${ss.remark}</div>` : ''}</div><div class="toggleIndicator">+</div>`;
+      // 保留并安全渲染子集备注的换行（避免 innerHTML 解析 HTML）
+      const subRemarkEl = header.querySelector('.subset-remark');
+      if(subRemarkEl){ subRemarkEl.textContent = ss.remark || ''; }
       const indicator = header.querySelector('.toggleIndicator');
       const body = document.createElement('div');
       body.className = 'subset-services';
@@ -2329,6 +2334,24 @@ function renderList(filter='') {
       });
 
       group.appendChild(header);
+      // 子集公告（若有）显示在服务列表顶部
+      if(ss && ss.announce && ss.announce.text){
+        const announceEl = document.createElement('div');
+        announceEl.className = 'subset-announce';
+        announceEl.textContent = ss.announce.text;
+        const st = (ss.announce && ss.announce.style) || {};
+        // 应用样式：颜色/背景/字号/加粗
+        if(st.color){ announceEl.style.color = st.color; }
+        if(st.bgColor){ announceEl.style.background = st.bgColor; }
+        if(typeof st.fontSize === 'number'){ announceEl.style.fontSize = st.fontSize + 'px'; }
+        announceEl.style.fontWeight = st.bold ? '700' : '400';
+        // 统一的区块样式
+        announceEl.style.padding = '10px 12px';
+        announceEl.style.borderRadius = '8px';
+        announceEl.style.margin = '8px 0';
+        announceEl.style.border = '1px solid var(--border)';
+        body.appendChild(announceEl);
+      }
       body.appendChild(bodyInner);
       group.appendChild(body);
       srvInner.appendChild(group);
@@ -2588,6 +2611,9 @@ function showService(svc, game, mountTarget){
         `}
       </div>
     `;
+    // 保留并安全渲染价格备注的换行（避免 innerHTML 解析 HTML）
+    const priceRemarkEl = pc.querySelector('.price-remark');
+    if(priceRemarkEl){ priceRemarkEl.textContent = p.remark || ''; }
     pc.dataset.price = p.price;
     pc.dataset.label = p.label;
     pc.dataset.index = String(idx);
@@ -3050,9 +3076,9 @@ function openModal(mode, game=null, gameIndex=null, targetSubset=null){
       }
       if(subsets.length===0){ subsets = [{ id: 'ss'+Date.now()+'-'+Math.floor(Math.random()*100000), name: '代肝项目' }]; }
       // 记录当前子集配置以便切回时恢复
-      __edit_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'' }));
+      __edit_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'', announce: ss.announce || {} }));
       subsets.forEach(ss=>{
-        const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '');
+        const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '', ss.announce || {});
         servicesContainer.appendChild(grp);
         const body = grp._refs.body;
         (game.services||[]).filter(svc=>svc.subsetId===ss.id).forEach(svc=>{
@@ -3086,9 +3112,9 @@ function openModal(mode, game=null, gameIndex=null, targetSubset=null){
           ? tempSubsets
           : ((Array.isArray(__edit_lastSubsets) && __edit_lastSubsets.length>0) ? __edit_lastSubsets : [{ id: 'ss'+Date.now(), name: '代肝项目', remark: '' }]);
         // 更新缓存，保持最新
-        __edit_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'' }));
+        __edit_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'', announce: ss.announce || {} }));
         subsets.forEach(ss=>{
-          const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '');
+          const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '', ss.announce || {});
           servicesContainer.appendChild(grp);
           const body = grp._refs.body;
           tempServices.filter(svc=>{
@@ -3158,10 +3184,10 @@ function openModal(mode, game=null, gameIndex=null, targetSubset=null){
         let subsets = (Array.isArray(tempSubsets) && tempSubsets.length>0)
           ? tempSubsets
           : ((Array.isArray(__create_lastSubsets) && __create_lastSubsets.length>0) ? __create_lastSubsets : [{ id: 'ss'+Date.now(), name: '代肝项目', remark: '' }]);
-        __create_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'' }));
+        __create_lastSubsets = subsets.map(ss=>({ id:ss.id, name:ss.name, remark:ss.remark||'', announce: ss.announce || {} }));
         // 渲染子集与服务归属
         subsets.forEach(ss=>{
-          const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '');
+          const grp = makeSubsetGroup(ss.name, ss.id, ss.remark || '', ss.announce || {});
           servicesContainer.appendChild(grp);
           const body = grp._refs.body;
           tempServices.filter(svc=>{
